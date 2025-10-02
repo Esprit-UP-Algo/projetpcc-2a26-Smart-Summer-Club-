@@ -21,7 +21,8 @@ FORMS += \
     employeradmin.ui \
     login.ui
     
-RESOURCES += resources.qrc
+RESOURCES += \
+    resources.qrc
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

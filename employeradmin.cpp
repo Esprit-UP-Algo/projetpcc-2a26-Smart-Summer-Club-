@@ -261,99 +261,54 @@ void EmployerAdmin::clearEmployeeForm()
 
 void EmployerAdmin::setupIcons()
 {
-    // This function safely adds icons without breaking existing functionality
-    // Icons will only be applied if the resource files exist
+    QSize iconSize(24, 24);  // Set consistent icon size
     
-    QSize iconSize(16, 16);  // Small icons that won't mess up layout
+    // Debug: Test icon loading
+    qDebug() << "🔍 Testing icon loading...";
+    qDebug() << "Application directory:" << QApplication::applicationDirPath();
     
-    // Check if icon resources exist before trying to use them
-    QResource employeesRes(":/icons/employees.png");
-    if (employeesRes.isValid()) {
-        ui->employeesButton->setIcon(QIcon(":/icons/employees.png"));      // Employees
-        ui->employeesButton->setIconSize(iconSize);
+    // Try loading icons from multiple locations
+    QString appDir = QApplication::applicationDirPath();
+    QStringList employeePaths = {
+        appDir + "/employees.png",           // Same directory as executable
+        appDir + "/icons/employees.png",     // Icons subdirectory
+        ":/icons/employees.png"              // Qt resources (if working)
+    };
+    
+    QIcon employeesIcon;
+    for (const QString& path : employeePaths) {
+        employeesIcon = QIcon(path);
+        if (!employeesIcon.isNull()) {
+            ui->employeesButton->setIcon(employeesIcon);
+            ui->employeesButton->setIconSize(iconSize);
+            qDebug() << "✅ Employees icon loaded from:" << path;
+            break;
+        } else {
+            qDebug() << "❌ Failed to load from:" << path;
+        }
     }
     
-    QResource membersRes(":/icons/members.png");
-    if (membersRes.isValid()) {
-        ui->membersButton->setIcon(QIcon(":/icons/members.png"));        // Members
-        ui->membersButton->setIconSize(iconSize);
+    QStringList memberPaths = {
+        appDir + "/members.png",
+        appDir + "/icons/members.png",
+        ":/icons/members.png"
+    };
+    
+    QIcon membersIcon;
+    for (const QString& path : memberPaths) {
+        membersIcon = QIcon(path);
+        if (!membersIcon.isNull()) {
+            ui->membersButton->setIcon(membersIcon);
+            ui->membersButton->setIconSize(iconSize);
+            qDebug() << "✅ Members icon loaded from:" << path;
+            break;
+        } else {
+            qDebug() << "❌ Failed to load from:" << path;
+        }
     }
     
-    QResource equipmentRes(":/icons/equipment.png");
-    if (equipmentRes.isValid()) {
-        ui->equipmentButton->setIcon(QIcon(":/icons/equipment.png"));    // Equipment
-        ui->equipmentButton->setIconSize(iconSize);
-    }
-
-    QResource activitiesRes(":/icons/activities.png");
-    if (activitiesRes.isValid()) {
-        ui->activitiesButton->setIcon(QIcon(":/icons/activities.png"));  // Activities
-        ui->activitiesButton->setIconSize(iconSize);
-    }
-    
-    QResource paymentsRes(":/icons/payments.png");
-    if (paymentsRes.isValid()) {
-        ui->paymentsButton->setIcon(QIcon(":/icons/payments.png"));      // Payments
-        ui->paymentsButton->setIconSize(iconSize);
-    }
-
-    
-    // Employee Tab Action buttons
-    QResource employeeSearchRes(":/icons/search.png");
-    if (employeeSearchRes.isValid()) {
-        ui->employeeSearchButton->setIcon(QIcon(":/icons/search.png"));
-        ui->employeeSearchButton->setIconSize(iconSize);
-    }
-    
-    QResource employeeUploadRes(":/icons/upload.png");
-    if (employeeUploadRes.isValid()) {
-        ui->employeeUploadPhotoButton->setIcon(QIcon(":/icons/upload.png"));
-        ui->employeeUploadPhotoButton->setIconSize(iconSize);
-    }
-    
-    QResource employeeConfirmRes(":/icons/confirm.png");
-    if (employeeConfirmRes.isValid()) {
-        ui->confirmAddButton->setIcon(QIcon(":/icons/confirm.png"));
-        ui->confirmAddButton->setIconSize(iconSize);
-    }
-    
-    QResource employeeUpdateRes(":/icons/edit.png");
-    if (employeeUpdateRes.isValid()) {
-        ui->confirmUpdateButton->setIcon(QIcon(":/icons/edit.png"));
-        ui->confirmUpdateButton->setIconSize(iconSize);
-    }
-    
-    // Member Tab Action buttons (add icons when you have member buttons)
-    QResource memberSearchRes(":/icons/search.png");
-    if (memberSearchRes.isValid()) {
-        ui->memberSearchButton->setIcon(QIcon(":/icons/search.png"));
-        ui->memberSearchButton->setIconSize(iconSize);
-    }
-    
-    QResource memberUploadRes(":/icons/upload.png");
-    if (memberUploadRes.isValid()) {
-        ui->memberUploadPhotoButton->setIcon(QIcon(":/icons/upload.png"));
-        ui->memberUploadPhotoButton->setIconSize(iconSize);
-    }
-    
-    QResource memberConfirmRes(":/icons/confirm.png");
-    if (memberConfirmRes.isValid()) {
-        ui->memberConfirmAddButton->setIcon(QIcon(":/icons/confirm.png"));
-        ui->memberConfirmAddButton->setIconSize(iconSize);
-    }
-    
-    QResource memberUpdateRes(":/icons/edit.png");
-    if (memberUpdateRes.isValid()) {
-        ui->memberConfirmUpdateButton->setIcon(QIcon(":/icons/edit.png"));
-        ui->memberConfirmUpdateButton->setIconSize(iconSize);
-    }
-    
-    // Activity Tab Action buttons (add icons when you have activity buttons)
-    QResource activitySearchRes(":/icons/search.png");
-    if (activitySearchRes.isValid()) {
-        ui->activitySearchButton->setIcon(QIcon(":/icons/search.png"));
-        ui->activitySearchButton->setIconSize(iconSize);
-    }
+    // Only focus on employees and members icons for now
+    qDebug() << "🔧 Icon setup completed for employees and members buttons only.";
     
     QResource activityConfirmRes(":/icons/confirm.png");
     if (activityConfirmRes.isValid()) {

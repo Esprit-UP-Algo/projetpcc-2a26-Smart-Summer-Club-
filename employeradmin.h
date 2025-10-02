@@ -11,6 +11,7 @@
 #include <QFileInfo>
 #include <QIcon>
 #include <QResource>
+#include <QDebug>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {

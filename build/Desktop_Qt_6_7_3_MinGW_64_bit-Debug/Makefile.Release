@@ -351,6 +351,7 @@ release/moc_employeradmin.cpp: ../../employeradmin.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/QIcon \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QResource \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/qresource.h \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QDebug \
 		release/moc_predefs.h \
 		C:/Qt/6.7.3/mingw_64/bin/moc.exe
 	C:\Qt\6.7.3\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/Khalil/Documents/employer_adminstrator/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/release/moc_predefs.h -IC:/Qt/6.7.3/mingw_64/mkspecs/win32-g++ -IC:/Users/Khalil/Documents/employer_adminstrator -IC:/Qt/6.7.3/mingw_64/include -IC:/Qt/6.7.3/mingw_64/include/QtWidgets -IC:/Qt/6.7.3/mingw_64/include/QtGui -IC:/Qt/6.7.3/mingw_64/include/QtCore -I. -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++ -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed -IC:/Qt/Tools/mingw1120_64/x86_64-w64-mingw32/include ..\..\employeradmin.h -o release\moc_employeradmin.cpp
@@ -805,6 +806,7 @@ release/main.o: ../../main.cpp ../../employeradmin.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/QIcon \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QResource \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/qresource.h \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QDebug \
 		../../login.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QDialog \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QApplication \
@@ -1039,6 +1041,7 @@ release/employeradmin.o: ../../employeradmin.cpp ../../employeradmin.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/QIcon \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QResource \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/qresource.h \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QDebug \
 		ui_employeradmin.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\employeradmin.o ..\..\employeradmin.cpp
 
