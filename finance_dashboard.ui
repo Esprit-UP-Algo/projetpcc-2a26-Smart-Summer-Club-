@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FinanceDashboard</class>
+ <widget class="QMainWindow" name="FinanceDashboard">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1000</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Finance Dashboard</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayoutLeft">
+      <item>
+       <widget class="QPushButton" name="btnPayment">
+        <property name="text">
+         <string>Payment</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="verticalSpacerLeft">
+        <property name="orientation">
+         <enum>Qt::Orientation::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Policy::Expanding</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayoutCentral">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayoutTop">
+        <item>
+         <widget class="QPushButton" name="btnAddPayment">
+          <property name="text">
+           <string>Add Payment</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnAddExpense">
+          <property name="text">
+           <string>Add Expense</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnDashboard">
+          <property name="text">
+           <string>Dashboard</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacerTop">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeType">
+           <enum>QSizePolicy::Policy::Expanding</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QStackedWidget" name="stackedWidget">
+        <property name="currentIndex">
+         <number>2</number>
+        </property>
+        <widget class="QWidget" name="pageAddPayment">
+         <layout class="QFormLayout" name="formLayoutAddPayment"/>
+        </widget>
+        <widget class="QWidget" name="pageAddExpense">
+         <layout class="QFormLayout" name="formLayoutAddExpense"/>
+        </widget>
+        <widget class="QWidget" name="pageDashboard">
+         <layout class="QVBoxLayout" name="verticalLayoutDashboard">
+          <item>
+           <widget class="QTableWidget" name="dashboardTable"/>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayoutRight">
+      <item>
+       <widget class="QLabel" name="totalIncomeLabel">
+        <property name="text">
+         <string>Total Income: 0</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="totalExpensesLabel">
+        <property name="text">
+         <string>Total Expenses: 0</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="balanceLabel">
+        <property name="text">
+         <string>Balance: 0</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="verticalSpacerRight">
+        <property name="orientation">
+         <enum>Qt::Orientation::Vertical</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Policy::Expanding</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
