@@ -1,0 +1,1094 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1200</width>
+    <height>800</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>VIBRA CLUB - Management System</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QMainWindow {
+    background-color: #f5f7fa;
+}
+
+/* Sidebar Styling */
+#sidebarFrame {
+    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                                      stop:0 rgba(22, 165, 179, 0.28),
+                                      stop:1 rgba(22, 165, 179, 0.12));
+    border-right: 1px solid #e0e4e7;
+}
+
+#navigationFrame {
+    background-color: transparent;
+}
+
+QPushButton#paymentsButton, QPushButton#equipmentButton {
+    background-color: transparent;
+    border: none;
+    padding: 15px 20px;
+    text-align: left;
+    font-size: 14px;
+    color: #2c3e50;
+    border-radius: 8px;
+    margin: 2px 10px;
+}
+
+QPushButton#paymentsButton:hover, QPushButton#equipmentButton:hover {
+    background-color: #e8f4f5;
+}
+
+QPushButton#paymentsButton:checked, QPushButton#equipmentButton:checked {
+    background-color: #16a5b3;
+    color: white;
+}
+
+QPushButton#paymentsButton:checked:hover, QPushButton#equipmentButton:checked:hover {
+    background-color: #139aa6;
+}
+
+/* Tab Widget Styling */
+QTabWidget::pane {
+    border: 2px solid #16a5b3;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(22, 165, 179, 0.1);
+}
+
+QTabBar::tab {
+    background-color: rgba(22, 165, 179, 0.10);
+    color: #2c3e50;
+    padding: 12px 24px;
+    margin-right: 2px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border: 1.5px solid rgba(22, 165, 179, 0.65);
+    border-bottom: none;
+}
+
+QTabBar::tab:selected {
+    background-color: #16a5b3;
+    color: white;
+    border-color: #16a5b3;
+    font-weight: 600;
+}
+
+QTabBar::tab:hover:!selected {
+    background-color: rgba(22, 165, 179, 0.18);
+    border-color: #16a5b3;
+}
+
+/* Statistics Cards Styling */
+QFrame[objectName*=&quot;Card&quot;] {
+    background-color: white;
+    border: 1px solid #e0e4e7;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+QFrame[objectName*=&quot;Card&quot;]:hover {
+    box-shadow: 0 4px 20px rgba(22, 165, 179, 0.15);
+    border-color: #16a5b3;
+}
+
+/* Form Styling */
+QLineEdit {
+    padding: 14px 16px;
+    border: 2px solid #e0e4e7;
+    border-radius: 10px;
+    font-size: 14px;
+    background-color: white;
+}
+
+QLineEdit:focus {
+    border-color: #16a5b3;
+    box-shadow: 0 0 0 3px rgba(22, 165, 179, 0.1);
+}
+
+QComboBox {
+    padding: 14px 16px;
+    border: 2px solid #e0e4e7;
+    border-radius: 10px;
+    font-size: 14px;
+    background-color: white;
+}
+
+QComboBox:focus {
+    border-color: #16a5b3;
+    box-shadow: 0 0 0 3px rgba(22, 165, 179, 0.1);
+}
+
+QDateEdit, QSpinBox {
+    padding: 14px 16px;
+    border: 2px solid #e0e4e7;
+    border-radius: 10px;
+    font-size: 14px;
+    background-color: white;
+}
+
+QDateEdit:focus, QSpinBox:focus {
+    border-color: #16a5b3;
+    box-shadow: 0 0 0 3px rgba(22, 165, 179, 0.1);
+}
+
+QPushButton#actionButton {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                               stop:0 #16a5b3, stop:1 #139aa6);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+QPushButton#actionButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                               stop:0 #139aa6, stop:1 #0f858f);
+}
+
+/* Table Styling */
+QTableWidget {
+    background-color: white;
+    gridline-color: #e6eef0;
+    border: 2px solid #16a5b3;
+    border-radius: 12px;
+    selection-background-color: rgba(22, 165, 179, 0.14);
+}
+
+QHeaderView::section {
+    background-color: #16a5b3;
+    color: white;
+    padding: 8px 10px;
+    border: none;
+    font-weight: 600;
+}
+
+/* Default buttons */
+QPushButton {
+    background-color: rgba(22, 165, 179, 0.10);
+    color: #2c3e50;
+    border: 1.5px solid rgba(22, 165, 179, 0.65);
+    padding: 10px 16px;
+    border-radius: 10px;
+}
+
+QPushButton:hover {
+    background-color: rgba(22, 165, 179, 0.18);
+}
+
+QLabel {
+    color: #2c3e50;
+}
+</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="mainHorizontalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QFrame" name="sidebarFrame">
+      <property name="minimumSize">
+       <size>
+        <width>250</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>250</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <layout class="QVBoxLayout" name="sidebarLayout">
+       <property name="spacing">
+        <number>10</number>
+       </property>
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>20</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>20</number>
+       </property>
+       <item>
+        <widget class="QFrame" name="navigationFrame">
+         <layout class="QVBoxLayout" name="navigationLayout">
+          <property name="spacing">
+           <number>5</number>
+          </property>
+          <item>
+           <widget class="QPushButton" name="paymentsButton">
+            <property name="text">
+             <string>  Payments</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="equipmentButton">
+            <property name="text">
+             <string>  Equipment</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QStackedWidget" name="stackedWidget">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="paymentPage">
+       <layout class="QVBoxLayout" name="paymentPageLayout">
+        <item>
+         <widget class="QTabWidget" name="paymentTabWidget">
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <widget class="QWidget" name="paymentListTab">
+           <attribute name="title">
+            <string>List of Payments</string>
+           </attribute>
+           <layout class="QVBoxLayout" name="paymentListLayout">
+            <item>
+             <widget class="QFrame" name="paymentSearchFrame">
+              <layout class="QHBoxLayout" name="paymentSearchLayout">
+               <item>
+                <widget class="QLineEdit" name="paymentSearchLineEdit">
+                 <property name="placeholderText">
+                  <string>Search transactions...</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="paymentSearchButton">
+                 <property name="text">
+                  <string>Search</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer">
+                 <property name="orientation">
+                  <enum>Qt::Orientation::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QPushButton" name="paymentSortButton">
+                 <property name="text">
+                  <string>Sort by Date</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="paymentExportButton">
+                 <property name="text">
+                  <string>Export PDF</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QTableWidget" name="paymentTable">
+              <property name="alternatingRowColors">
+               <bool>true</bool>
+              </property>
+              <property name="rowCount">
+               <number>2</number>
+              </property>
+              <property name="columnCount">
+               <number>8</number>
+              </property>
+              <row/>
+              <row/>
+              <column>
+               <property name="text">
+                <string>Transaction ID</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Date</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Description</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Type</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Amount</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Method</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Status</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Member ID</string>
+               </property>
+              </column>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="paymentAddTab">
+           <attribute name="title">
+            <string>Add Payment</string>
+           </attribute>
+           <layout class="QVBoxLayout" name="paymentAddLayout">
+            <item>
+             <widget class="QScrollArea" name="paymentScrollArea">
+              <property name="widgetResizable">
+               <bool>true</bool>
+              </property>
+              <widget class="QWidget" name="paymentScrollContent">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>0</y>
+                 <width>900</width>
+                 <height>704</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="paymentFormLayout">
+                <item>
+                 <widget class="QFrame" name="paymentFormFrame">
+                  <layout class="QGridLayout" name="paymentGridLayout">
+                   <item row="0" column="0">
+                    <widget class="QLabel" name="paymentTypeLabel">
+                     <property name="text">
+                      <string>Transaction Type:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="0" column="1">
+                    <widget class="QComboBox" name="paymentTypeCombo">
+                     <item>
+                      <property name="text">
+                       <string>Income</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>Expense</string>
+                      </property>
+                     </item>
+                    </widget>
+                   </item>
+                   <item row="1" column="0">
+                    <widget class="QLabel" name="paymentDescriptionLabel">
+                     <property name="text">
+                      <string>Description:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="1" column="1">
+                    <widget class="QLineEdit" name="paymentDescriptionEdit">
+                     <property name="placeholderText">
+                      <string>Enter transaction description</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="0">
+                    <widget class="QLabel" name="paymentDateLabel">
+                     <property name="text">
+                      <string>Date:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="1">
+                    <widget class="QDateEdit" name="paymentDateEdit">
+                     <property name="calendarPopup">
+                      <bool>true</bool>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="2">
+                    <widget class="QLabel" name="paymentAmountLabel">
+                     <property name="text">
+                      <string>Amount:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="2" column="3">
+                    <widget class="QDoubleSpinBox" name="paymentAmountSpinBox">
+                     <property name="prefix">
+                      <string>TND </string>
+                     </property>
+                     <property name="maximum">
+                      <double>999999.989999999990687</double>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="0">
+                    <widget class="QLabel" name="paymentMethodLabel">
+                     <property name="text">
+                      <string>Payment Method:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="1">
+                    <widget class="QComboBox" name="paymentMethodCombo">
+                     <item>
+                      <property name="text">
+                       <string>Cash</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>Credit Card</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>Debit Card</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>Bank Transfer</string>
+                      </property>
+                     </item>
+                    </widget>
+                   </item>
+                   <item row="3" column="2">
+                    <widget class="QLabel" name="paymentCategoryLabel">
+                     <property name="text">
+                      <string>Category:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="3" column="3">
+                    <widget class="QComboBox" name="paymentCategoryCombo">
+                     <item>
+                      <property name="text">
+                       <string>Membership Fees</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>Equipment</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>Utilities</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>Salaries</string>
+                      </property>
+                     </item>
+                    </widget>
+                   </item>
+                   <item row="4" column="0">
+                    <widget class="QLabel" name="paymentMemberLabel">
+                     <property name="text">
+                      <string>Member ID:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="4" column="1">
+                    <widget class="QLineEdit" name="paymentMemberEdit">
+                     <property name="placeholderText">
+                      <string>Enter member ID</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="4" column="2">
+                    <widget class="QLabel" name="paymentStatusLabel">
+                     <property name="text">
+                      <string>Status:</string>
+                     </property>
+                    </widget>
+                   </item>
+                   <item row="4" column="3">
+                    <widget class="QComboBox" name="paymentStatusCombo">
+                     <item>
+                      <property name="text">
+                       <string>Completed</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>Pending</string>
+                      </property>
+                     </item>
+                     <item>
+                      <property name="text">
+                       <string>Failed</string>
+                      </property>
+                     </item>
+                    </widget>
+                   </item>
+                   <item row="5" column="0" colspan="4">
+                    <layout class="QHBoxLayout" name="paymentButtonLayout">
+                     <item>
+                      <spacer name="horizontalSpacer_2">
+                       <property name="orientation">
+                        <enum>Qt::Orientation::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="addPaymentButton">
+                       <property name="text">
+                        <string>Add Payment</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="clearPaymentFormButton">
+                       <property name="text">
+                        <string>Clear Form</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <spacer name="horizontalSpacer_3">
+                       <property name="orientation">
+                        <enum>Qt::Orientation::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                    </layout>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="paymentStatsTab">
+           <attribute name="title">
+            <string>Statistics</string>
+           </attribute>
+           <layout class="QVBoxLayout" name="paymentStatsLayout">
+            <item>
+             <widget class="QScrollArea" name="paymentStatsScrollArea">
+              <property name="widgetResizable">
+               <bool>true</bool>
+              </property>
+              <widget class="QWidget" name="paymentStatsContent">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>0</y>
+                 <width>900</width>
+                 <height>704</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="paymentStatsContentLayout">
+                <item>
+                 <widget class="QFrame" name="paymentSummaryFrame">
+                  <layout class="QHBoxLayout" name="paymentSummaryLayout">
+                   <item>
+                    <widget class="QFrame" name="totalIncomeCard">
+                     <layout class="QVBoxLayout" name="totalIncomeLayout">
+                      <item>
+                       <widget class="QLabel" name="totalIncomeLabel">
+                        <property name="text">
+                         <string>Total Income</string>
+                        </property>
+                        <property name="alignment">
+                         <set>Qt::AlignmentFlag::AlignCenter</set>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLabel" name="totalIncomeValue">
+                        <property name="text">
+                         <string>TND 0.00</string>
+                        </property>
+                        <property name="alignment">
+                         <set>Qt::AlignmentFlag::AlignCenter</set>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QFrame" name="totalExpenseCard">
+                     <layout class="QVBoxLayout" name="totalExpenseLayout">
+                      <item>
+                       <widget class="QLabel" name="totalExpenseLabel">
+                        <property name="text">
+                         <string>Total Expenses</string>
+                        </property>
+                        <property name="alignment">
+                         <set>Qt::AlignmentFlag::AlignCenter</set>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLabel" name="totalExpenseValue">
+                        <property name="text">
+                         <string>TND 0.00</string>
+                        </property>
+                        <property name="alignment">
+                         <set>Qt::AlignmentFlag::AlignCenter</set>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QFrame" name="netBalanceCard">
+                     <layout class="QVBoxLayout" name="netBalanceLayout">
+                      <item>
+                       <widget class="QLabel" name="netBalanceLabel">
+                        <property name="text">
+                         <string>Net Balance</string>
+                        </property>
+                        <property name="alignment">
+                         <set>Qt::AlignmentFlag::AlignCenter</set>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLabel" name="netBalanceValue">
+                        <property name="text">
+                         <string>TND 0.00</string>
+                        </property>
+                        <property name="alignment">
+                         <set>Qt::AlignmentFlag::AlignCenter</set>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="exportStatsButton">
+                     <property name="text">
+                      <string>Export CSV</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QFrame" name="paymentChartsFrame">
+                  <layout class="QVBoxLayout" name="paymentChartsLayout">
+                   <item>
+                    <widget class="QLabel" name="paymentChartsTitle">
+                     <property name="text">
+                      <string>Payment Method Distribution</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignmentFlag::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QTableWidget" name="paymentMethodStatsTable">
+                     <property name="rowCount">
+                      <number>3</number>
+                     </property>
+                     <property name="columnCount">
+                      <number>4</number>
+                     </property>
+                     <row/>
+                     <row/>
+                     <row/>
+                     <column>
+                      <property name="text">
+                       <string>Payment Method</string>
+                      </property>
+                     </column>
+                     <column>
+                      <property name="text">
+                       <string>Total Transactions</string>
+                      </property>
+                     </column>
+                     <column>
+                      <property name="text">
+                       <string>Total Amount</string>
+                      </property>
+                     </column>
+                     <column>
+                      <property name="text">
+                       <string>Percentage</string>
+                      </property>
+                     </column>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QFrame" name="recentPaymentsFrame">
+                  <layout class="QVBoxLayout" name="recentPaymentsLayout">
+                   <item>
+                    <widget class="QLabel" name="recentPaymentsTitle">
+                     <property name="text">
+                      <string>Recent Transactions</string>
+                     </property>
+                     <property name="alignment">
+                      <set>Qt::AlignmentFlag::AlignCenter</set>
+                     </property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QTableWidget" name="recentPaymentsTable">
+                     <property name="rowCount">
+                      <number>5</number>
+                     </property>
+                     <property name="columnCount">
+                      <number>5</number>
+                     </property>
+                     <row/>
+                     <row/>
+                     <row/>
+                     <row/>
+                     <row/>
+                     <column>
+                      <property name="text">
+                       <string>Date</string>
+                      </property>
+                     </column>
+                     <column>
+                      <property name="text">
+                       <string>Description</string>
+                      </property>
+                     </column>
+                     <column>
+                      <property name="text">
+                       <string>Type</string>
+                      </property>
+                     </column>
+                     <column>
+                      <property name="text">
+                       <string>Amount</string>
+                      </property>
+                     </column>
+                     <column>
+                      <property name="text">
+                       <string>Status</string>
+                      </property>
+                     </column>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="equipmentPage">
+       <layout class="QVBoxLayout" name="equipmentPageLayout">
+        <item>
+         <widget class="QLabel" name="equipmentTitle">
+          <property name="text">
+           <string>Equipment Management</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignmentFlag::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTabWidget" name="equipmentTabWidget">
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <widget class="QWidget" name="equipmentListTab">
+           <attribute name="title">
+            <string>Equipment List</string>
+           </attribute>
+           <layout class="QVBoxLayout" name="equipmentListLayout">
+            <item>
+             <widget class="QFrame" name="equipmentSearchFrame">
+              <layout class="QHBoxLayout" name="equipmentSearchLayout">
+               <item>
+                <widget class="QLineEdit" name="equipmentSearchLineEdit">
+                 <property name="placeholderText">
+                  <string>Search equipment...</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="equipmentSearchButton">
+                 <property name="text">
+                  <string>Search</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QTableWidget" name="equipmentTable">
+              <property name="alternatingRowColors">
+               <bool>true</bool>
+              </property>
+              <property name="rowCount">
+               <number>2</number>
+              </property>
+              <property name="columnCount">
+               <number>6</number>
+              </property>
+              <row/>
+              <row/>
+              <column>
+               <property name="text">
+                <string>Equipment ID</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Name</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Type</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Purchase Date</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Condition</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Status</string>
+               </property>
+              </column>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="equipmentAddTab">
+           <attribute name="title">
+            <string>Add Equipment</string>
+           </attribute>
+           <layout class="QVBoxLayout" name="equipmentAddLayout">
+            <item>
+             <widget class="QFrame" name="equipmentFormFrame">
+              <layout class="QGridLayout" name="equipmentGridLayout">
+               <item row="0" column="0">
+                <widget class="QLabel" name="equipmentIdLabel">
+                 <property name="text">
+                  <string>Equipment ID:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLineEdit" name="equipmentIdLineEdit">
+                 <property name="placeholderText">
+                  <string>EQ001</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="equipmentNameLabel">
+                 <property name="text">
+                  <string>Name:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLineEdit" name="equipmentNameLineEdit">
+                 <property name="placeholderText">
+                  <string>Enter equipment name</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="equipmentTypeLabel">
+                 <property name="text">
+                  <string>Type:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QComboBox" name="equipmentTypeComboBox">
+                 <item>
+                  <property name="text">
+                   <string>Cardio</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Strength</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Flexibility</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="3" column="0">
+                <widget class="QLabel" name="purchaseDateLabel">
+                 <property name="text">
+                  <string>Purchase Date:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="1">
+                <widget class="QDateEdit" name="purchaseDateEdit"/>
+               </item>
+               <item row="4" column="0">
+                <widget class="QLabel" name="conditionLabel">
+                 <property name="text">
+                  <string>Condition:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="1">
+                <widget class="QComboBox" name="conditionComboBox">
+                 <item>
+                  <property name="text">
+                   <string>New</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Good</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Fair</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Needs Repair</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item row="5" column="0" colspan="2">
+                <widget class="QPushButton" name="addEquipmentButton">
+                 <property name="text">
+                  <string>Add Equipment</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
