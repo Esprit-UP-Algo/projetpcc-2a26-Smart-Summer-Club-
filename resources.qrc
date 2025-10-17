@@ -1,0 +1,15 @@
+   <RCC>
+     <qresource prefix="/icons">
+       <file>icons/activity.png</file>
+       <file>icons/add.png</file>
+       <file>icons/delete.png</file>
+       <file>icons/edit.png</file>
+       <file>icons/employee.png</file>
+       <file>icons/equipement.png</file>
+       <file>icons/list.png</file>
+       <file>icons/members.png</file>
+       <file>icons/payment.png</file>
+       <file>icons/search.png</file>
+       <file>icons/statistic.png</file>
+     </qresource>
+   </RCC>
