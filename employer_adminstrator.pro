@@ -1,4 +1,4 @@
-QT       += core gui printsupport charts
+QT       += core gui printsupport charts sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -12,6 +12,7 @@ SOURCES += \
     main.cpp \
     employeradmin.cpp \
     login.cpp \
+    Connection.cpp \
     employee.cpp \
     member.cpp \
     activity.cpp \
@@ -21,6 +22,7 @@ SOURCES += \
 HEADERS += \
     employeradmin.h \
     login.h \
+    Connection.h \
     employee.h \
     member.h \
     activity.h \

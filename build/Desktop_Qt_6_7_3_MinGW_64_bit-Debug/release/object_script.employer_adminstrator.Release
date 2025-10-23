@@ -1,6 +1,7 @@
 release/main.o
 release/employeradmin.o
 release/login.o
+release/Connection.o
 release/employee.o
 release/member.o
 release/activity.o

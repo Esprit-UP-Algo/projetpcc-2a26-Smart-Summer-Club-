@@ -1,6 +1,7 @@
 debug/main.o
 debug/employeradmin.o
 debug/login.o
+debug/Connection.o
 debug/employee.o
 debug/member.o
 debug/activity.o
