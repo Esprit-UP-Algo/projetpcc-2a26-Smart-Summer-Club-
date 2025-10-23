@@ -1,0 +1,16 @@
+release/main.o
+release/employeradmin.o
+release/login.o
+release/employee.o
+release/member.o
+release/activity.o
+release/equipment.o
+release/payment.o
+release/qrc_resources.o
+release/moc_employeradmin.o
+release/moc_login.o
+release/moc_employee.o
+release/moc_member.o
+release/moc_activity.o
+release/moc_equipment.o
+release/moc_payment.o

@@ -11,11 +11,21 @@ CONFIG += c++17
 SOURCES += \
     main.cpp \
     employeradmin.cpp \
-    login.cpp
+    login.cpp \
+    employee.cpp \
+    member.cpp \
+    activity.cpp \
+    equipment.cpp \
+    payment.cpp
 
 HEADERS += \
     employeradmin.h \
-    login.h
+    login.h \
+    employee.h \
+    member.h \
+    activity.h \
+    equipment.h \
+    payment.h
 
 FORMS += \
     employeradmin.ui \
