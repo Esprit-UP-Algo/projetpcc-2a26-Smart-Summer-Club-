@@ -970,7 +970,7 @@ public:
         scrollArea->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName("scrollAreaWidgetContents");
-        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 853, 637));
+        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 536, 637));
         formMainLayout = new QVBoxLayout(scrollAreaWidgetContents);
         formMainLayout->setObjectName("formMainLayout");
         formFrame = new QFrame(scrollAreaWidgetContents);
@@ -1512,7 +1512,7 @@ public:
         memberScrollArea->setWidgetResizable(true);
         memberScrollAreaContents = new QWidget();
         memberScrollAreaContents->setObjectName("memberScrollAreaContents");
-        memberScrollAreaContents->setGeometry(QRect(0, 0, 495, 571));
+        memberScrollAreaContents->setGeometry(QRect(0, 0, 853, 571));
         memberFormMainLayout = new QVBoxLayout(memberScrollAreaContents);
         memberFormMainLayout->setObjectName("memberFormMainLayout");
         memberFormFrame = new QFrame(memberScrollAreaContents);
@@ -1878,7 +1878,7 @@ public:
         equipmentScrollArea->setWidgetResizable(true);
         equipmentScrollAreaContents = new QWidget();
         equipmentScrollAreaContents->setObjectName("equipmentScrollAreaContents");
-        equipmentScrollAreaContents->setGeometry(QRect(0, 0, 612, 371));
+        equipmentScrollAreaContents->setGeometry(QRect(0, 0, 870, 545));
         equipmentFormMainLayout = new QVBoxLayout(equipmentScrollAreaContents);
         equipmentFormMainLayout->setObjectName("equipmentFormMainLayout");
         equipmentFormFrame = new QFrame(equipmentScrollAreaContents);
@@ -2258,7 +2258,7 @@ public:
         activityScrollArea->setWidgetResizable(true);
         activityScrollAreaContents = new QWidget();
         activityScrollAreaContents->setObjectName("activityScrollAreaContents");
-        activityScrollAreaContents->setGeometry(QRect(0, 0, 611, 497));
+        activityScrollAreaContents->setGeometry(QRect(0, 0, 870, 545));
         activityFormMainLayout = new QVBoxLayout(activityScrollAreaContents);
         activityFormMainLayout->setObjectName("activityFormMainLayout");
         activityFormFrame = new QFrame(activityScrollAreaContents);
@@ -2603,7 +2603,7 @@ public:
         paymentScrollArea->setWidgetResizable(true);
         paymentScrollContent = new QWidget();
         paymentScrollContent->setObjectName("paymentScrollContent");
-        paymentScrollContent->setGeometry(QRect(0, 0, 870, 608));
+        paymentScrollContent->setGeometry(QRect(0, 0, 585, 422));
         paymentFormMainLayout = new QVBoxLayout(paymentScrollContent);
         paymentFormMainLayout->setObjectName("paymentFormMainLayout");
         paymentFormFrame = new QFrame(paymentScrollContent);
@@ -2773,7 +2773,7 @@ public:
         paymentStatsScrollArea->setWidgetResizable(true);
         paymentStatsScrollContent = new QWidget();
         paymentStatsScrollContent->setObjectName("paymentStatsScrollContent");
-        paymentStatsScrollContent->setGeometry(QRect(0, 0, 870, 608));
+        paymentStatsScrollContent->setGeometry(QRect(0, 0, 629, 536));
         paymentStatsContentLayout = new QVBoxLayout(paymentStatsScrollContent);
         paymentStatsContentLayout->setObjectName("paymentStatsContentLayout");
         paymentSummaryFrame = new QFrame(paymentStatsScrollContent);
@@ -2951,7 +2951,7 @@ public:
 
         retranslateUi(EmployerAdmin);
 
-        stackedWidget->setCurrentIndex(4);
+        stackedWidget->setCurrentIndex(1);
         employeeTabWidget->setCurrentIndex(1);
         memberTabWidget->setCurrentIndex(0);
         equipmentTabWidget->setCurrentIndex(0);

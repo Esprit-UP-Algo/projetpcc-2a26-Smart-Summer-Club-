@@ -6,16 +6,28 @@
 #include <QDebug>
 #include <QMessageBox>
 
-// Simple DB connection helper
+// Simple DB connection helper (Singleton)
 class Connection
 {
 private:
     QSqlDatabase db;  // QSqlDatabase instance
 
+    // Private constructor for Singleton
+    Connection();
+
 public:
-    Connection();                 // Constructor
-    bool openConnection();        // Open the database connection
-    void closeConnection();       // Close the database connection
+    ~Connection();
+
+    // No copying
+    Connection(const Connection&) = delete;
+    Connection& operator=(const Connection&) = delete;
+
+    // Get the singleton instance
+    static Connection* getInstance();
+
+    // Open / close
+    bool openConnection();
+    void closeConnection();
 };
 
 #endif // CONNECTION_H

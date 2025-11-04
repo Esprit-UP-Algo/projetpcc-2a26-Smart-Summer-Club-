@@ -1,14 +1,27 @@
 #include "Connection.h"
 
+// Private constructor
 Connection::Connection()
 {
-    // Use the ODBC driver
+    // Use the ODBC driver (created once for the singleton)
     db = QSqlDatabase::addDatabase("QODBC");
 
-    // Configure connection parameters (change these or make configurable)
-    db.setDatabaseName("Source_Projet2A");   // ODBC Data Source Name
-    db.setUserName("SummerClub");            // DB username
-    db.setPassword("esprit25");              // DB password
+    // Default connection parameters (can be changed later or made configurable)
+    db.setDatabaseName("Source_Projet2A");
+    db.setUserName("SummerClub");
+    db.setPassword("esprit25");
+}
+
+Connection::~Connection()
+{
+    if (db.isOpen()) db.close();
+}
+
+// Return the singleton instance
+Connection* Connection::getInstance()
+{
+    static Connection instance;
+    return &instance;
 }
 
 bool Connection::openConnection()
@@ -25,6 +38,8 @@ bool Connection::openConnection()
 
 void Connection::closeConnection()
 {
-    db.close();
-    qDebug() << "Database connection closed.";
+    if (db.isOpen()) {
+        db.close();
+        qDebug() << "Database connection closed.";
+    }
 }

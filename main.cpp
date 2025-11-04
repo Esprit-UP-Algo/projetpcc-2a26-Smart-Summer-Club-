@@ -13,9 +13,9 @@ int main(int argc, char *argv[])
     // Print available SQL drivers (useful to verify QODBC is available)
     qDebug() << "Available Qt SQL drivers:" << QSqlDatabase::drivers();
 
-    // Try to open database connection and log the result
-    Connection connexion;
-    bool dbOk = connexion.openConnection();
+    // Try to open database connection once via the Connection singleton and log the result
+    Connection* connexion = Connection::getInstance();
+    bool dbOk = connexion->openConnection();
     if (!dbOk) {
         qDebug() << "Database connection failed. You can still open the app but DB features may not work.";
     } else {
@@ -31,11 +31,11 @@ int main(int argc, char *argv[])
         int ret = a.exec();
 
         // Close connection on exit
-    if (dbOk) connexion.closeConnection();
+    if (dbOk) connexion->closeConnection();
         return ret;
     } else {
         // Login cancelled or failed, close DB if open and exit application
-    if (dbOk) connexion.closeConnection();
+    if (dbOk) connexion->closeConnection();
         return 0;
     }
 }
