@@ -54,6 +54,7 @@ EmployerAdmin::EmployerAdmin(QWidget *parent)
     // Initialize button visibility (hide Update buttons, show Add buttons)
     ui->confirmUpdateButton->setVisible(false);  // Employee Update button hidden by default
     ui->memberConfirmUpdateButton->setVisible(false);  // Member Update button hidden by default
+    ui->activityUpdateButton->setVisible(false);  // Activity Update button hidden by default
     
     // Enable sorting on list tables
     ui->employeeTable->setSortingEnabled(true);
@@ -106,8 +107,12 @@ void EmployerAdmin::setupConnections()
     connect(ui->memberExportButton, &QPushButton::clicked, memberManager, &Member::onExportMembers);
 
     // Activity management buttons - delegate to activityManager
-    connect(ui->activitySortComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), activityManager, &Activity::onSortActivities);
+    connect(ui->activityConfirmButton, &QPushButton::clicked, activityManager, &Activity::onConfirmAdd);
+    connect(ui->activityUpdateButton, &QPushButton::clicked, activityManager, &Activity::onConfirmUpdate);
+    connect(ui->activitySearchLineEdit, &QLineEdit::textChanged, activityManager, &Activity::onSearchActivities);
+    connect(ui->activitySortComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), activityManager, &Activity::onSortComboBoxChanged);
     connect(ui->activityExportButton, &QPushButton::clicked, activityManager, &Activity::onExportActivities);
+    connect(ui->responsibleToggleButton, &QPushButton::clicked, activityManager, &Activity::onToggleResponsibleInput);
 
     // Equipment management buttons - delegate to equipmentManager
     connect(ui->equipmentSortButton, &QPushButton::clicked, equipmentManager, &Equipment::onSortEquipment);

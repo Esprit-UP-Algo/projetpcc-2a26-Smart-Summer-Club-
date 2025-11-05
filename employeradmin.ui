@@ -599,7 +599,7 @@ QPushButton:disabled {
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>1</number>
+             <number>0</number>
             </property>
             <widget class="QWidget" name="employeePage">
              <layout class="QVBoxLayout" name="employeePageLayout">
@@ -743,9 +743,9 @@ QPushButton:disabled {
                      <property name="geometry">
                       <rect>
                        <x>0</x>
-                       <y>0</y>
-                       <width>536</width>
-                       <height>637</height>
+                       <y>-86</y>
+                       <width>853</width>
+                       <height>631</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="formMainLayout">
@@ -758,187 +758,50 @@ QPushButton:disabled {
                          <string notr="true">margin : 2px;</string>
                         </property>
                         <layout class="QGridLayout" name="gridLayout">
-                         <item row="1" column="1">
-                          <widget class="QLineEdit" name="firstNameLineEdit">
-                           <property name="placeholderText">
-                            <string>Enter first name</string>
+                         <item row="8" column="3">
+                          <widget class="QFrame" name="photoFrame">
+                           <property name="styleSheet">
+                            <string notr="true">border: 2px dashed #16a5b3; border-radius: 8px; background-color: #f8f9fa;</string>
                            </property>
+                           <layout class="QVBoxLayout" name="photoLayout">
+                            <item>
+                             <widget class="QLabel" name="photoLabel">
+                              <property name="styleSheet">
+                               <string notr="true">color: #16a5b3; font-weight: 600; padding: 20px;</string>
+                              </property>
+                              <property name="text">
+                               <string> Upload Employee Photo</string>
+                              </property>
+                              <property name="alignment">
+                               <set>Qt::AlignmentFlag::AlignCenter</set>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QPushButton" name="employeeUploadPhotoButton">
+                              <property name="text">
+                               <string>Choose File</string>
+                              </property>
+                              <property name="icon">
+                               <iconset resource="resources.qrc">
+                                <normaloff>:/icons/icons/add.png</normaloff>:/icons/icons/add.png</iconset>
+                              </property>
+                             </widget>
+                            </item>
+                           </layout>
                           </widget>
                          </item>
-                         <item row="6" column="2">
-                          <widget class="QLabel" name="departmentLabel">
+                         <item row="1" column="0">
+                          <widget class="QLabel" name="firstNameLabel">
                            <property name="styleSheet">
                             <string notr="true">font-weight: 600; color: #2c3e50;</string>
                            </property>
                            <property name="text">
-                            <string>Department:</string>
+                            <string>First Name:</string>
                            </property>
                           </widget>
                          </item>
-                         <item row="3" column="1">
-                          <widget class="QComboBox" name="genderComboBox">
-                           <item>
-                            <property name="text">
-                             <string>Male</string>
-                            </property>
-                           </item>
-                           <item>
-                            <property name="text">
-                             <string>Female</string>
-                            </property>
-                           </item>
-                           <item>
-                            <property name="text">
-                             <string>Other</string>
-                            </property>
-                           </item>
-                          </widget>
-                         </item>
-                         <item row="0" column="1">
-                          <widget class="QLineEdit" name="empIdLineEdit">
-                           <property name="placeholderText">
-                            <string>e.g., EMP001</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="4" column="3">
-                          <widget class="QComboBox" name="statusComboBox">
-                           <item>
-                            <property name="text">
-                             <string>Active</string>
-                            </property>
-                           </item>
-                           <item>
-                            <property name="text">
-                             <string>Inactive</string>
-                            </property>
-                           </item>
-                           <item>
-                            <property name="text">
-                             <string>On Leave</string>
-                            </property>
-                           </item>
-                          </widget>
-                         </item>
-                         <item row="2" column="2">
-                          <widget class="QLabel" name="positionLabel">
-                           <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
-                           </property>
-                           <property name="text">
-                            <string>Position:</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="2" column="1">
-                          <widget class="QLineEdit" name="lastNameLineEdit">
-                           <property name="placeholderText">
-                            <string>Enter last name</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="3" column="0">
-                          <widget class="QLabel" name="genderLabel">
-                           <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
-                           </property>
-                           <property name="text">
-                            <string>Gender:</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="0" column="0">
-                          <widget class="QLabel" name="empIdLabel">
-                           <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
-                           </property>
-                           <property name="text">
-                            <string>CIN :</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="4" column="1">
-                          <widget class="QSpinBox" name="ageSpinBox">
-                           <property name="styleSheet">
-                            <string notr="true">padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;</string>
-                           </property>
-                           <property name="minimum">
-                            <number>18</number>
-                           </property>
-                           <property name="maximum">
-                            <number>65</number>
-                           </property>
-                           <property name="value">
-                            <number>25</number>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="2" column="3">
-                          <widget class="QLineEdit" name="positionLineEdit">
-                           <property name="placeholderText">
-                            <string>e.g., Manager, Instructor, etc.</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="0" column="2">
-                          <widget class="QLabel" name="passwordLabel">
-                           <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
-                           </property>
-                           <property name="text">
-                            <string>Password</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="3" column="3">
-                          <widget class="QLineEdit" name="salaryLineEdit">
-                           <property name="placeholderText">
-                            <string>Enter salary amount</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="1" column="3">
-                          <widget class="QDateEdit" name="hireDateEdit">
-                           <property name="styleSheet">
-                            <string notr="true">padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="5" column="1" rowspan="2">
-                          <widget class="QLineEdit" name="emailLineEdit">
-                           <property name="placeholderText">
-                            <string>employee@esprit.tn</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="0" column="3">
-                          <widget class="QLineEdit" name="passwordLineEedit">
-                           <property name="placeholderText">
-                            <string>Enter password</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="4" column="2">
-                          <widget class="QLabel" name="statusLabel">
-                           <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
-                           </property>
-                           <property name="text">
-                            <string>Status:</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="4" column="0">
-                          <widget class="QLabel" name="ageLabel">
-                           <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
-                           </property>
-                           <property name="text">
-                            <string>Age:</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="6" column="3">
+                         <item row="7" column="3">
                           <widget class="QComboBox" name="departmentComboBox">
                            <item>
                             <property name="text">
@@ -967,27 +830,43 @@ QPushButton:disabled {
                            </item>
                           </widget>
                          </item>
-                         <item row="6" column="0">
-                          <widget class="QLabel" name="emailLabel">
+                         <item row="0" column="3">
+                          <widget class="QLineEdit" name="passwordLineEedit">
+                           <property name="placeholderText">
+                            <string>Enter password</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="3" column="1">
+                          <widget class="QComboBox" name="genderComboBox">
+                           <item>
+                            <property name="text">
+                             <string>Male</string>
+                            </property>
+                           </item>
+                           <item>
+                            <property name="text">
+                             <string>Female</string>
+                            </property>
+                           </item>
+                           <item>
+                            <property name="text">
+                             <string>Other</string>
+                            </property>
+                           </item>
+                          </widget>
+                         </item>
+                         <item row="8" column="0">
+                          <widget class="QLabel" name="phoneLabel">
                            <property name="styleSheet">
                             <string notr="true">font-weight: 600; color: #2c3e50;</string>
                            </property>
                            <property name="text">
-                            <string>Email:</string>
+                            <string>Phone Number:</string>
                            </property>
                           </widget>
                          </item>
-                         <item row="3" column="2">
-                          <widget class="QLabel" name="salaryLabel">
-                           <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
-                           </property>
-                           <property name="text">
-                            <string>Salary:</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="10" column="0" colspan="4">
+                         <item row="11" column="0" colspan="4">
                           <widget class="QFrame" name="buttonFrame">
                            <layout class="QHBoxLayout" name="buttonLayout">
                             <item>
@@ -1043,13 +922,29 @@ QPushButton:disabled {
                            </layout>
                           </widget>
                          </item>
-                         <item row="1" column="2">
-                          <widget class="QLabel" name="hireDateLabel">
+                         <item row="3" column="0">
+                          <widget class="QLabel" name="genderLabel">
                            <property name="styleSheet">
                             <string notr="true">font-weight: 600; color: #2c3e50;</string>
                            </property>
                            <property name="text">
-                            <string>Hire Date:</string>
+                            <string>Gender:</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="4" column="1">
+                          <widget class="QSpinBox" name="ageSpinBox">
+                           <property name="styleSheet">
+                            <string notr="true">padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;</string>
+                           </property>
+                           <property name="minimum">
+                            <number>18</number>
+                           </property>
+                           <property name="maximum">
+                            <number>65</number>
+                           </property>
+                           <property name="value">
+                            <number>25</number>
                            </property>
                           </widget>
                          </item>
@@ -1063,64 +958,169 @@ QPushButton:disabled {
                            </property>
                           </widget>
                          </item>
-                         <item row="1" column="0">
-                          <widget class="QLabel" name="firstNameLabel">
+                         <item row="7" column="1">
+                          <widget class="QLineEdit" name="emailLineEdit">
+                           <property name="placeholderText">
+                            <string>employee@esprit.tn</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="3" column="3">
+                          <widget class="QLineEdit" name="salaryLineEdit">
+                           <property name="placeholderText">
+                            <string>Enter salary amount</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="1" column="3">
+                          <widget class="QDateEdit" name="hireDateEdit">
+                           <property name="styleSheet">
+                            <string notr="true">padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="7" column="2">
+                          <widget class="QLabel" name="departmentLabel">
                            <property name="styleSheet">
                             <string notr="true">font-weight: 600; color: #2c3e50;</string>
                            </property>
                            <property name="text">
-                            <string>First Name:</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="7" column="1">
-                          <widget class="QLineEdit" name="phoneLineEdit">
-                           <property name="placeholderText">
-                            <string>+216 55 123 456</string>
+                            <string>Department:</string>
                            </property>
                           </widget>
                          </item>
                          <item row="7" column="0">
-                          <widget class="QLabel" name="phoneLabel">
+                          <widget class="QLabel" name="emailLabel">
                            <property name="styleSheet">
                             <string notr="true">font-weight: 600; color: #2c3e50;</string>
                            </property>
                            <property name="text">
-                            <string>Phone Number:</string>
+                            <string>Email:</string>
                            </property>
                           </widget>
                          </item>
-                         <item row="7" column="3">
-                          <widget class="QFrame" name="photoFrame">
-                           <property name="styleSheet">
-                            <string notr="true">border: 2px dashed #16a5b3; border-radius: 8px; background-color: #f8f9fa;</string>
+                         <item row="0" column="1">
+                          <widget class="QLineEdit" name="empIdLineEdit">
+                           <property name="placeholderText">
+                            <string>e.g., EMP001</string>
                            </property>
-                           <layout class="QVBoxLayout" name="photoLayout">
-                            <item>
-                             <widget class="QLabel" name="photoLabel">
-                              <property name="styleSheet">
-                               <string notr="true">color: #16a5b3; font-weight: 600; padding: 20px;</string>
-                              </property>
-                              <property name="text">
-                               <string> Upload Employee Photo</string>
-                              </property>
-                              <property name="alignment">
-                               <set>Qt::AlignmentFlag::AlignCenter</set>
-                              </property>
-                             </widget>
-                            </item>
-                            <item>
-                             <widget class="QPushButton" name="employeeUploadPhotoButton">
-                              <property name="text">
-                               <string>Choose File</string>
-                              </property>
-                              <property name="icon">
-                               <iconset resource="resources.qrc">
-                                <normaloff>:/icons/icons/add.png</normaloff>:/icons/icons/add.png</iconset>
-                              </property>
-                             </widget>
-                            </item>
-                           </layout>
+                          </widget>
+                         </item>
+                         <item row="2" column="3">
+                          <widget class="QLineEdit" name="positionLineEdit">
+                           <property name="placeholderText">
+                            <string>e.g., Manager, Instructor, etc.</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="4" column="3">
+                          <widget class="QComboBox" name="statusComboBox">
+                           <item>
+                            <property name="text">
+                             <string>Active</string>
+                            </property>
+                           </item>
+                           <item>
+                            <property name="text">
+                             <string>Inactive</string>
+                            </property>
+                           </item>
+                           <item>
+                            <property name="text">
+                             <string>On Leave</string>
+                            </property>
+                           </item>
+                          </widget>
+                         </item>
+                         <item row="2" column="1">
+                          <widget class="QLineEdit" name="lastNameLineEdit">
+                           <property name="placeholderText">
+                            <string>Enter last name</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="1" column="2">
+                          <widget class="QLabel" name="hireDateLabel">
+                           <property name="styleSheet">
+                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                           </property>
+                           <property name="text">
+                            <string>Hire Date:</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="1" column="1">
+                          <widget class="QLineEdit" name="firstNameLineEdit">
+                           <property name="placeholderText">
+                            <string>Enter first name</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="2" column="2">
+                          <widget class="QLabel" name="positionLabel">
+                           <property name="styleSheet">
+                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                           </property>
+                           <property name="text">
+                            <string>Position:</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="4" column="0">
+                          <widget class="QLabel" name="ageLabel">
+                           <property name="styleSheet">
+                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                           </property>
+                           <property name="text">
+                            <string>Age:</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="3" column="2">
+                          <widget class="QLabel" name="salaryLabel">
+                           <property name="styleSheet">
+                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                           </property>
+                           <property name="text">
+                            <string>Salary:</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="0" column="2">
+                          <widget class="QLabel" name="passwordLabel">
+                           <property name="styleSheet">
+                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                           </property>
+                           <property name="text">
+                            <string>Password</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="0" column="0">
+                          <widget class="QLabel" name="empIdLabel">
+                           <property name="styleSheet">
+                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                           </property>
+                           <property name="text">
+                            <string>CIN :</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="4" column="2">
+                          <widget class="QLabel" name="statusLabel">
+                           <property name="styleSheet">
+                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                           </property>
+                           <property name="text">
+                            <string>Status:</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="8" column="1">
+                          <widget class="QLineEdit" name="phoneLineEdit">
+                           <property name="placeholderText">
+                            <string>+216 55 123 456</string>
+                           </property>
                           </widget>
                          </item>
                         </layout>
@@ -2723,7 +2723,7 @@ QPushButton:disabled {
               <item>
                <widget class="QTabWidget" name="activityTabWidget">
                 <property name="currentIndex">
-                 <number>0</number>
+                 <number>1</number>
                 </property>
                 <widget class="QWidget" name="activityListTab">
                  <attribute name="icon">
@@ -2924,64 +2924,7 @@ QComboBox QAbstractItemView {
                          <property name="verticalSpacing">
                           <number>15</number>
                          </property>
-                         <item row="3" column="4">
-                          <widget class="QTimeEdit" name="eventTimeEdit">
-                           <property name="styleSheet">
-                            <string notr="true">padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;</string>
-                           </property>
-                           <property name="displayFormat">
-                            <string>HH:mm</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="4" column="0">
-                          <widget class="QLabel" name="responsibleLabel">
-                           <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
-                           </property>
-                           <property name="text">
-                            <string>Responsible/Actor:</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="0" column="0">
-                          <widget class="QLabel" name="activityIdLabel">
-                           <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
-                           </property>
-                           <property name="text">
-                            <string>Activity ID:</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="4" column="3">
-                          <widget class="QLabel" name="activityStatusLabel">
-                           <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
-                           </property>
-                           <property name="text">
-                            <string>Status:</string>
-                           </property>
-                          </widget>
-                         </item>
                          <item row="0" column="1">
-                          <widget class="QLineEdit" name="activityIdLineEdit">
-                           <property name="placeholderText">
-                            <string>e.g., ACT001</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="3" column="1">
-                          <widget class="QDateEdit" name="eventDateEdit">
-                           <property name="styleSheet">
-                            <string notr="true">padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;</string>
-                           </property>
-                           <property name="calendarPopup">
-                            <bool>true</bool>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="1" column="1">
                           <widget class="QSpinBox" name="activityAgeSpinBox">
                            <property name="styleSheet">
                             <string notr="true">padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;</string>
@@ -3000,44 +2943,7 @@ QComboBox QAbstractItemView {
                            </property>
                           </widget>
                          </item>
-                         <item row="3" column="0">
-                          <widget class="QLabel" name="eventDateLabel">
-                           <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
-                           </property>
-                           <property name="text">
-                            <string>Event Date:</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="4" column="1" colspan="2">
-                          <widget class="QLineEdit" name="responsibleLineEdit">
-                           <property name="placeholderText">
-                            <string>Enter responsible person or instructor name</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="6" column="0">
-                          <widget class="QLabel" name="activityDescriptionLabel">
-                           <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
-                           </property>
-                           <property name="text">
-                            <string>Activity Description:</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="3" column="2">
-                          <widget class="QLabel" name="eventTimeLabel">
-                           <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
-                           </property>
-                           <property name="text">
-                            <string>Event Time:</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="7" column="0" colspan="5">
+                         <item row="7" column="0" colspan="7">
                           <widget class="QFrame" name="activityButtonFrame">
                            <layout class="QHBoxLayout" name="activityButtonLayout">
                             <item>
@@ -3093,7 +2999,200 @@ QComboBox QAbstractItemView {
                            </layout>
                           </widget>
                          </item>
-                         <item row="4" column="4">
+                         <item row="3" column="3" colspan="3">
+                          <widget class="QTimeEdit" name="eventTimeEdit">
+                           <property name="styleSheet">
+                            <string notr="true">padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;</string>
+                           </property>
+                           <property name="displayFormat">
+                            <string>HH:mm</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="6" column="0">
+                          <widget class="QLabel" name="activityDescriptionLabel">
+                           <property name="styleSheet">
+                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                           </property>
+                           <property name="text">
+                            <string>Activity Description:</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="0" column="0">
+                          <widget class="QLabel" name="activityAgeLabel">
+                           <property name="styleSheet">
+                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                           </property>
+                           <property name="text">
+                            <string>Age Requirement:</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="2" column="0">
+                          <widget class="QLabel" name="activityCapacityLabel">
+                           <property name="styleSheet">
+                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                           </property>
+                           <property name="text">
+                            <string>Capacity:</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="6" column="1" colspan="6">
+                          <widget class="QFrame" name="activityDescriptionFrame">
+                           <layout class="QVBoxLayout" name="activityDescriptionLayout">
+                            <item>
+                             <widget class="QTextEdit" name="activityDescriptionTextEdit">
+                              <property name="maximumSize">
+                               <size>
+                                <width>16777215</width>
+                                <height>100</height>
+                               </size>
+                              </property>
+                              <property name="styleSheet">
+                               <string notr="true">padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;</string>
+                              </property>
+                              <property name="placeholderText">
+                               <string>Enter detailed activity description, requirements, or notes...</string>
+                              </property>
+                             </widget>
+                            </item>
+                           </layout>
+                          </widget>
+                         </item>
+                         <item row="4" column="1" colspan="2">
+                          <widget class="QWidget" name="responsibleWidget" native="true">
+                           <layout class="QHBoxLayout" name="responsibleLayout">
+                            <property name="spacing">
+                             <number>8</number>
+                            </property>
+                            <property name="leftMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="topMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="rightMargin">
+                             <number>0</number>
+                            </property>
+                            <property name="bottomMargin">
+                             <number>0</number>
+                            </property>
+                            <item>
+                             <widget class="QComboBox" name="responsibleComboBox">
+                              <property name="styleSheet">
+                               <string notr="true">padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;</string>
+                              </property>
+                              <property name="editable">
+                               <bool>false</bool>
+                              </property>
+                              <item>
+                               <property name="text">
+                                <string>Select Employee...</string>
+                               </property>
+                              </item>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QLineEdit" name="responsibleLineEdit">
+                              <property name="styleSheet">
+                               <string notr="true">padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;</string>
+                              </property>
+                              <property name="placeholderText">
+                               <string>Enter responsible person or instructor name</string>
+                              </property>
+                             </widget>
+                            </item>
+                            <item>
+                             <widget class="QPushButton" name="responsibleToggleButton">
+                              <property name="minimumSize">
+                               <size>
+                                <width>100</width>
+                                <height>40</height>
+                               </size>
+                              </property>
+                              <property name="styleSheet">
+                               <string notr="true">background-color: #3498db; color: white; padding: 8px 12px; border-radius: 6px;</string>
+                              </property>
+                              <property name="text">
+                               <string>Use Manual</string>
+                              </property>
+                             </widget>
+                            </item>
+                           </layout>
+                          </widget>
+                         </item>
+                         <item row="2" column="1">
+                          <widget class="QSpinBox" name="activityCapacitySpinBox">
+                           <property name="styleSheet">
+                            <string notr="true">padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;</string>
+                           </property>
+                           <property name="suffix">
+                            <string> people</string>
+                           </property>
+                           <property name="minimum">
+                            <number>1</number>
+                           </property>
+                           <property name="maximum">
+                            <number>500</number>
+                           </property>
+                           <property name="value">
+                            <number>30</number>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="3" column="2">
+                          <widget class="QLabel" name="eventTimeLabel">
+                           <property name="styleSheet">
+                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                           </property>
+                           <property name="text">
+                            <string>Event Time:</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="4" column="0">
+                          <widget class="QLabel" name="responsibleLabel">
+                           <property name="styleSheet">
+                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                           </property>
+                           <property name="text">
+                            <string>Responsible/Actor:</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="3" column="1">
+                          <widget class="QDateEdit" name="eventDateEdit">
+                           <property name="styleSheet">
+                            <string notr="true">padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;</string>
+                           </property>
+                           <property name="calendarPopup">
+                            <bool>true</bool>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="3" column="0">
+                          <widget class="QLabel" name="eventDateLabel">
+                           <property name="styleSheet">
+                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                           </property>
+                           <property name="text">
+                            <string>Event Date:</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="4" column="3">
+                          <widget class="QLabel" name="activityStatusLabel">
+                           <property name="styleSheet">
+                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                           </property>
+                           <property name="text">
+                            <string>Status:</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="4" column="4" colspan="2">
                           <widget class="QComboBox" name="activityStatusComboBox">
                            <item>
                             <property name="text">
@@ -3122,17 +3221,17 @@ QComboBox QAbstractItemView {
                            </item>
                           </widget>
                          </item>
-                         <item row="1" column="0">
-                          <widget class="QLabel" name="activityAgeLabel">
+                         <item row="2" column="2">
+                          <widget class="QLabel" name="activityTypeLabel">
                            <property name="styleSheet">
                             <string notr="true">font-weight: 600; color: #2c3e50;</string>
                            </property>
                            <property name="text">
-                            <string>Age Requirement:</string>
+                            <string>Activity Type:</string>
                            </property>
                           </widget>
                          </item>
-                         <item row="1" column="4">
+                         <item row="2" column="3" colspan="3">
                           <widget class="QComboBox" name="activityTypeComboBox">
                            <item>
                             <property name="text">
@@ -3164,38 +3263,6 @@ QComboBox QAbstractItemView {
                              <string>Maintenance</string>
                             </property>
                            </item>
-                          </widget>
-                         </item>
-                         <item row="6" column="1" colspan="4">
-                          <widget class="QFrame" name="activityDescriptionFrame">
-                           <layout class="QVBoxLayout" name="activityDescriptionLayout">
-                            <item>
-                             <widget class="QTextEdit" name="activityDescriptionTextEdit">
-                              <property name="maximumSize">
-                               <size>
-                                <width>16777215</width>
-                                <height>100</height>
-                               </size>
-                              </property>
-                              <property name="styleSheet">
-                               <string notr="true">padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;</string>
-                              </property>
-                              <property name="placeholderText">
-                               <string>Enter detailed activity description, requirements, or notes...</string>
-                              </property>
-                             </widget>
-                            </item>
-                           </layout>
-                          </widget>
-                         </item>
-                         <item row="1" column="2">
-                          <widget class="QLabel" name="activityTypeLabel">
-                           <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
-                           </property>
-                           <property name="text">
-                            <string>Activity Type:</string>
-                           </property>
                           </widget>
                          </item>
                         </layout>
