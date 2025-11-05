@@ -1,13 +1,46 @@
 #include "employee.h"
 #include "ui_employeradmin.h"
-#include <QPixmap>
-#include <QFile>
-#include <QStringConverter>
-#include <QTextCursor>
+#include <QRegularExpression>
 #include <QDateTime>
+#include <QTextDocument>
+#include <QPrinter>
+#include <QPageLayout>
+#include <QFile>
+#include <QPushButton>
+#include <QHBoxLayout>
+#include <QWidget>
+
+// ============================================================================
+// CONSTRUCTORS
+// ============================================================================
+
+Employee::Employee()
+    : QObject(nullptr), cin(""), firstName(""), lastName(""), position(""), 
+      department(""), hireDate(QDate::currentDate()), status("Active"), 
+      age(0), gender(""), email(""), phone(""), salary(0.0), 
+      password(""), photo(QByteArray()), idActivity(0),
+      ui(nullptr), parentWidget(nullptr), selectedPhotoPath(""), editingCin("")
+{
+}
+
+Employee::Employee(QString cin, QString firstName, QString lastName, QString position, 
+                   QString department, QDate hireDate, QString status, int age, 
+                   QString gender, QString email, QString phone, double salary, 
+                   QString password, QByteArray photo, int idActivity)
+    : QObject(nullptr), cin(cin), firstName(firstName), lastName(lastName), position(position),
+      department(department), hireDate(hireDate), status(status), age(age),
+      gender(gender), email(email), phone(phone), salary(salary),
+      password(password), photo(photo), idActivity(idActivity),
+      ui(nullptr), parentWidget(nullptr), selectedPhotoPath(""), editingCin("")
+{
+}
 
 Employee::Employee(Ui::EmployerAdmin *ui, QWidget *parent)
-    : QObject(parent), ui(ui), parentWidget(parent)
+    : QObject(parent), cin(""), firstName(""), lastName(""), position(""), 
+      department(""), hireDate(QDate::currentDate()), status("Active"), 
+      age(0), gender(""), email(""), phone(""), salary(0.0), 
+      password(""), photo(QByteArray()), idActivity(0),
+      ui(ui), parentWidget(parent), selectedPhotoPath(""), editingCin("")
 {
 }
 
@@ -15,314 +48,955 @@ Employee::~Employee()
 {
 }
 
+// ============================================================================
+// GETTERS
+// ============================================================================
+
+QString Employee::getCin() const { return cin; }
+QString Employee::getFirstName() const { return firstName; }
+QString Employee::getLastName() const { return lastName; }
+QString Employee::getPosition() const { return position; }
+QString Employee::getDepartment() const { return department; }
+QDate Employee::getHireDate() const { return hireDate; }
+QString Employee::getStatus() const { return status; }
+int Employee::getAge() const { return age; }
+QString Employee::getGender() const { return gender; }
+QString Employee::getEmail() const { return email; }
+QString Employee::getPhone() const { return phone; }
+double Employee::getSalary() const { return salary; }
+QString Employee::getPassword() const { return password; }
+QByteArray Employee::getPhoto() const { return photo; }
+int Employee::getIdActivity() const { return idActivity; }
+
+// ============================================================================
+// SETTERS
+// ============================================================================
+
+void Employee::setCin(const QString &cin) { this->cin = cin; }
+void Employee::setFirstName(const QString &firstName) { this->firstName = firstName; }
+void Employee::setLastName(const QString &lastName) { this->lastName = lastName; }
+void Employee::setPosition(const QString &position) { this->position = position; }
+void Employee::setDepartment(const QString &department) { this->department = department; }
+void Employee::setHireDate(const QDate &hireDate) { this->hireDate = hireDate; }
+void Employee::setStatus(const QString &status) { this->status = status; }
+void Employee::setAge(int age) { this->age = age; }
+void Employee::setGender(const QString &gender) { this->gender = gender; }
+void Employee::setEmail(const QString &email) { this->email = email; }
+void Employee::setPhone(const QString &phone) { this->phone = phone; }
+void Employee::setSalary(double salary) { this->salary = salary; }
+void Employee::setPassword(const QString &password) { this->password = password; }
+void Employee::setPhoto(const QByteArray &photo) { this->photo = photo; }
+void Employee::setIdActivity(int idActivity) { this->idActivity = idActivity; }
+
+// ============================================================================
+// VALIDATION METHODS
+// ============================================================================
+
+bool Employee::validerEmail() const
+{
+    // Email regex pattern: name@domain.ext
+    QRegularExpression emailPattern("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    return emailPattern.match(email).hasMatch();
+}
+
+bool Employee::validerCin() const
+{
+    // CIN should not be empty and should be alphanumeric (8 chars for Tunisian CIN)
+    if (cin.isEmpty() || cin.length() != 8) {
+        return false;
+    }
+    return true;
+}
+
+bool Employee::validerAge() const
+{
+    // Age should be between 18 and 70
+    return (age >= 18 && age <= 70);
+}
+
+bool Employee::valider() const
+{
+    // Check required fields
+    if (cin.isEmpty() || firstName.isEmpty() || lastName.isEmpty()) {
+        qDebug() << "Validation failed: Missing required fields (CIN, First Name, Last Name)";
+        return false;
+    }
+    
+    if (!validerCin()) {
+        qDebug() << "Validation failed: Invalid CIN format";
+        return false;
+    }
+    
+    if (!email.isEmpty() && !validerEmail()) {
+        qDebug() << "Validation failed: Invalid email format";
+        return false;
+    }
+    
+    if (age > 0 && !validerAge()) {
+        qDebug() << "Validation failed: Invalid age (must be between 18 and 70)";
+        return false;
+    }
+    
+    if (salary < 0) {
+        qDebug() << "Validation failed: Salary cannot be negative";
+        return false;
+    }
+    
+    return true;
+}
+
+bool Employee::cinExiste(const QString &cin)
+{
+    QSqlQuery query;
+    query.prepare("SELECT COUNT(*) FROM EMPLOYEES WHERE CIN = :cin");
+    query.bindValue(":cin", cin);
+    
+    if (query.exec() && query.next()) {
+        return query.value(0).toInt() > 0;
+    }
+    
+    qDebug() << "Error checking CIN existence:" << query.lastError().text();
+    return false;
+}
+
+bool Employee::emailExiste(const QString &email, const QString &excludeCin)
+{
+    QSqlQuery query;
+    
+    if (excludeCin.isEmpty()) {
+        query.prepare("SELECT COUNT(*) FROM EMPLOYEES WHERE EMAIL = :email");
+        query.bindValue(":email", email);
+    } else {
+        query.prepare("SELECT COUNT(*) FROM EMPLOYEES WHERE EMAIL = :email AND CIN != :cin");
+        query.bindValue(":email", email);
+        query.bindValue(":cin", excludeCin);
+    }
+    
+    if (query.exec() && query.next()) {
+        return query.value(0).toInt() > 0;
+    }
+    
+    qDebug() << "Error checking email existence:" << query.lastError().text();
+    return false;
+}
+
+// ============================================================================
+// CRUD OPERATIONS
+// ============================================================================
+
+/**
+ * @brief CREATE - Add new employee to database
+ * @return true if successful, false otherwise
+ */
+bool Employee::ajouter()
+{
+    // Validate data before insertion
+    if (!valider()) {
+        qDebug() << "Employee::ajouter() - Validation failed";
+        return false;
+    }
+    
+    // Check if CIN already exists
+    if (cinExiste(cin)) {
+        qDebug() << "Employee::ajouter() - CIN already exists:" << cin;
+        return false;
+    }
+    
+    // Check if email already exists (if provided)
+    if (!email.isEmpty() && emailExiste(email)) {
+        qDebug() << "Employee::ajouter() - Email already exists:" << email;
+        return false;
+    }
+    
+    // Prepare INSERT query with prepared statements (SQL Injection Protection)
+    QSqlQuery query;
+    query.prepare("INSERT INTO EMPLOYEES "
+                  "(CIN, FIRST_NAME, LAST_NAME, POSITION, DEPARTMENT, "
+                  "HIRE_DATE, STATUS, AGE, GENDER, EMAIL, PHONE, SALARY, "
+                  "PASSWORD, PHOTO, ID_A) "
+                  "VALUES "
+                  "(:cin, :firstName, :lastName, :position, :department, "
+                  ":hireDate, :status, :age, :gender, :email, :phone, :salary, "
+                  ":password, :photo, :idActivity)");
+    
+    // Bind values
+    query.bindValue(":cin", cin);
+    query.bindValue(":firstName", firstName);
+    query.bindValue(":lastName", lastName);
+    query.bindValue(":position", position.isEmpty() ? QVariant(QString()) : position);
+    query.bindValue(":department", department.isEmpty() ? QVariant(QString()) : department);
+    query.bindValue(":hireDate", hireDate.isValid() ? hireDate : QDate::currentDate());
+    query.bindValue(":status", status.isEmpty() ? "Active" : status);
+    query.bindValue(":age", age > 0 ? QVariant(age) : QVariant(QMetaType(QMetaType::Int)));
+    query.bindValue(":gender", gender.isEmpty() ? QVariant(QString()) : gender);
+    query.bindValue(":email", email.isEmpty() ? QVariant(QString()) : email);
+    query.bindValue(":phone", phone.isEmpty() ? QVariant(QString()) : phone);
+    query.bindValue(":salary", salary > 0 ? QVariant(salary) : QVariant(QMetaType(QMetaType::Double)));
+    query.bindValue(":password", password.isEmpty() ? QVariant(QString()) : password);
+    query.bindValue(":photo", photo.isEmpty() ? QVariant(QByteArray()) : photo);
+    query.bindValue(":idActivity", idActivity > 0 ? QVariant(idActivity) : QVariant(QMetaType(QMetaType::Int)));
+    
+    // Execute query
+    if (!query.exec()) {
+        qDebug() << "Employee::ajouter() - Insert failed:" << query.lastError().text();
+        return false;
+    }
+    
+    qDebug() << "Employee::ajouter() - Successfully added employee:" << cin;
+    return true;
+}
+
+/**
+ * @brief READ - Display all employees
+ * @return QSqlQueryModel containing all employees
+ */
+QSqlQueryModel* Employee::afficher()
+{
+    QSqlQueryModel* model = new QSqlQueryModel();
+    
+    model->setQuery("SELECT CIN, FIRST_NAME, LAST_NAME, POSITION, DEPARTMENT, "
+                    "GENDER, AGE, SALARY, EMAIL, PHONE, HIRE_DATE, STATUS "
+                    "FROM EMPLOYEES "
+                    "ORDER BY HIRE_DATE DESC");
+    
+    if (model->lastError().isValid()) {
+        qDebug() << "Employee::afficher() - Query failed:" << model->lastError().text();
+        return model;
+    }
+    
+    // Set header labels
+    model->setHeaderData(0, Qt::Horizontal, "CIN");
+    model->setHeaderData(1, Qt::Horizontal, "First Name");
+    model->setHeaderData(2, Qt::Horizontal, "Last Name");
+    model->setHeaderData(3, Qt::Horizontal, "Position");
+    model->setHeaderData(4, Qt::Horizontal, "Department");
+    model->setHeaderData(5, Qt::Horizontal, "Gender");
+    model->setHeaderData(6, Qt::Horizontal, "Age");
+    model->setHeaderData(7, Qt::Horizontal, "Salary");
+    model->setHeaderData(8, Qt::Horizontal, "Email");
+    model->setHeaderData(9, Qt::Horizontal, "Phone");
+    model->setHeaderData(10, Qt::Horizontal, "Hire Date");
+    model->setHeaderData(11, Qt::Horizontal, "Status");
+    
+    qDebug() << "Employee::afficher() - Loaded" << model->rowCount() << "employees";
+    return model;
+}
+
+/**
+ * @brief DELETE - Remove employee by CIN
+ * @param cin Employee CIN to delete
+ * @return true if successful, false otherwise
+ */
+bool Employee::supprimer(const QString &cin)
+{
+    if (cin.isEmpty()) {
+        qDebug() << "Employee::supprimer() - CIN is empty";
+        return false;
+    }
+    
+    // Check if employee exists
+    if (!cinExiste(cin)) {
+        qDebug() << "Employee::supprimer() - Employee not found:" << cin;
+        return false;
+    }
+    
+    // Prepare DELETE query with prepared statement
+    QSqlQuery query;
+    query.prepare("DELETE FROM EMPLOYEES WHERE CIN = :cin");
+    query.bindValue(":cin", cin);
+    
+    if (!query.exec()) {
+        qDebug() << "Employee::supprimer() - Delete failed:" << query.lastError().text();
+        return false;
+    }
+    
+    qDebug() << "Employee::supprimer() - Successfully deleted employee:" << cin;
+    return true;
+}
+
+/**
+ * @brief UPDATE - Modify existing employee
+ * @return true if successful, false otherwise
+ */
+bool Employee::modifier()
+{
+    // Validate data before update
+    if (!valider()) {
+        qDebug() << "Employee::modifier() - Validation failed";
+        return false;
+    }
+    
+    // Check if employee exists
+    if (!cinExiste(cin)) {
+        qDebug() << "Employee::modifier() - Employee not found:" << cin;
+        return false;
+    }
+    
+    // Check if email is being changed and if new email already exists
+    if (!email.isEmpty() && emailExiste(email, cin)) {
+        qDebug() << "Employee::modifier() - Email already exists:" << email;
+        return false;
+    }
+    
+    // Prepare UPDATE query with prepared statements
+    QSqlQuery query;
+    query.prepare("UPDATE EMPLOYEES SET "
+                  "FIRST_NAME = :firstName, "
+                  "LAST_NAME = :lastName, "
+                  "POSITION = :position, "
+                  "DEPARTMENT = :department, "
+                  "HIRE_DATE = :hireDate, "
+                  "STATUS = :status, "
+                  "AGE = :age, "
+                  "GENDER = :gender, "
+                  "EMAIL = :email, "
+                  "PHONE = :phone, "
+                  "SALARY = :salary, "
+                  "PASSWORD = :password, "
+                  "PHOTO = :photo, "
+                  "ID_A = :idActivity, "
+                  "UPDATED_DATE = CURRENT_TIMESTAMP "
+                  "WHERE CIN = :cin");
+    
+    // Bind values
+    query.bindValue(":cin", cin);
+    query.bindValue(":firstName", firstName);
+    query.bindValue(":lastName", lastName);
+    query.bindValue(":position", position.isEmpty() ? QVariant(QString()) : position);
+    query.bindValue(":department", department.isEmpty() ? QVariant(QString()) : department);
+    query.bindValue(":hireDate", hireDate.isValid() ? hireDate : QDate::currentDate());
+    query.bindValue(":status", status.isEmpty() ? "Active" : status);
+    query.bindValue(":age", age > 0 ? QVariant(age) : QVariant(QMetaType(QMetaType::Int)));
+    query.bindValue(":gender", gender.isEmpty() ? QVariant(QString()) : gender);
+    query.bindValue(":email", email.isEmpty() ? QVariant(QString()) : email);
+    query.bindValue(":phone", phone.isEmpty() ? QVariant(QString()) : phone);
+    query.bindValue(":salary", salary > 0 ? QVariant(salary) : QVariant(QMetaType(QMetaType::Double)));
+    query.bindValue(":password", password.isEmpty() ? QVariant(QString()) : password);
+    query.bindValue(":photo", photo.isEmpty() ? QVariant(QByteArray()) : photo);
+    query.bindValue(":idActivity", idActivity > 0 ? QVariant(idActivity) : QVariant(QMetaType(QMetaType::Int)));
+    
+    // Execute query
+    if (!query.exec()) {
+        qDebug() << "Employee::modifier() - Update failed:" << query.lastError().text();
+        return false;
+    }
+    
+    qDebug() << "Employee::modifier() - Successfully updated employee:" << cin;
+    return true;
+}
+
+// ============================================================================
+// ADDITIONAL QUERY METHODS
+// ============================================================================
+
+/**
+ * @brief Find employee by CIN
+ * @param cin Employee CIN to search
+ * @return Employee object if found, nullptr otherwise
+ */
+Employee* Employee::rechercherParCin(const QString &cin)
+{
+    QSqlQuery query;
+    query.prepare("SELECT CIN, FIRST_NAME, LAST_NAME, POSITION, DEPARTMENT, "
+                  "HIRE_DATE, STATUS, AGE, GENDER, EMAIL, PHONE, SALARY, "
+                  "PASSWORD, PHOTO, ID_A "
+                  "FROM EMPLOYEES WHERE CIN = :cin");
+    query.bindValue(":cin", cin);
+    
+    if (query.exec() && query.next()) {
+        Employee* emp = new Employee();
+        emp->setCin(query.value(0).toString());
+        emp->setFirstName(query.value(1).toString());
+        emp->setLastName(query.value(2).toString());
+        emp->setPosition(query.value(3).toString());
+        emp->setDepartment(query.value(4).toString());
+        emp->setHireDate(query.value(5).toDate());
+        emp->setStatus(query.value(6).toString());
+        emp->setAge(query.value(7).toInt());
+        emp->setGender(query.value(8).toString());
+        emp->setEmail(query.value(9).toString());
+        emp->setPhone(query.value(10).toString());
+        emp->setSalary(query.value(11).toDouble());
+        emp->setPassword(query.value(12).toString());
+        emp->setPhoto(query.value(13).toByteArray());
+        emp->setIdActivity(query.value(14).toInt());
+        
+        return emp;
+    }
+    
+    qDebug() << "Employee::rechercherParCin() - Employee not found:" << cin;
+    return nullptr;
+}
+
+/**
+ * @brief Search employees by name (first or last name)
+ * @param nom Name to search (partial match supported)
+ * @return QSqlQueryModel with matching employees
+ */
+QSqlQueryModel* Employee::rechercherParNom(const QString &nom)
+{
+    QSqlQueryModel* model = new QSqlQueryModel();
+    
+    QSqlQuery query;
+    query.prepare("SELECT CIN, FIRST_NAME, LAST_NAME, POSITION, DEPARTMENT, "
+                  "GENDER, AGE, SALARY, EMAIL, PHONE, HIRE_DATE, STATUS "
+                  "FROM EMPLOYEES "
+                  "WHERE UPPER(FIRST_NAME) LIKE UPPER(:nom) "
+                  "OR UPPER(LAST_NAME) LIKE UPPER(:nom) "
+                  "ORDER BY LAST_NAME, FIRST_NAME");
+    query.bindValue(":nom", "%" + nom + "%");
+    
+    if (!query.exec()) {
+        qDebug() << "Employee::rechercherParNom() - Query failed:" << query.lastError().text();
+    }
+    
+    model->setQuery(std::move(query));
+    
+    // Set header labels
+    model->setHeaderData(0, Qt::Horizontal, "CIN");
+    model->setHeaderData(1, Qt::Horizontal, "First Name");
+    model->setHeaderData(2, Qt::Horizontal, "Last Name");
+    model->setHeaderData(3, Qt::Horizontal, "Position");
+    model->setHeaderData(4, Qt::Horizontal, "Department");
+    model->setHeaderData(5, Qt::Horizontal, "Gender");
+    model->setHeaderData(6, Qt::Horizontal, "Age");
+    model->setHeaderData(7, Qt::Horizontal, "Salary");
+    model->setHeaderData(8, Qt::Horizontal, "Email");
+    model->setHeaderData(9, Qt::Horizontal, "Phone");
+    model->setHeaderData(10, Qt::Horizontal, "Hire Date");
+    model->setHeaderData(11, Qt::Horizontal, "Status");
+    
+    return model;
+}
+
+/**
+ * @brief Filter employees by department
+ * @param departement Department name
+ * @return QSqlQueryModel with filtered employees
+ */
+QSqlQueryModel* Employee::filtrerParDepartement(const QString &departement)
+{
+    QSqlQueryModel* model = new QSqlQueryModel();
+    
+    QSqlQuery query;
+    query.prepare("SELECT CIN, FIRST_NAME, LAST_NAME, POSITION, DEPARTMENT, "
+                  "GENDER, AGE, SALARY, EMAIL, PHONE, HIRE_DATE, STATUS "
+                  "FROM EMPLOYEES "
+                  "WHERE UPPER(DEPARTMENT) = UPPER(:departement) "
+                  "ORDER BY HIRE_DATE DESC");
+    query.bindValue(":departement", departement);
+    
+    if (!query.exec()) {
+        qDebug() << "Employee::filtrerParDepartement() - Query failed:" << query.lastError().text();
+    }
+    
+    model->setQuery(std::move(query));
+    
+    // Set header labels
+    model->setHeaderData(0, Qt::Horizontal, "CIN");
+    model->setHeaderData(1, Qt::Horizontal, "First Name");
+    model->setHeaderData(2, Qt::Horizontal, "Last Name");
+    model->setHeaderData(3, Qt::Horizontal, "Position");
+    model->setHeaderData(4, Qt::Horizontal, "Department");
+    model->setHeaderData(5, Qt::Horizontal, "Gender");
+    model->setHeaderData(6, Qt::Horizontal, "Age");
+    model->setHeaderData(7, Qt::Horizontal, "Salary");
+    model->setHeaderData(8, Qt::Horizontal, "Email");
+    model->setHeaderData(9, Qt::Horizontal, "Phone");
+    model->setHeaderData(10, Qt::Horizontal, "Hire Date");
+    model->setHeaderData(11, Qt::Horizontal, "Status");
+    
+    return model;
+}
+
+/**
+ * @brief Filter employees by status
+ * @param statut Status (Active/Inactive)
+ * @return QSqlQueryModel with filtered employees
+ */
+QSqlQueryModel* Employee::filtrerParStatut(const QString &statut)
+{
+    QSqlQueryModel* model = new QSqlQueryModel();
+    
+    QSqlQuery query;
+    query.prepare("SELECT CIN, FIRST_NAME, LAST_NAME, POSITION, DEPARTMENT, "
+                  "GENDER, AGE, SALARY, EMAIL, PHONE, HIRE_DATE, STATUS "
+                  "FROM EMPLOYEES "
+                  "WHERE UPPER(STATUS) = UPPER(:statut) "
+                  "ORDER BY HIRE_DATE DESC");
+    query.bindValue(":statut", statut);
+    
+    if (!query.exec()) {
+        qDebug() << "Employee::filtrerParStatut() - Query failed:" << query.lastError().text();
+    }
+    
+    model->setQuery(std::move(query));
+    
+    // Set header labels
+    model->setHeaderData(0, Qt::Horizontal, "CIN");
+    model->setHeaderData(1, Qt::Horizontal, "First Name");
+    model->setHeaderData(2, Qt::Horizontal, "Last Name");
+    model->setHeaderData(3, Qt::Horizontal, "Position");
+    model->setHeaderData(4, Qt::Horizontal, "Department");
+    model->setHeaderData(5, Qt::Horizontal, "Gender");
+    model->setHeaderData(6, Qt::Horizontal, "Age");
+    model->setHeaderData(7, Qt::Horizontal, "Salary");
+    model->setHeaderData(8, Qt::Horizontal, "Email");
+    model->setHeaderData(9, Qt::Horizontal, "Phone");
+    model->setHeaderData(10, Qt::Horizontal, "Hire Date");
+    model->setHeaderData(11, Qt::Horizontal, "Status");
+    
+    return model;
+}
+// ============================================================================
+// UI METHODS (VIEW LAYER)
+// ============================================================================
+
+// Helper function to populate QTableWidget from QSqlQueryModel
+void populateTableWidget(QTableWidget* table, QSqlQueryModel* model, Employee* emp = nullptr)
+{
+    if (!table || !model) return;
+    
+    // CRITICAL: Store counts before any operations to prevent race conditions
+    const int dataColCount = model->columnCount();
+    const int totalColCount = dataColCount + 1; // +1 for Actions column
+    const int rowCount = model->rowCount();
+    const int actionsColIndex = dataColCount; // Actions column is the last one
+    
+    // CRITICAL: Clear all existing widgets to prevent memory leaks and conflicts
+    table->clearContents();
+    table->setRowCount(0);
+    
+    // Set column count (add 1 for Actions column)
+    table->setColumnCount(totalColCount);
+    
+    // Set headers for data columns
+    for (int col = 0; col < dataColCount; ++col) {
+        table->setHorizontalHeaderItem(col, new QTableWidgetItem(model->headerData(col, Qt::Horizontal).toString()));
+    }
+    
+    // Set header for Actions column
+    table->setHorizontalHeaderItem(actionsColIndex, new QTableWidgetItem("Actions"));
+    
+    // Set row count
+    table->setRowCount(rowCount);
+    
+    // Populate data
+    for (int row = 0; row < rowCount; ++row) {
+        // CRITICAL: Get CIN (primary key) from first column for stable reference
+        QString cin = model->data(model->index(row, 0)).toString();
+        
+        // Validate CIN before proceeding (prevent empty action widgets)
+        if (cin.isEmpty()) {
+            qDebug() << "Warning: Empty CIN at row" << row << "- skipping action buttons";
+        }
+        
+        // Add data columns
+        for (int col = 0; col < dataColCount; ++col) {
+            QTableWidgetItem* item = new QTableWidgetItem(model->data(model->index(row, col)).toString());
+            item->setFlags(item->flags() & ~Qt::ItemIsEditable); // Make read-only
+            table->setItem(row, col, item);
+        }
+        
+        // Create Actions column with Edit and Delete buttons (only if CIN is valid)
+        if (!cin.isEmpty()) {
+            QWidget* actionWidget = new QWidget(table); // CRITICAL: Set parent to table for proper ownership
+            QHBoxLayout* actionLayout = new QHBoxLayout(actionWidget);
+            actionLayout->setContentsMargins(4, 2, 4, 2);
+            actionLayout->setSpacing(4);
+            
+            // Create Edit button
+            QPushButton* editButton = new QPushButton("Edit", actionWidget);
+            editButton->setIcon(QIcon(":/icons/icons/edit.png"));
+            editButton->setIconSize(QSize(16, 16));
+            editButton->setStyleSheet(
+                "QPushButton { "
+                "background-color: rgba(22, 165, 179, 0.10); "
+                "color: #2c3e50; "
+                "border: 1.5px solid rgba(22, 165, 179, 0.65); "
+                "padding: 5px 10px; "
+                "border-radius: 4px; "
+                "font-size: 12px; "
+                "} "
+                "QPushButton:hover { "
+                "background-color: #e67e22; "
+                "color: white; "
+                "}"
+            );
+            
+            // Create Delete button
+            QPushButton* deleteButton = new QPushButton("Delete", actionWidget);
+            deleteButton->setIcon(QIcon(":/icons/icons/delete.png"));
+            deleteButton->setIconSize(QSize(16, 16));
+            deleteButton->setStyleSheet(
+                "QPushButton { "
+                "background-color: rgba(22, 165, 179, 0.10); "
+                "color: #2c3e50; "
+                "border: 1.5px solid rgba(22, 165, 179, 0.65); "
+                "padding: 5px 10px; "
+                "border-radius: 4px; "
+                "font-size: 12px; "
+                "} "
+                "QPushButton:hover { "
+                "background-color: #c0392b; "
+                "color: white; "
+                "}"
+            );
+            
+            // CRITICAL FIX: Capture CIN (primary key) instead of row index
+            // This ensures the correct employee is always edited/deleted regardless of sorting/filtering
+            if (emp) {
+                QObject::connect(editButton, &QPushButton::clicked, emp, [emp, cin]() {
+                    emp->onEditEmployeeByCin(cin);
+                });
+                QObject::connect(deleteButton, &QPushButton::clicked, emp, [emp, cin]() {
+                    emp->onDeleteEmployeeByCin(cin);
+                });
+            }
+            
+            actionLayout->addWidget(editButton);
+            actionLayout->addWidget(deleteButton);
+            actionLayout->addStretch();
+            
+            // CRITICAL: Use stored column index instead of model->columnCount()
+            table->setCellWidget(row, actionsColIndex, actionWidget);
+        } else {
+            // If CIN is empty, create empty widget to maintain table structure
+            QWidget* emptyWidget = new QWidget(table);
+            table->setCellWidget(row, actionsColIndex, emptyWidget);
+        }
+    }
+    
+    // Clean up model (safe now because we stored all needed values)
+    delete model;
+}
+
 void Employee::setupEmployeeTable()
 {
-    ui->employeeTable->setColumnCount(13);
-    QStringList headers = {"Employee ID", "First Name", "Last Name", "Position", "Department", 
-                          "Gender", "Age", "Salary", "Email", "Phone", "Hire Date", "Status", "Actions"};
-    ui->employeeTable->setHorizontalHeaderLabels(headers);
+    if (!ui) return;
     
-    // Set column widths
-    ui->employeeTable->setColumnWidth(0, 100);  // Employee ID
-    ui->employeeTable->setColumnWidth(1, 120);  // First Name
-    ui->employeeTable->setColumnWidth(2, 120);  // Last Name
-    ui->employeeTable->setColumnWidth(3, 120);  // Position
-    ui->employeeTable->setColumnWidth(4, 130);  // Department
-    ui->employeeTable->setColumnWidth(5, 80);   // Gender
-    ui->employeeTable->setColumnWidth(6, 60);   // Age
-    ui->employeeTable->setColumnWidth(7, 100);  // Salary
-    ui->employeeTable->setColumnWidth(8, 200);  // Email
-    ui->employeeTable->setColumnWidth(9, 130);  // Phone
-    ui->employeeTable->setColumnWidth(10, 100); // Hire Date
-    ui->employeeTable->setColumnWidth(11, 80);  // Status
-    ui->employeeTable->setColumnWidth(12, 150); // Actions
-    
-    // Make table read-only
+    // Configure table appearance
+    ui->employeeTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->employeeTable->setSelectionMode(QAbstractItemView::SingleSelection);
     ui->employeeTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->employeeTable->setAlternatingRowColors(true);
+    ui->employeeTable->setSortingEnabled(true);
+    ui->employeeTable->horizontalHeader()->setStretchLastSection(true);
+    
+    // Populate with data (pass 'this' for button connections)
+    populateTableWidget(ui->employeeTable, Employee::afficher(), this);
 }
 
-void Employee::onSearchEmployees()
+void Employee::refreshEmployeeTable()
 {
-    QString searchTerm = ui->searchLineEdit->text().toLower();
-    
-    for (int i = 0; i < ui->employeeTable->rowCount(); ++i) {
-        bool showRow = false;
-        
-        // Search in all columns except actions
-        for (int j = 0; j < 6; ++j) {
-            QTableWidgetItem *item = ui->employeeTable->item(i, j);
-            if (item && item->text().toLower().contains(searchTerm)) {
-                showRow = true;
-                break;
-            }
-        }
-        
-        ui->employeeTable->setRowHidden(i, !showRow);
-    }
-    
-    if (searchTerm.isEmpty()) {
-        // Show all rows if search is empty
-        for (int i = 0; i < ui->employeeTable->rowCount(); ++i) {
-            ui->employeeTable->setRowHidden(i, false);
-        }
-    }
+    if (!ui) return;
+    populateTableWidget(ui->employeeTable, Employee::afficher(), this);
 }
 
-void Employee::onUploadPhoto()
-{
-    QString fileName = QFileDialog::getOpenFileName(parentWidget,
-        tr("Select Employee Photo"), "",
-        tr("Image Files (*.png *.jpg *.jpeg *.bmp *.gif)"));
-    
-    if (!fileName.isEmpty()) {
-        ui->photoLabel->setText("Photo Selected: " + QFileInfo(fileName).fileName());
-        QMessageBox::information(parentWidget, "Photo Upload", "Photo selected successfully!\n\nFile: " + QFileInfo(fileName).fileName());
-    }
-}
+// ============================================================================
+// UI METHODS - TO BE ADDED TO employee.cpp
+// ============================================================================
 
 void Employee::onConfirmAdd()
 {
-    // Validate required fields
-    if (ui->empIdLineEdit->text().isEmpty() || 
-        ui->firstNameLineEdit->text().isEmpty() || 
-        ui->lastNameLineEdit->text().isEmpty() ||
-        ui->emailLineEdit->text().isEmpty()) {
-        
-        QMessageBox::warning(parentWidget, "Validation Error", "Please fill in all required fields:\n- Employee ID\n- First Name\n- Last Name\n- Email");
-        return;
+    if (!ui) return;
+    QString cin = ui->empIdLineEdit->text().trimmed();
+    QString firstName = ui->firstNameLineEdit->text().trimmed();
+    QString lastName = ui->lastNameLineEdit->text().trimmed();
+    QString position = ui->positionLineEdit->text().trimmed();
+    QString department = ui->departmentComboBox->currentText();
+    QDate hireDate = ui->hireDateEdit->date();
+    QString status = ui->statusComboBox->currentText();
+    int age = ui->ageSpinBox->value();
+    QString gender = ui->genderComboBox->currentText();
+    QString email = ui->emailLineEdit->text().trimmed();
+    QString phone = ui->phoneLineEdit->text().trimmed();
+    double salary = ui->salaryLineEdit->text().toDouble();
+    QString password = ui->passwordLineEedit->text();
+    
+    QByteArray photoBlob;
+    if (!selectedPhotoPath.isEmpty()) {
+        photoBlob = loadPhotoAsBlob(selectedPhotoPath);
     }
     
-    // Show confirmation message
-    QMessageBox::information(parentWidget, "Employee Added", 
-        QString("Employee %1 %2 has been successfully added to the system!")
-        .arg(ui->firstNameLineEdit->text())
-        .arg(ui->lastNameLineEdit->text()));
+    Employee emp(cin, firstName, lastName, position, department, 
+                 hireDate, status, age, gender, email, phone, 
+                 salary, password, photoBlob, 0);
     
-    // Clear form
-    clearEmployeeForm();
+    if (emp.ajouter()) {
+        QMessageBox::information(parentWidget, "Success", 
+            QString("Employee %1 %2 added successfully!").arg(firstName, lastName));
+        clearEmployeeForm();
+        refreshEmployeeTable();
+    } else {
+        QMessageBox::critical(parentWidget, "Error", 
+            "Failed to add employee. Check CIN/Email uniqueness and validation.");
+    }
 }
 
 void Employee::onConfirmUpdate()
 {
-    // Validate required fields
-    if (ui->empIdLineEdit->text().isEmpty() || 
-        ui->firstNameLineEdit->text().isEmpty() || 
-        ui->lastNameLineEdit->text().isEmpty() ||
-        ui->emailLineEdit->text().isEmpty()) {
-        
-        QMessageBox::warning(parentWidget, "Validation Error", "Please fill in all required fields:\n- Employee ID\n- First Name\n- Last Name\n- Email");
+    if (!ui || editingCin.isEmpty()) return;
+    
+    Employee emp(editingCin,
+                ui->firstNameLineEdit->text().trimmed(),
+                ui->lastNameLineEdit->text().trimmed(),
+                ui->positionLineEdit->text().trimmed(),
+                ui->departmentComboBox->currentText(),
+                ui->hireDateEdit->date(),
+                ui->statusComboBox->currentText(),
+                ui->ageSpinBox->value(),
+                ui->genderComboBox->currentText(),
+                ui->emailLineEdit->text().trimmed(),
+                ui->phoneLineEdit->text().trimmed(),
+                ui->salaryLineEdit->text().toDouble(),
+                ui->passwordLineEedit->text(),
+                selectedPhotoPath.isEmpty() ? QByteArray() : loadPhotoAsBlob(selectedPhotoPath),
+                0);
+    
+    if (emp.modifier()) {
+        QMessageBox::information(parentWidget, "Success", "Employee updated!");
+        clearEmployeeForm();
+        refreshEmployeeTable();
+        editingCin = "";
+    } else {
+        QMessageBox::critical(parentWidget, "Error", "Failed to update employee.");
+    }
+}
+
+void Employee::onConfirmDelete()
+{
+    if (!ui) return;
+    QModelIndexList selected = ui->employeeTable->selectionModel()->selectedRows();
+    if (selected.isEmpty()) {
+        QMessageBox::warning(parentWidget, "No Selection", "Select an employee to delete.");
         return;
     }
     
-    // Show confirmation message
-    QMessageBox::information(parentWidget, "Employee Updated", 
-        QString("Employee %1 %2 information has been successfully updated!")
-        .arg(ui->firstNameLineEdit->text())
-        .arg(ui->lastNameLineEdit->text()));
+    QString cin = ui->employeeTable->model()->data(ui->employeeTable->model()->index(selected.first().row(), 0)).toString();
+    QString name = ui->employeeTable->model()->data(ui->employeeTable->model()->index(selected.first().row(), 1)).toString() + " " +
+                   ui->employeeTable->model()->data(ui->employeeTable->model()->index(selected.first().row(), 2)).toString();
     
-    // Clear form
-    clearEmployeeForm();
+    if (QMessageBox::question(parentWidget, "Confirm", QString("Delete %1?").arg(name)) == QMessageBox::Yes) {
+        Employee emp;
+        if (emp.supprimer(cin)) {
+            QMessageBox::information(parentWidget, "Success", "Employee deleted!");
+            refreshEmployeeTable();
+        } else {
+            QMessageBox::critical(parentWidget, "Error", "Failed to delete.");
+        }
+    }
+}
+
+// CRITICAL FIX: CIN-based edit/delete methods (stable across table changes)
+void Employee::onEditEmployeeByCin(const QString &cin)
+{
+    if (!ui || cin.isEmpty()) return;
+    
+    // Fetch employee data directly from database using CIN
+    Employee* emp = Employee::rechercherParCin(cin);
+    if (emp) {
+        loadEmployeeToForm(emp);
+        delete emp;
+        ui->employeeTabWidget->setCurrentIndex(1); // Switch to Add/Edit tab
+    } else {
+        QMessageBox::warning(parentWidget, "Not Found", 
+            QString("Employee with CIN %1 not found.").arg(cin));
+    }
+}
+
+void Employee::onDeleteEmployeeByCin(const QString &cin)
+{
+    if (!ui || cin.isEmpty()) return;
+    
+    // Fetch employee data to display confirmation with name
+    Employee* emp = Employee::rechercherParCin(cin);
+    if (!emp) {
+        QMessageBox::warning(parentWidget, "Not Found", 
+            QString("Employee with CIN %1 not found.").arg(cin));
+        return;
+    }
+    
+    QString name = emp->getFirstName() + " " + emp->getLastName();
+    delete emp;
+    
+    // Confirm deletion
+    if (QMessageBox::question(parentWidget, "Confirm Delete", 
+        QString("Are you sure you want to delete employee:\n%1 (CIN: %2)?").arg(name, cin),
+        QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
+        
+        Employee tempEmp;
+        if (tempEmp.supprimer(cin)) {
+            QMessageBox::information(parentWidget, "Success", "Employee deleted successfully!");
+            refreshEmployeeTable();
+        } else {
+            QMessageBox::critical(parentWidget, "Error", "Failed to delete employee.");
+        }
+    }
+}
+
+// Legacy row-based methods (kept for backward compatibility with selection-based delete)
+void Employee::onEditEmployee(int row)
+{
+    if (!ui || row < 0 || row >= ui->employeeTable->rowCount()) return;
+    
+    QTableWidgetItem* cinItem = ui->employeeTable->item(row, 0);
+    if (!cinItem) return;
+    
+    onEditEmployeeByCin(cinItem->text());
+}
+
+void Employee::onDeleteEmployee(int row)
+{
+    if (!ui || row < 0 || row >= ui->employeeTable->rowCount()) return;
+    
+    QTableWidgetItem* cinItem = ui->employeeTable->item(row, 0);
+    if (!cinItem) return;
+    
+    onDeleteEmployeeByCin(cinItem->text());
 }
 
 void Employee::clearEmployeeForm()
 {
+    if (!ui) return;
     ui->empIdLineEdit->clear();
+    ui->empIdLineEdit->setEnabled(true);
     ui->firstNameLineEdit->clear();
     ui->lastNameLineEdit->clear();
     ui->positionLineEdit->clear();
     ui->emailLineEdit->clear();
     ui->phoneLineEdit->clear();
     ui->salaryLineEdit->clear();
-    
+    ui->passwordLineEedit->clear();
     ui->departmentComboBox->setCurrentIndex(0);
     ui->genderComboBox->setCurrentIndex(0);
     ui->statusComboBox->setCurrentIndex(0);
     ui->ageSpinBox->setValue(25);
     ui->hireDateEdit->setDate(QDate::currentDate());
-    
-    ui->photoLabel->setText("Upload Employee Photo");
+    ui->photoLabel->clear();
+    selectedPhotoPath = "";
+    editingCin = "";
+    ui->confirmAddButton->setText("Add Employee");
 }
 
-void Employee::onEditEmployee(int row)
+void Employee::onSearchEmployees()
 {
-    // Get employee data from the selected row
-    QString id = ui->employeeTable->item(row, 0)->text();
-    QString name = ui->employeeTable->item(row, 1)->text();
-    QString position = ui->employeeTable->item(row, 2)->text();
-    QString department = ui->employeeTable->item(row, 3)->text();
-    QString hireDate = ui->employeeTable->item(row, 4)->text();
-    QString status = ui->employeeTable->item(row, 5)->text();
-    
-    // Switch to Add Employee tab and populate form with existing data
-    ui->employeeTabWidget->setCurrentIndex(1); // Switch to Add tab (index 1)
-    
-    QMessageBox::information(parentWidget, "Edit Employee", 
-        QString("Editing employee: %1\nID: %2\nPosition: %3").arg(name, id, position));
+    if (!ui) return;
+    QString search = ui->searchLineEdit->text().trimmed();
+    if (search.isEmpty()) {
+        refreshEmployeeTable();
+    } else {
+        populateTableWidget(ui->employeeTable, Employee::rechercherParNom(search), this);
+    }
 }
 
-void Employee::onDeleteEmployee(int row)
+void Employee::onFilterByDepartment()
 {
-    // Get employee data from the selected row
-    QString id = ui->employeeTable->item(row, 0)->text();
-    QString name = ui->employeeTable->item(row, 1)->text();
-    
-    // Show confirmation dialog
-    QMessageBox::StandardButton reply = QMessageBox::question(parentWidget, 
-        "Delete Employee", 
-        QString("Are you sure you want to delete employee:\n%1 (ID: %2)?").arg(name, id),
-        QMessageBox::Yes | QMessageBox::No);
-    
-    if (reply == QMessageBox::Yes) {
-        // Remove the row from the table
-        ui->employeeTable->removeRow(row);
-        
-        QMessageBox::information(parentWidget, "Employee Deleted", 
-            QString("Employee %1 has been deleted successfully.").arg(name));
+    if (!ui) return;
+    QString dept = ui->departmentComboBox->currentText();
+    if (dept == "All" || dept.isEmpty()) {
+        refreshEmployeeTable();
+    } else {
+        populateTableWidget(ui->employeeTable, Employee::filtrerParDepartement(dept), this);
+    }
+}
+
+void Employee::onFilterByStatus()
+{
+    if (!ui) return;
+    QString stat = ui->statusComboBox->currentText();
+    if (stat == "All" || stat.isEmpty()) {
+        refreshEmployeeTable();
+    } else {
+        populateTableWidget(ui->employeeTable, Employee::filtrerParStatut(stat), this);
+    }
+}
+
+void Employee::onUploadPhoto()
+{
+    if (!ui) return;
+    QString file = QFileDialog::getOpenFileName(parentWidget, "Select Photo", "", "Images (*.png *.jpg *.jpeg)");
+    if (!file.isEmpty()) {
+        selectedPhotoPath = file;
+        ui->photoLabel->setPixmap(QPixmap(file).scaled(150, 150, Qt::KeepAspectRatio));
     }
 }
 
 void Employee::onSortEmployees()
 {
-    // Sort by Hire Date column (index 4)
-    sortTableByName(ui->employeeTable, 4);
+    if (!ui) return;
+    static bool asc = true;
+    ui->employeeTable->sortByColumn(10, asc ? Qt::AscendingOrder : Qt::DescendingOrder);
+    asc = !asc;
 }
 
 void Employee::onExportEmployees()
 {
-    exportTableToPdf(ui->employeeTable, "employees.pdf", tr("List of Employees"));
+    if (!ui) return;
+    exportTableToPdf(ui->employeeTable, "employees.pdf", "Employee List");
 }
 
-// Generic sort by Name column (default index 1)
-void Employee::sortTableByName(QTableWidget* table, int nameColumnIndex)
+void Employee::loadEmployeeToForm(Employee* emp)
 {
-    if (!table) return;
-
-    // Toggle sorting order: if already sorted ascending, switch to descending
-    static Qt::SortOrder lastOrder = Qt::AscendingOrder;
-    lastOrder = (lastOrder == Qt::AscendingOrder) ? Qt::DescendingOrder : Qt::AscendingOrder;
-
-    table->sortItems(nameColumnIndex, lastOrder);
+    if (!emp || !ui) return;
+    editingCin = emp->getCin();
+    ui->empIdLineEdit->setText(emp->getCin());
+    ui->empIdLineEdit->setEnabled(false);
+    ui->firstNameLineEdit->setText(emp->getFirstName());
+    ui->lastNameLineEdit->setText(emp->getLastName());
+    ui->positionLineEdit->setText(emp->getPosition());
+    ui->departmentComboBox->setCurrentText(emp->getDepartment());
+    ui->hireDateEdit->setDate(emp->getHireDate());
+    ui->statusComboBox->setCurrentText(emp->getStatus());
+    ui->ageSpinBox->setValue(emp->getAge());
+    ui->genderComboBox->setCurrentText(emp->getGender());
+    ui->emailLineEdit->setText(emp->getEmail());
+    ui->phoneLineEdit->setText(emp->getPhone());
+    ui->salaryLineEdit->setText(QString::number(emp->getSalary(), 'f', 2));
+    ui->passwordLineEedit->setText(emp->getPassword());
+    if (!emp->getPhoto().isEmpty()) {
+        QPixmap photo;
+        photo.loadFromData(emp->getPhoto());
+        ui->photoLabel->setPixmap(photo.scaled(150, 150, Qt::KeepAspectRatio));
+    }
+    ui->confirmAddButton->setText("Update Employee");
 }
 
-// Export a QTableWidget to CSV (visible rows only, excluding action button cells)
-bool Employee::exportTableToCsv(QTableWidget* table, const QString& defaultName)
+QByteArray Employee::loadPhotoAsBlob(const QString& path)
 {
-    if (!table) return false;
-
-    QString filter = "CSV Files (*.csv)";
-    QString fileName = QFileDialog::getSaveFileName(parentWidget, tr("Export to CSV"), defaultName, filter);
-    if (fileName.isEmpty()) return false;
-
-    QFile file(fileName);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QMessageBox::warning(parentWidget, tr("Export Failed"), tr("Could not open file for writing."));
-        return false;
-    }
-
-    QTextStream out(&file);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    out.setEncoding(QStringConverter::Utf8);
-#else
-    out.setCodec("UTF-8");
-#endif
-
-    // Write header (exclude last column if it is Actions)
-    int columns = table->columnCount();
-    int headerColumns = columns;
-    if (columns > 0) {
-        QTableWidgetItem* lastHeader = table->horizontalHeaderItem(columns - 1);
-        if (lastHeader && lastHeader->text().trimmed().compare("Actions", Qt::CaseInsensitive) == 0) {
-            headerColumns = columns - 1;
-        }
-    }
-    for (int c = 0; c < headerColumns; ++c) {
-        QString h = table->horizontalHeaderItem(c) ? table->horizontalHeaderItem(c)->text() : QString();
-        // CSV escaping: double any embedded quotes
-        h.replace("\"", "\"\"");
-        out << '"' << h << '"';
-        if (c < headerColumns - 1) out << ',';
-    }
-    out << '\n';
-
-    // Write data rows (visible only)
-    for (int r = 0; r < table->rowCount(); ++r) {
-        if (table->isRowHidden(r)) continue; // skip filtered-out rows
-        for (int c = 0; c < headerColumns; ++c) {
-            QTableWidgetItem* item = table->item(r, c);
-            QString val = item ? item->text() : QString();
-            // CSV escaping: double any embedded quotes
-            val.replace("\"", "\"\"");
-            out << '"' << val << '"';
-            if (c < headerColumns - 1) out << ',';
-        }
-        out << '\n';
-    }
-
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly)) return QByteArray();
+    QByteArray data = file.readAll();
     file.close();
-    QMessageBox::information(parentWidget, tr("Export Successful"), tr("Data exported to CSV successfully."));
-    return true;
+    return data;
 }
 
-bool Employee::exportTableToPdf(QTableWidget* table, const QString& defaultName, const QString& title)
+bool Employee::exportTableToPdf(QTableView* table, const QString& name, const QString& title)
 {
-    if (!table) return false;
-
-    QString filter = "PDF Files (*.pdf)";
-    QString fileName = QFileDialog::getSaveFileName(parentWidget, tr("Export to PDF"), defaultName, filter);
-    if (fileName.isEmpty()) return false;
-
-    QPrinter printer(QPrinter::PrinterResolution);
+    if (!table || !table->model()) return false;
+    QString file = QFileDialog::getSaveFileName(parentWidget, "Export PDF", name, "PDF (*.pdf)");
+    if (file.isEmpty()) return false;
+    
+    QPrinter printer;
     printer.setOutputFormat(QPrinter::PdfFormat);
-    printer.setOutputFileName(fileName);
+    printer.setOutputFileName(file);
     printer.setPageMargins(QMarginsF(15, 15, 15, 15), QPageLayout::Millimeter);
-
-    QTextDocument document;
-    QString html = "<html><head><style>";
-    html += "table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; }";
-    html += "th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }";
-    html += "th { background-color: #f2f2f2; font-weight: bold; }";
-    html += "tr:nth-child(even) { background-color: #f9f9f9; }";
-    html += ".title { font-size: 18px; font-weight: bold; text-align: center; margin-bottom: 10px; }";
-    html += ".subtitle { font-size: 12px; text-align: center; margin-bottom: 20px; color: #666; }";
-    html += "</style></head><body>";
     
-    html += QString("<div class='title'>%1</div>").arg(title.toHtmlEscaped());
-    html += "<div class='subtitle'>Generated by VIBRA CLUB • " + QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm") + "</div>";
-    
-    html += "<table>";
-
-    // Add headers (exclude Actions column)
-    html += "<tr>";
-    int headerColumns = table->columnCount();
-    if (headerColumns > 0) {
-        QTableWidgetItem* lastHeader = table->horizontalHeaderItem(headerColumns - 1);
-        if (lastHeader && lastHeader->text().trimmed().compare("Actions", Qt::CaseInsensitive) == 0) {
-            headerColumns = headerColumns - 1;
-        }
-    }
-    for (int c = 0; c < headerColumns; ++c) {
-        QString header = table->horizontalHeaderItem(c) ? table->horizontalHeaderItem(c)->text() : QString();
-        html += QString("<th>%1</th>").arg(header.toHtmlEscaped());
-    }
+    QTextDocument doc;
+    QString html = "<h1>" + title + "</h1><table border='1' cellpadding='5'><tr>";
+    for (int c = 0; c < table->model()->columnCount(); ++c)
+        html += "<th>" + table->model()->headerData(c, Qt::Horizontal).toString() + "</th>";
     html += "</tr>";
-
-    // Add data rows (visible only)
-    for (int r = 0; r < table->rowCount(); ++r) {
-        if (table->isRowHidden(r)) continue;
+    for (int r = 0; r < table->model()->rowCount(); ++r) {
         html += "<tr>";
-        for (int c = 0; c < headerColumns; ++c) {
-            QTableWidgetItem* item = table->item(r, c);
-            QString cellText = item ? item->text() : QString();
-            html += QString("<td>%1</td>").arg(cellText.toHtmlEscaped());
-        }
+        for (int c = 0; c < table->model()->columnCount(); ++c)
+            html += "<td>" + table->model()->data(table->model()->index(r, c)).toString() + "</td>";
         html += "</tr>";
     }
+    html += "</table>";
+    doc.setHtml(html);
+    doc.print(&printer);
     
-    html += "</table></body></html>";
-    
-    document.setHtml(html);
-    document.print(&printer);
-    
-    QMessageBox::information(parentWidget, tr("Export Successful"), tr("Data exported to PDF successfully."));
+    QMessageBox::information(parentWidget, "Success", "PDF exported!");
     return true;
 }

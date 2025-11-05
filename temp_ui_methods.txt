@@ -1,0 +1,470 @@
+﻿// ============================================================================
+// SETUP & REFRESH
+// ============================================================================
+
+void EmployeeManager::setupEmployeeTable()
+{
+    // Use QTableView with QSqlQueryModel (Model-View architecture)
+    ui->employeeTableView->setModel(Employee::afficher());
+    
+    // Configure table appearance
+    ui->employeeTableView->horizontalHeader()->setStretchLastSection(true);
+    ui->employeeTableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->employeeTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->employeeTableView->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->employeeTableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->employeeTableView->setAlternatingRowColors(true);
+    
+    // Enable sorting
+    ui->employeeTableView->setSortingEnabled(true);
+    
+    qDebug() << "EmployeeManager::setupEmployeeTable() - Table initialized";
+}
+
+void EmployeeManager::refreshEmployeeTable()
+{
+    // Refresh the table with latest data from database
+    QSqlQueryModel* oldModel = qobject_cast<QSqlQueryModel*>(ui->employeeTableView->model());
+    ui->employeeTableView->setModel(Employee::afficher());
+    
+    // Delete old model to prevent memory leak
+    if (oldModel) {
+        delete oldModel;
+    }
+    
+    qDebug() << "EmployeeManager::refreshEmployeeTable() - Table refreshed";
+}
+
+// ============================================================================
+// CRUD OPERATIONS (VIEW LAYER)
+// ============================================================================
+
+/**
+ * @brief Add new employee - called when "Add" button is clicked
+ */
+void EmployeeManager::onConfirmAdd()
+{
+    // Get data from form
+    QString cin = ui->empCinLineEdit->text().trimmed();
+    QString firstName = ui->firstNameLineEdit->text().trimmed();
+    QString lastName = ui->lastNameLineEdit->text().trimmed();
+    QString position = ui->positionLineEdit->text().trimmed();
+    QString department = ui->departmentComboBox->currentText();
+    QDate hireDate = ui->hireDateEdit->date();
+    QString status = ui->statusComboBox->currentText();
+    int age = ui->ageSpinBox->value();
+    QString gender = ui->genderComboBox->currentText();
+    QString email = ui->emailLineEdit->text().trimmed();
+    QString phone = ui->phoneLineEdit->text().trimmed();
+    double salary = ui->salaryLineEdit->text().toDouble();
+    QString password = ui->passwordLineEdit->text();  // Optional
+    
+    // Load photo if selected
+    QByteArray photoBlob;
+    if (!selectedPhotoPath.isEmpty()) {
+        photoBlob = loadPhotoAsBlob(selectedPhotoPath);
+    }
+    
+    // Create Employee object with data
+    Employee emp(cin, firstName, lastName, position, department, 
+                 hireDate, status, age, gender, email, phone, 
+                 salary, password, photoBlob, 0);
+    
+    // Call MODEL layer to add employee
+    bool success = emp.ajouter();
+    
+    if (success) {
+        QMessageBox::information(parentWidget, "Success", 
+            QString("Employee %1 %2 has been successfully added!")
+            .arg(firstName, lastName));
+        
+        // Clear form and refresh table
+        clearEmployeeForm();
+        refreshEmployeeTable();
+    } else {
+        QMessageBox::critical(parentWidget, "Error", 
+            "Failed to add employee. Please check:\n"
+            "- CIN must be unique and 8 characters\n"
+            "- Email must be valid and unique\n"
+            "- All required fields filled\n"
+            "- Age between 18-70");
+    }
+}
+
+/**
+ * @brief Update existing employee
+ */
+void EmployeeManager::onConfirmUpdate()
+{
+    if (editingCin.isEmpty()) {
+        QMessageBox::warning(parentWidget, "Warning", 
+            "No employee selected for editing. Please select an employee first.");
+        return;
+    }
+    
+    // Get data from form
+    QString cin = editingCin;  // CIN cannot be changed
+    QString firstName = ui->firstNameLineEdit->text().trimmed();
+    QString lastName = ui->lastNameLineEdit->text().trimmed();
+    QString position = ui->positionLineEdit->text().trimmed();
+    QString department = ui->departmentComboBox->currentText();
+    QDate hireDate = ui->hireDateEdit->date();
+    QString status = ui->statusComboBox->currentText();
+    int age = ui->ageSpinBox->value();
+    QString gender = ui->genderComboBox->currentText();
+    QString email = ui->emailLineEdit->text().trimmed();
+    QString phone = ui->phoneLineEdit->text().trimmed();
+    double salary = ui->salaryLineEdit->text().toDouble();
+    QString password = ui->passwordLineEdit->text();
+    
+    // Load photo if changed
+    QByteArray photoBlob;
+    if (!selectedPhotoPath.isEmpty()) {
+        photoBlob = loadPhotoAsBlob(selectedPhotoPath);
+    }
+    
+    // Create Employee object
+    Employee emp(cin, firstName, lastName, position, department, 
+                 hireDate, status, age, gender, email, phone, 
+                 salary, password, photoBlob, 0);
+    
+    // Call MODEL layer to update
+    bool success = emp.modifier();
+    
+    if (success) {
+        QMessageBox::information(parentWidget, "Success", 
+            QString("Employee %1 has been successfully updated!")
+            .arg(firstName + " " + lastName));
+        
+        // Clear form and refresh table
+        clearEmployeeForm();
+        refreshEmployeeTable();
+        editingCin = "";  // Reset editing state
+    } else {
+        QMessageBox::critical(parentWidget, "Error", 
+            "Failed to update employee. Please check your inputs.");
+    }
+}
+
+/**
+ * @brief Delete employee - called from table row action
+ */
+void EmployeeManager::onConfirmDelete()
+{
+    // Get selected row
+    QModelIndexList selectedRows = ui->employeeTableView->selectionModel()->selectedRows();
+    
+    if (selectedRows.isEmpty()) {
+        QMessageBox::warning(parentWidget, "No Selection", 
+            "Please select an employee to delete.");
+        return;
+    }
+    
+    // Get CIN from first column of selected row
+    int row = selectedRows.first().row();
+    QModelIndex cinIndex = ui->employeeTableView->model()->index(row, 0);
+    QString cin = ui->employeeTableView->model()->data(cinIndex).toString();
+    QString name = ui->employeeTableView->model()->data(
+        ui->employeeTableView->model()->index(row, 1)).toString() + " " +
+        ui->employeeTableView->model()->data(
+        ui->employeeTableView->model()->index(row, 2)).toString();
+    
+    // Confirm deletion
+    QMessageBox::StandardButton reply = QMessageBox::question(parentWidget, 
+        "Confirm Deletion", 
+        QString("Are you sure you want to delete employee:\n%1 (CIN: %2)?")
+        .arg(name, cin),
+        QMessageBox::Yes | QMessageBox::No);
+    
+    if (reply == QMessageBox::Yes) {
+        // Call MODEL layer to delete
+        Employee emp;
+        bool success = emp.supprimer(cin);
+        
+        if (success) {
+            QMessageBox::information(parentWidget, "Success", 
+                QString("Employee %1 has been deleted successfully.").arg(name));
+            refreshEmployeeTable();
+        } else {
+            QMessageBox::critical(parentWidget, "Error", 
+                "Failed to delete employee.");
+        }
+    }
+}
+
+/**
+ * @brief Load employee data to form for editing
+ */
+void EmployeeManager::onEditEmployee(int row)
+{
+    Q_UNUSED(row);  // Using selection model instead
+    
+    // Get selected row
+    QModelIndexList selectedRows = ui->employeeTableView->selectionModel()->selectedRows();
+    
+    if (selectedRows.isEmpty()) {
+        QMessageBox::warning(parentWidget, "No Selection", 
+            "Please select an employee to edit.");
+        return;
+    }
+    
+    // Get CIN from first column
+    int selectedRow = selectedRows.first().row();
+    QModelIndex cinIndex = ui->employeeTableView->model()->index(selectedRow, 0);
+    QString cin = ui->employeeTableView->model()->data(cinIndex).toString();
+    
+    // Fetch employee from database
+    Employee* emp = Employee::rechercherParCin(cin);
+    
+    if (emp) {
+        loadEmployeeToForm(emp);
+        delete emp;  // Clean up
+        
+        // Switch to Add/Edit tab
+        ui->employeeTabWidget->setCurrentIndex(1);
+    } else {
+        QMessageBox::critical(parentWidget, "Error", 
+            "Failed to load employee data.");
+    }
+}
+
+void EmployeeManager::loadEmployeeToForm(Employee* emp)
+{
+    if (!emp) return;
+    
+    // Store CIN for update operation
+    editingCin = emp->getCin();
+    
+    // Populate form fields
+    ui->empCinLineEdit->setText(emp->getCin());
+    ui->empCinLineEdit->setEnabled(false);  // CIN cannot be changed
+    ui->firstNameLineEdit->setText(emp->getFirstName());
+    ui->lastNameLineEdit->setText(emp->getLastName());
+    ui->positionLineEdit->setText(emp->getPosition());
+    ui->departmentComboBox->setCurrentText(emp->getDepartment());
+    ui->hireDateEdit->setDate(emp->getHireDate());
+    ui->statusComboBox->setCurrentText(emp->getStatus());
+    ui->ageSpinBox->setValue(emp->getAge());
+    ui->genderComboBox->setCurrentText(emp->getGender());
+    ui->emailLineEdit->setText(emp->getEmail());
+    ui->phoneLineEdit->setText(emp->getPhone());
+    ui->salaryLineEdit->setText(QString::number(emp->getSalary(), 'f', 2));
+    ui->passwordLineEdit->setText(emp->getPassword());
+    
+    // Display photo if exists
+    QByteArray photoData = emp->getPhoto();
+    if (!photoData.isEmpty()) {
+        QPixmap photo;
+        photo.loadFromData(photoData);
+        ui->photoLabel->setPixmap(photo.scaled(150, 150, Qt::KeepAspectRatio));
+    }
+    
+    // Change button text to "Update"
+    ui->confirmAddButton->setText("Update Employee");
+}
+
+/**
+ * @brief Clear all form fields
+ */
+void EmployeeManager::clearEmployeeForm()
+{
+    ui->empCinLineEdit->clear();
+    ui->empCinLineEdit->setEnabled(true);  // Re-enable for new entry
+    ui->firstNameLineEdit->clear();
+    ui->lastNameLineEdit->clear();
+    ui->positionLineEdit->clear();
+    ui->emailLineEdit->clear();
+    ui->phoneLineEdit->clear();
+    ui->salaryLineEdit->clear();
+    ui->passwordLineEdit->clear();
+    
+    ui->departmentComboBox->setCurrentIndex(0);
+    ui->genderComboBox->setCurrentIndex(0);
+    ui->statusComboBox->setCurrentIndex(0);
+    ui->ageSpinBox->setValue(25);
+    ui->hireDateEdit->setDate(QDate::currentDate());
+    
+    ui->photoLabel->clear();
+    ui->photoLabel->setText("Upload Employee Photo");
+    selectedPhotoPath = "";
+    editingCin = "";
+    
+    // Reset button text
+    ui->confirmAddButton->setText("Add Employee");
+}
+
+// ============================================================================
+// SEARCH & FILTER
+// ============================================================================
+
+void EmployeeManager::onSearchEmployees()
+{
+    QString searchTerm = ui->searchLineEdit->text().trimmed();
+    
+    if (searchTerm.isEmpty()) {
+        // Show all employees
+        refreshEmployeeTable();
+        return;
+    }
+    
+    // Search by name using MODEL layer
+    QSqlQueryModel* oldModel = qobject_cast<QSqlQueryModel*>(ui->employeeTableView->model());
+    ui->employeeTableView->setModel(Employee::rechercherParNom(searchTerm));
+    
+    if (oldModel) {
+        delete oldModel;
+    }
+}
+
+void EmployeeManager::onFilterByDepartment()
+{
+    QString department = ui->departmentComboBox->currentText();
+    
+    if (department.isEmpty() || department == "All") {
+        refreshEmployeeTable();
+        return;
+    }
+    
+    // Filter using MODEL layer
+    QSqlQueryModel* oldModel = qobject_cast<QSqlQueryModel*>(ui->employeeTableView->model());
+    ui->employeeTableView->setModel(Employee::filtrerParDepartement(department));
+    
+    if (oldModel) {
+        delete oldModel;
+    }
+}
+
+void EmployeeManager::onFilterByStatus()
+{
+    QString status = ui->statusComboBox->currentText();
+    
+    if (status.isEmpty() || status == "All") {
+        refreshEmployeeTable();
+        return;
+    }
+    
+    // Filter using MODEL layer
+    QSqlQueryModel* oldModel = qobject_cast<QSqlQueryModel*>(ui->employeeTableView->model());
+    ui->employeeTableView->setModel(Employee::filtrerParStatut(status));
+    
+    if (oldModel) {
+        delete oldModel;
+    }
+}
+
+// ============================================================================
+// PHOTO UPLOAD
+// ============================================================================
+
+void EmployeeManager::onUploadPhoto()
+{
+    QString fileName = QFileDialog::getOpenFileName(parentWidget,
+        tr("Select Employee Photo"), "",
+        tr("Image Files (*.png *.jpg *.jpeg *.bmp *.gif)"));
+    
+    if (!fileName.isEmpty()) {
+        selectedPhotoPath = fileName;
+        
+        // Display preview
+        QPixmap preview(fileName);
+        ui->photoLabel->setPixmap(preview.scaled(150, 150, Qt::KeepAspectRatio));
+        
+        QMessageBox::information(parentWidget, "Photo Selected", 
+            "Photo selected: " + QFileInfo(fileName).fileName());
+    }
+}
+
+QByteArray EmployeeManager::loadPhotoAsBlob(const QString& filePath)
+{
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qDebug() << "Failed to open photo file:" << filePath;
+        return QByteArray();
+    }
+    
+    QByteArray photoData = file.readAll();
+    file.close();
+    
+    return photoData;
+}
+
+// ============================================================================
+// EXPORT & SORT
+// ============================================================================
+
+void EmployeeManager::onSortEmployees()
+{
+    // Toggle sort by hire date
+    static bool ascending = true;
+    ui->employeeTableView->sortByColumn(10, ascending ? Qt::AscendingOrder : Qt::DescendingOrder);
+    ascending = !ascending;
+}
+
+void EmployeeManager::onExportEmployees()
+{
+    exportTableToPdf(ui->employeeTableView, "employees.pdf", tr("Employee List Report"));
+}
+
+bool EmployeeManager::exportTableToPdf(QTableView* table, const QString& defaultName, const QString& title)
+{
+    if (!table || !table->model()) return false;
+
+    QString filter = "PDF Files (*.pdf)";
+    QString fileName = QFileDialog::getSaveFileName(parentWidget, tr("Export to PDF"), defaultName, filter);
+    if (fileName.isEmpty()) return false;
+
+    QPrinter printer(QPrinter::PrinterResolution);
+    printer.setOutputFormat(QPrinter::PdfFormat);
+    printer.setOutputFileName(fileName);
+    printer.setPageMargins(QMarginsF(15, 15, 15, 15), QPageLayout::Millimeter);
+
+    QTextDocument document;
+    QString html = "<html><head><style>";
+    html += "table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; }";
+    html += "th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 10px; }";
+    html += "th { background-color: #4CAF50; color: white; font-weight: bold; }";
+    html += "tr:nth-child(even) { background-color: #f9f9f9; }";
+    html += ".title { font-size: 20px; font-weight: bold; text-align: center; margin-bottom: 10px; color: #4CAF50; }";
+    html += ".subtitle { font-size: 12px; text-align: center; margin-bottom: 20px; color: #666; }";
+    html += "</style></head><body>";
+    
+    html += QString("<div class='title'>%1</div>").arg(title.toHtmlEscaped());
+    html += "<div class='subtitle'>Generated by Summer Club Management System â€¢ " + 
+            QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm") + "</div>";
+    
+    html += "<table>";
+
+    // Add headers
+    QAbstractItemModel* model = table->model();
+    html += "<tr>";
+    for (int c = 0; c < model->columnCount(); ++c) {
+        QString header = model->headerData(c, Qt::Horizontal).toString();
+        html += QString("<th>%1</th>").arg(header.toHtmlEscaped());
+    }
+    html += "</tr>";
+
+    // Add data rows
+    for (int r = 0; r < model->rowCount(); ++r) {
+        html += "<tr>";
+        for (int c = 0; c < model->columnCount(); ++c) {
+            QString cellText = model->data(model->index(r, c)).toString();
+            html += QString("<td>%1</td>").arg(cellText.toHtmlEscaped());
+        }
+        html += "</tr>";
+    }
+    
+    html += "</table></body></html>";
+    
+    document.setHtml(html);
+    document.print(&printer);
+    
+    QMessageBox::information(parentWidget, tr("Export Successful"), 
+        tr("Employee data exported to PDF successfully!"));
+    return true;
+}
+
+void EmployeeManager::onDeleteEmployee(int row)
+{
+    Q_UNUSED(row);  // Using selection model
+    onConfirmDelete();
+}
