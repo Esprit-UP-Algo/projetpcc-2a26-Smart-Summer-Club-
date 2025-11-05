@@ -18,6 +18,8 @@
 #include <QDebug>
 
 // Forward declaration
+// ============================================================================
+
 namespace Ui {
 class EmployerAdmin;
 }

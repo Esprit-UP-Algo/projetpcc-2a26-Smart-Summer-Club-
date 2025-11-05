@@ -60,7 +60,9 @@ QDate Member::getJoinDate() const { return joinDate; }
 
 // ============================================================================
 // SETTERS
+
 // ============================================================================
+
 
 void Member::setCin(const QString &cin) { this->cin = cin; }
 void Member::setFirstName(const QString &firstName) { this->firstName = firstName; }
