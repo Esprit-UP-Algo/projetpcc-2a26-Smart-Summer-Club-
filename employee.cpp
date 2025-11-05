@@ -101,10 +101,18 @@ bool Employee::validerEmail() const
 
 bool Employee::validerCin() const
 {
-    // CIN should not be empty and should be alphanumeric (8 chars for Tunisian CIN)
-    if (cin.isEmpty() || cin.length() != 8) {
+    // CIN must be exactly 8 numeric digits (Tunisian CIN format)
+    if (cin.length() != 8) {
         return false;
     }
+    
+    // Check that all characters are digits
+    for (QChar c : cin) {
+        if (!c.isDigit()) {
+            return false;
+        }
+    }
+    
     return true;
 }
 
@@ -114,31 +122,146 @@ bool Employee::validerAge() const
     return (age >= 18 && age <= 70);
 }
 
+bool Employee::validerName(const QString &name) const
+{
+    // Name must not be empty
+    if (name.trimmed().isEmpty()) {
+        return false;
+    }
+    
+    // Name should only contain letters, spaces, hyphens, and apostrophes
+    // No numbers or special characters allowed
+    for (QChar c : name) {
+        if (!c.isLetter() && c != ' ' && c != '-' && c != '\'') {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+bool Employee::validerPhone() const
+{
+    // Phone is optional, but if provided must be valid
+    if (phone.trimmed().isEmpty()) {
+        return true;  // Optional field
+    }
+    
+    // Phone should be 8 digits for Tunisian numbers
+    QString cleanPhone = phone.trimmed();
+    if (cleanPhone.length() != 8) {
+        return false;
+    }
+    
+    // All characters must be digits
+    for (QChar c : cleanPhone) {
+        if (!c.isDigit()) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+bool Employee::validerSalary() const
+{
+    // Salary must be positive
+    return (salary > 0);
+}
+
+bool Employee::validerRequiredFields() const
+{
+    // Check all required fields are filled (photo is optional)
+    if (cin.trimmed().isEmpty()) {
+        return false;
+    }
+    if (firstName.trimmed().isEmpty()) {
+        return false;
+    }
+    if (lastName.trimmed().isEmpty()) {
+        return false;
+    }
+    if (position.trimmed().isEmpty()) {
+        return false;
+    }
+    if (department.trimmed().isEmpty()) {
+        return false;
+    }
+    if (!hireDate.isValid()) {
+        return false;
+    }
+    if (status.trimmed().isEmpty()) {
+        return false;
+    }
+    if (age <= 0) {
+        return false;
+    }
+    if (gender.trimmed().isEmpty()) {
+        return false;
+    }
+    if (email.trimmed().isEmpty()) {
+        return false;
+    }
+    if (phone.trimmed().isEmpty()) {
+        return false;
+    }
+    if (salary <= 0) {
+        return false;
+    }
+    if (password.trimmed().isEmpty()) {
+        return false;
+    }
+    
+    return true;
+}
+
 bool Employee::valider() const
 {
-    // Check required fields
-    if (cin.isEmpty() || firstName.isEmpty() || lastName.isEmpty()) {
-        qDebug() << "Validation failed: Missing required fields (CIN, First Name, Last Name)";
+    // 1. Check all required fields are filled (except photo which is optional)
+    if (!validerRequiredFields()) {
+        qDebug() << "Validation failed: All fields must be filled (photo is optional)";
         return false;
     }
     
+    // 2. Validate CIN format (8 numeric digits)
     if (!validerCin()) {
-        qDebug() << "Validation failed: Invalid CIN format";
+        qDebug() << "Validation failed: CIN must be exactly 8 numeric digits";
         return false;
     }
     
-    if (!email.isEmpty() && !validerEmail()) {
+    // 3. Validate first name (no numbers/special characters)
+    if (!validerName(firstName)) {
+        qDebug() << "Validation failed: First name can only contain letters, spaces, hyphens, and apostrophes";
+        return false;
+    }
+    
+    // 4. Validate last name (no numbers/special characters)
+    if (!validerName(lastName)) {
+        qDebug() << "Validation failed: Last name can only contain letters, spaces, hyphens, and apostrophes";
+        return false;
+    }
+    
+    // 5. Validate email format
+    if (!validerEmail()) {
         qDebug() << "Validation failed: Invalid email format";
         return false;
     }
     
-    if (age > 0 && !validerAge()) {
-        qDebug() << "Validation failed: Invalid age (must be between 18 and 70)";
+    // 6. Validate age range
+    if (!validerAge()) {
+        qDebug() << "Validation failed: Age must be between 18 and 70";
         return false;
     }
     
-    if (salary < 0) {
-        qDebug() << "Validation failed: Salary cannot be negative";
+    // 7. Validate phone format (8 digits for Tunisian numbers)
+    if (!validerPhone()) {
+        qDebug() << "Validation failed: Phone must be exactly 8 numeric digits";
+        return false;
+    }
+    
+    // 8. Validate salary is positive
+    if (!validerSalary()) {
+        qDebug() << "Validation failed: Salary must be greater than 0";
         return false;
     }
     
@@ -723,14 +846,58 @@ void Employee::onConfirmAdd()
                  hireDate, status, age, gender, email, phone, 
                  salary, password, photoBlob, 0);
     
+    // Check if CIN already exists first
+    if (Employee::cinExiste(cin)) {
+        QMessageBox::warning(parentWidget, "Duplicate CIN", 
+            "An employee with this CIN already exists!");
+        return;
+    }
+    
+    // Check if email already exists
+    if (!email.isEmpty() && Employee::emailExiste(email)) {
+        QMessageBox::warning(parentWidget, "Duplicate Email", 
+            "This email is already registered!");
+        return;
+    }
+    
     if (emp.ajouter()) {
         QMessageBox::information(parentWidget, "Success", 
             QString("Employee %1 %2 added successfully!").arg(firstName, lastName));
         clearEmployeeForm();
         refreshEmployeeTable();
     } else {
-        QMessageBox::critical(parentWidget, "Error", 
-            "Failed to add employee. Check CIN/Email uniqueness and validation.");
+        // Show detailed validation error message
+        QString errorMsg = "Please fix the following errors:\n\n";
+        
+        if (cin.trimmed().isEmpty() || firstName.trimmed().isEmpty() || lastName.trimmed().isEmpty() ||
+            position.trimmed().isEmpty() || department.trimmed().isEmpty() || status.trimmed().isEmpty() ||
+            gender.trimmed().isEmpty() || email.trimmed().isEmpty() || phone.trimmed().isEmpty() ||
+            password.trimmed().isEmpty() || !hireDate.isValid() || age <= 0 || salary <= 0) {
+            errorMsg += "• All fields must be filled (photo is optional)\n";
+        }
+        if (cin.length() != 8 || !cin.contains(QRegularExpression("^[0-9]{8}$"))) {
+            errorMsg += "• CIN must be exactly 8 numeric digits\n";
+        }
+        if (!firstName.contains(QRegularExpression("^[A-Za-z\\s\\-']+$"))) {
+            errorMsg += "• First name can only contain letters, spaces, hyphens, and apostrophes\n";
+        }
+        if (!lastName.contains(QRegularExpression("^[A-Za-z\\s\\-']+$"))) {
+            errorMsg += "• Last name can only contain letters, spaces, hyphens, and apostrophes\n";
+        }
+        if (!email.contains(QRegularExpression("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"))) {
+            errorMsg += "• Invalid email format\n";
+        }
+        if (age < 18 || age > 70) {
+            errorMsg += "• Age must be between 18 and 70\n";
+        }
+        if (phone.length() != 8 || !phone.contains(QRegularExpression("^[0-9]{8}$"))) {
+            errorMsg += "• Phone must be exactly 8 numeric digits\n";
+        }
+        if (salary <= 0) {
+            errorMsg += "• Salary must be greater than 0\n";
+        }
+        
+        QMessageBox::critical(parentWidget, "Validation Error", errorMsg);
     }
 }
 
@@ -876,7 +1043,10 @@ void Employee::clearEmployeeForm()
     ui->photoLabel->clear();
     selectedPhotoPath = "";
     editingCin = "";
-    ui->confirmAddButton->setText("Add Employee");
+    
+    // Reset to add mode UI
+    ui->confirmAddButton->setVisible(true);  // Show the Add button
+    ui->confirmUpdateButton->setVisible(false);  // Hide the Update button
 }
 
 void Employee::onSearchEmployees()
@@ -959,7 +1129,11 @@ void Employee::loadEmployeeToForm(Employee* emp)
         photo.loadFromData(emp->getPhoto());
         ui->photoLabel->setPixmap(photo.scaled(150, 150, Qt::KeepAspectRatio));
     }
-    ui->confirmAddButton->setText("Update Employee");
+    
+    // Switch to edit mode UI
+    ui->confirmAddButton->setVisible(false);  // Hide the Add button
+    ui->confirmUpdateButton->setVisible(true);  // Show the Update button
+    ui->employeeTabWidget->setCurrentIndex(1);  // Switch to Add/Edit tab
 }
 
 QByteArray Employee::loadPhotoAsBlob(const QString& path)

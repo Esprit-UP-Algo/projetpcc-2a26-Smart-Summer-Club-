@@ -155,6 +155,10 @@ private:
     bool validerEmail() const;
     bool validerCin() const;
     bool validerAge() const;
+    bool validerName(const QString &name) const;  // Validate names (no numbers/special chars)
+    bool validerPhone() const;  // Validate phone format
+    bool validerSalary() const;  // Validate salary is positive
+    bool validerRequiredFields() const;  // Check all required fields are filled
     
     // Helper UI methods
     void loadEmployeeToForm(Employee* emp);

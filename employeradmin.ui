@@ -913,11 +913,8 @@ QPushButton:disabled {
                          </item>
                          <item row="0" column="3">
                           <widget class="QLineEdit" name="passwordLineEedit">
-                           <property name="text">
-                            <string>Enter password  </string>
-                           </property>
                            <property name="placeholderText">
-                            <string>Enter salary amount</string>
+                            <string>Enter password</string>
                            </property>
                           </widget>
                          </item>

@@ -1,13 +1,42 @@
 #include "member.h"
 #include "ui_employeradmin.h"
-#include <QPixmap>
-#include <QFile>
-#include <QStringConverter>
-#include <QTextCursor>
+#include <QRegularExpression>
 #include <QDateTime>
+#include <QTextDocument>
+#include <QPrinter>
+#include <QPageLayout>
+#include <QFile>
+#include <QPushButton>
+#include <QHBoxLayout>
+#include <QWidget>
+
+// ============================================================================
+// CONSTRUCTORS
+// ============================================================================
+
+Member::Member()
+    : QObject(nullptr), cin(""), firstName(""), lastName(""), gender(""), 
+      age(0), email(""), phone(""), subscriptionPlan(""), 
+      joinDate(QDate::currentDate()),
+      ui(nullptr), parentWidget(nullptr), editingCin("")
+{
+}
+
+Member::Member(QString cin, QString firstName, QString lastName, QString gender,
+               int age, QString email, QString phone, QString subscriptionPlan,
+               QDate joinDate)
+    : QObject(nullptr), cin(cin), firstName(firstName), lastName(lastName),
+      gender(gender), age(age), email(email), phone(phone),
+      subscriptionPlan(subscriptionPlan), joinDate(joinDate),
+      ui(nullptr), parentWidget(nullptr), editingCin("")
+{
+}
 
 Member::Member(Ui::EmployerAdmin *ui, QWidget *parent)
-    : QObject(parent), ui(ui), parentWidget(parent)
+    : QObject(parent), cin(""), firstName(""), lastName(""), gender(""),
+      age(0), email(""), phone(""), subscriptionPlan(""),
+      joinDate(QDate::currentDate()),
+      ui(ui), parentWidget(parent), editingCin("")
 {
 }
 
@@ -15,234 +44,1025 @@ Member::~Member()
 {
 }
 
-void Member::setupMemberTable()
+// ============================================================================
+// GETTERS
+// ============================================================================
+
+QString Member::getCin() const { return cin; }
+QString Member::getFirstName() const { return firstName; }
+QString Member::getLastName() const { return lastName; }
+QString Member::getGender() const { return gender; }
+int Member::getAge() const { return age; }
+QString Member::getEmail() const { return email; }
+QString Member::getPhone() const { return phone; }
+QString Member::getSubscriptionPlan() const { return subscriptionPlan; }
+QDate Member::getJoinDate() const { return joinDate; }
+
+// ============================================================================
+// SETTERS
+// ============================================================================
+
+void Member::setCin(const QString &cin) { this->cin = cin; }
+void Member::setFirstName(const QString &firstName) { this->firstName = firstName; }
+void Member::setLastName(const QString &lastName) { this->lastName = lastName; }
+void Member::setGender(const QString &gender) { this->gender = gender; }
+void Member::setAge(int age) { this->age = age; }
+void Member::setEmail(const QString &email) { this->email = email; }
+void Member::setPhone(const QString &phone) { this->phone = phone; }
+void Member::setSubscriptionPlan(const QString &subscriptionPlan) { this->subscriptionPlan = subscriptionPlan; }
+void Member::setJoinDate(const QDate &joinDate) { this->joinDate = joinDate; }
+
+// ============================================================================
+// VALIDATION METHODS
+// ============================================================================
+
+bool Member::validerEmail() const
 {
-    ui->memberTable->setColumnCount(10);
-    QStringList headers = {"Member ID", "First Name", "Last Name", "Gender", "Age", 
-                          "Email", "Phone Number", "Subscription Plan", "Join Date", "Actions"};
-    ui->memberTable->setHorizontalHeaderLabels(headers);
-    
-    // Set column widths
-    ui->memberTable->setColumnWidth(0, 100);  // Member ID
-    ui->memberTable->setColumnWidth(1, 120);  // First Name
-    ui->memberTable->setColumnWidth(2, 120);  // Last Name
-    ui->memberTable->setColumnWidth(3, 80);   // Gender
-    ui->memberTable->setColumnWidth(4, 60);   // Age
-    ui->memberTable->setColumnWidth(5, 200);  // Email
-    ui->memberTable->setColumnWidth(6, 130);  // Phone
-    ui->memberTable->setColumnWidth(7, 120);  // Subscription
-    ui->memberTable->setColumnWidth(8, 100);  // Join Date
-    ui->memberTable->setColumnWidth(9, 150);  // Actions
+    // Email regex pattern: name@domain.ext
+    QRegularExpression emailPattern("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
+    return emailPattern.match(email).hasMatch();
 }
 
+bool Member::validerCin() const
+{
+    // CIN should be exactly 8 numeric digits (e.g., 22542687)
+    if (cin.isEmpty() || cin.length() != 8) {
+        return false;
+    }
+    
+    // Check that all characters are digits (0-9) only
+    QRegularExpression numericPattern("^[0-9]{8}$");
+    if (!numericPattern.match(cin).hasMatch()) {
+        return false;
+    }
+    
+    return true;
+}
+
+bool Member::validerAge() const
+{
+    // Age should be between 5 and 100 for members
+    return (age >= 5 && age <= 100);
+}
+
+bool Member::validerName(const QString &name) const
+{
+    // Name must not be empty
+    if (name.trimmed().isEmpty()) {
+        return false;
+    }
+    
+    // Name should only contain letters, spaces, hyphens, and apostrophes
+    // No numbers or special characters allowed
+    for (QChar c : name) {
+        if (!c.isLetter() && c != ' ' && c != '-' && c != '\'') {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+bool Member::validerPhone() const
+{
+    // Phone is required and must be valid
+    if (phone.trimmed().isEmpty()) {
+        return false;  // Required field
+    }
+    
+    // Phone should be 8 digits for Tunisian numbers
+    QString cleanPhone = phone.trimmed();
+    if (cleanPhone.length() != 8) {
+        return false;
+    }
+    
+    // All characters must be digits
+    for (QChar c : cleanPhone) {
+        if (!c.isDigit()) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+bool Member::validerRequiredFields() const
+{
+    // Check all required fields are filled
+    if (cin.trimmed().isEmpty()) {
+        return false;
+    }
+    if (firstName.trimmed().isEmpty()) {
+        return false;
+    }
+    if (lastName.trimmed().isEmpty()) {
+        return false;
+    }
+    if (gender.trimmed().isEmpty()) {
+        return false;
+    }
+    if (age <= 0) {
+        return false;
+    }
+    if (email.trimmed().isEmpty()) {
+        return false;
+    }
+    if (phone.trimmed().isEmpty()) {
+        return false;
+    }
+    if (subscriptionPlan.trimmed().isEmpty()) {
+        return false;
+    }
+    if (!joinDate.isValid()) {
+        return false;
+    }
+    
+    return true;
+}
+
+bool Member::valider() const
+{
+    // 1. Check all required fields are filled
+    if (!validerRequiredFields()) {
+        qDebug() << "Validation failed: All fields must be filled";
+        return false;
+    }
+    
+    // 2. Validate CIN format (8 numeric digits)
+    if (!validerCin()) {
+        qDebug() << "Validation failed: CIN must be exactly 8 numeric digits";
+        return false;
+    }
+    
+    // 3. Validate first name (no numbers/special characters)
+    if (!validerName(firstName)) {
+        qDebug() << "Validation failed: First name can only contain letters, spaces, hyphens, and apostrophes";
+        return false;
+    }
+    
+    // 4. Validate last name (no numbers/special characters)
+    if (!validerName(lastName)) {
+        qDebug() << "Validation failed: Last name can only contain letters, spaces, hyphens, and apostrophes";
+        return false;
+    }
+    
+    // 5. Validate email format
+    if (!validerEmail()) {
+        qDebug() << "Validation failed: Invalid email format";
+        return false;
+    }
+    
+    // 6. Validate age range
+    if (!validerAge()) {
+        qDebug() << "Validation failed: Age must be between 5 and 100";
+        return false;
+    }
+    
+    // 7. Validate phone format (8 digits for Tunisian numbers)
+    if (!validerPhone()) {
+        qDebug() << "Validation failed: Phone must be exactly 8 numeric digits";
+        return false;
+    }
+    
+    return true;
+}
+
+bool Member::cinExiste(const QString &cin)
+{
+    QSqlQuery query;
+    query.prepare("SELECT COUNT(*) FROM MEMBERS WHERE CIN = :cin");
+    query.bindValue(":cin", cin);
+    
+    if (query.exec() && query.next()) {
+        return query.value(0).toInt() > 0;
+    }
+    
+    qDebug() << "Error checking CIN existence:" << query.lastError().text();
+    return false;
+}
+
+bool Member::emailExiste(const QString &email, const QString &excludeCin)
+{
+    QSqlQuery query;
+    
+    if (excludeCin.isEmpty()) {
+        query.prepare("SELECT COUNT(*) FROM MEMBERS WHERE EMAIL = :email");
+        query.bindValue(":email", email);
+    } else {
+        query.prepare("SELECT COUNT(*) FROM MEMBERS WHERE EMAIL = :email AND CIN != :cin");
+        query.bindValue(":email", email);
+        query.bindValue(":cin", excludeCin);
+    }
+    
+    if (query.exec() && query.next()) {
+        return query.value(0).toInt() > 0;
+    }
+    
+    qDebug() << "Error checking email existence:" << query.lastError().text();
+    return false;
+}
+
+// ============================================================================
+// CRUD OPERATIONS
+// ============================================================================
+
+/**
+ * @brief CREATE - Add new member to database
+ * @return true if successful, false otherwise
+ */
+bool Member::ajouter()
+{
+    // Validate data before insertion
+    if (!valider()) {
+        qDebug() << "Member::ajouter() - Validation failed";
+        return false;
+    }
+    
+    // Check if CIN already exists
+    if (cinExiste(cin)) {
+        qDebug() << "Member::ajouter() - CIN already exists:" << cin;
+        return false;
+    }
+    
+    // Check if email already exists (if provided)
+    if (!email.isEmpty() && emailExiste(email)) {
+        qDebug() << "Member::ajouter() - Email already exists:" << email;
+        return false;
+    }
+    
+    // Prepare INSERT query with prepared statements (SQL Injection Protection)
+    QSqlQuery query;
+    query.prepare("INSERT INTO MEMBERS "
+                  "(CIN, FIRST_NAME, LAST_NAME, GENDER, AGE, EMAIL, PHONE, "
+                  "SUBSCRIPTION_PLAN, JOIN_DATE) "
+                  "VALUES "
+                  "(:cin, :firstName, :lastName, :gender, :age, :email, :phone, "
+                  ":subscriptionPlan, :joinDate)");
+    
+    // Bind values
+    query.bindValue(":cin", cin);
+    query.bindValue(":firstName", firstName);
+    query.bindValue(":lastName", lastName);
+    query.bindValue(":gender", gender.isEmpty() ? QVariant(QString()) : gender);
+    query.bindValue(":age", age > 0 ? QVariant(age) : QVariant(QMetaType(QMetaType::Int)));
+    query.bindValue(":email", email.isEmpty() ? QVariant(QString()) : email);
+    query.bindValue(":phone", phone.isEmpty() ? QVariant(QString()) : phone);
+    query.bindValue(":subscriptionPlan", subscriptionPlan.isEmpty() ? QVariant(QString()) : subscriptionPlan);
+    query.bindValue(":joinDate", joinDate.isValid() ? joinDate : QDate::currentDate());
+    
+    // Execute query
+    if (!query.exec()) {
+        qDebug() << "Member::ajouter() - Insert failed:" << query.lastError().text();
+        return false;
+    }
+    
+    qDebug() << "Member::ajouter() - Successfully added member:" << cin;
+    return true;
+}
+
+/**
+ * @brief READ - Display all members
+ * @return QSqlQueryModel containing all members
+ */
+QSqlQueryModel* Member::afficher()
+{
+    QSqlQueryModel* model = new QSqlQueryModel();
+    
+    model->setQuery("SELECT CIN, FIRST_NAME, LAST_NAME, GENDER, AGE, "
+                    "EMAIL, PHONE, SUBSCRIPTION_PLAN, JOIN_DATE "
+                    "FROM MEMBERS "
+                    "ORDER BY JOIN_DATE DESC");
+    
+    if (model->lastError().isValid()) {
+        qDebug() << "Member::afficher() - Query failed:" << model->lastError().text();
+        return model;
+    }
+    
+    // Set header labels
+    model->setHeaderData(0, Qt::Horizontal, "CIN");
+    model->setHeaderData(1, Qt::Horizontal, "First Name");
+    model->setHeaderData(2, Qt::Horizontal, "Last Name");
+    model->setHeaderData(3, Qt::Horizontal, "Gender");
+    model->setHeaderData(4, Qt::Horizontal, "Age");
+    model->setHeaderData(5, Qt::Horizontal, "Email");
+    model->setHeaderData(6, Qt::Horizontal, "Phone");
+    model->setHeaderData(7, Qt::Horizontal, "Subscription Plan");
+    model->setHeaderData(8, Qt::Horizontal, "Join Date");
+    
+    qDebug() << "Member::afficher() - Loaded" << model->rowCount() << "members";
+    return model;
+}
+
+/**
+ * @brief DELETE - Remove member by CIN
+ * @param cin Member CIN to delete
+ * @return true if successful, false otherwise
+ */
+bool Member::supprimer(const QString &cin)
+{
+    if (cin.isEmpty()) {
+        qDebug() << "Member::supprimer() - CIN is empty";
+        return false;
+    }
+    
+    // Check if member exists
+    if (!cinExiste(cin)) {
+        qDebug() << "Member::supprimer() - Member not found:" << cin;
+        return false;
+    }
+    
+    // Prepare DELETE query with prepared statement
+    QSqlQuery query;
+    query.prepare("DELETE FROM MEMBERS WHERE CIN = :cin");
+    query.bindValue(":cin", cin);
+    
+    if (!query.exec()) {
+        qDebug() << "Member::supprimer() - Delete failed:" << query.lastError().text();
+        return false;
+    }
+    
+    qDebug() << "Member::supprimer() - Successfully deleted member:" << cin;
+    return true;
+}
+
+/**
+ * @brief UPDATE - Modify existing member
+ * @return true if successful, false otherwise
+ */
+bool Member::modifier()
+{
+    // Validate data before update
+    if (!valider()) {
+        qDebug() << "Member::modifier() - Validation failed";
+        return false;
+    }
+    
+    // Check if member exists
+    if (!cinExiste(cin)) {
+        qDebug() << "Member::modifier() - Member not found:" << cin;
+        return false;
+    }
+    
+    // Check if email is being changed and if new email already exists
+    if (!email.isEmpty() && emailExiste(email, cin)) {
+        qDebug() << "Member::modifier() - Email already exists:" << email;
+        return false;
+    }
+    
+    // Prepare UPDATE query with prepared statements
+    QSqlQuery query;
+    query.prepare("UPDATE MEMBERS SET "
+                  "FIRST_NAME = :firstName, "
+                  "LAST_NAME = :lastName, "
+                  "GENDER = :gender, "
+                  "AGE = :age, "
+                  "EMAIL = :email, "
+                  "PHONE = :phone, "
+                  "SUBSCRIPTION_PLAN = :subscriptionPlan, "
+                  "JOIN_DATE = :joinDate, "
+                  "UPDATED_DATE = SYSDATE "
+                  "WHERE CIN = :cin");
+    
+    // Bind values
+    query.bindValue(":cin", cin);
+    query.bindValue(":firstName", firstName);
+    query.bindValue(":lastName", lastName);
+    query.bindValue(":gender", gender.isEmpty() ? QVariant(QString()) : gender);
+    query.bindValue(":age", age > 0 ? QVariant(age) : QVariant(QMetaType(QMetaType::Int)));
+    query.bindValue(":email", email.isEmpty() ? QVariant(QString()) : email);
+    query.bindValue(":phone", phone.isEmpty() ? QVariant(QString()) : phone);
+    query.bindValue(":subscriptionPlan", subscriptionPlan.isEmpty() ? QVariant(QString()) : subscriptionPlan);
+    query.bindValue(":joinDate", joinDate.isValid() ? joinDate : QDate::currentDate());
+    
+    // Execute query
+    if (!query.exec()) {
+        qDebug() << "Member::modifier() - Update failed:" << query.lastError().text();
+        return false;
+    }
+    
+    qDebug() << "Member::modifier() - Successfully updated member:" << cin;
+    return true;
+}
+
+// ============================================================================
+// ADDITIONAL QUERY METHODS
+// ============================================================================
+
+/**
+ * @brief Find member by CIN
+ * @param cin Member CIN to search
+ * @return Member object if found, nullptr otherwise
+ */
+Member* Member::rechercherParCin(const QString &cin)
+{
+    QSqlQuery query;
+    query.prepare("SELECT CIN, FIRST_NAME, LAST_NAME, GENDER, AGE, "
+                  "EMAIL, PHONE, SUBSCRIPTION_PLAN, JOIN_DATE "
+                  "FROM MEMBERS WHERE CIN = :cin");
+    query.bindValue(":cin", cin);
+    
+    if (query.exec() && query.next()) {
+        Member* member = new Member();
+        member->setCin(query.value(0).toString());
+        member->setFirstName(query.value(1).toString());
+        member->setLastName(query.value(2).toString());
+        member->setGender(query.value(3).toString());
+        member->setAge(query.value(4).toInt());
+        member->setEmail(query.value(5).toString());
+        member->setPhone(query.value(6).toString());
+        member->setSubscriptionPlan(query.value(7).toString());
+        member->setJoinDate(query.value(8).toDate());
+        
+        return member;
+    }
+    
+    qDebug() << "Member::rechercherParCin() - Member not found:" << cin;
+    return nullptr;
+}
+
+/**
+ * @brief Search members by name (first or last name)
+ * @param nom Name to search (partial match supported)
+ * @return QSqlQueryModel with matching members
+ */
+QSqlQueryModel* Member::rechercherParNom(const QString &nom)
+{
+    QSqlQueryModel* model = new QSqlQueryModel();
+    
+    QSqlQuery query;
+    query.prepare("SELECT CIN, FIRST_NAME, LAST_NAME, GENDER, AGE, "
+                  "EMAIL, PHONE, SUBSCRIPTION_PLAN, JOIN_DATE "
+                  "FROM MEMBERS "
+                  "WHERE UPPER(FIRST_NAME) LIKE UPPER(:nom) "
+                  "OR UPPER(LAST_NAME) LIKE UPPER(:nom) "
+                  "ORDER BY LAST_NAME, FIRST_NAME");
+    query.bindValue(":nom", "%" + nom + "%");
+    
+    if (!query.exec()) {
+        qDebug() << "Member::rechercherParNom() - Query failed:" << query.lastError().text();
+    }
+    
+    model->setQuery(std::move(query));
+    
+    // Set header labels
+    model->setHeaderData(0, Qt::Horizontal, "CIN");
+    model->setHeaderData(1, Qt::Horizontal, "First Name");
+    model->setHeaderData(2, Qt::Horizontal, "Last Name");
+    model->setHeaderData(3, Qt::Horizontal, "Gender");
+    model->setHeaderData(4, Qt::Horizontal, "Age");
+    model->setHeaderData(5, Qt::Horizontal, "Email");
+    model->setHeaderData(6, Qt::Horizontal, "Phone");
+    model->setHeaderData(7, Qt::Horizontal, "Subscription Plan");
+    model->setHeaderData(8, Qt::Horizontal, "Join Date");
+    
+    return model;
+}
+
+/**
+ * @brief Filter members by subscription plan
+ * @param plan Subscription plan name
+ * @return QSqlQueryModel with filtered members
+ */
+QSqlQueryModel* Member::filtrerParPlan(const QString &plan)
+{
+    QSqlQueryModel* model = new QSqlQueryModel();
+    
+    QSqlQuery query;
+    query.prepare("SELECT CIN, FIRST_NAME, LAST_NAME, GENDER, AGE, "
+                  "EMAIL, PHONE, SUBSCRIPTION_PLAN, JOIN_DATE "
+                  "FROM MEMBERS "
+                  "WHERE UPPER(SUBSCRIPTION_PLAN) = UPPER(:plan) "
+                  "ORDER BY JOIN_DATE DESC");
+    query.bindValue(":plan", plan);
+    
+    if (!query.exec()) {
+        qDebug() << "Member::filtrerParPlan() - Query failed:" << query.lastError().text();
+    }
+    
+    model->setQuery(std::move(query));
+    
+    // Set header labels
+    model->setHeaderData(0, Qt::Horizontal, "CIN");
+    model->setHeaderData(1, Qt::Horizontal, "First Name");
+    model->setHeaderData(2, Qt::Horizontal, "Last Name");
+    model->setHeaderData(3, Qt::Horizontal, "Gender");
+    model->setHeaderData(4, Qt::Horizontal, "Age");
+    model->setHeaderData(5, Qt::Horizontal, "Email");
+    model->setHeaderData(6, Qt::Horizontal, "Phone");
+    model->setHeaderData(7, Qt::Horizontal, "Subscription Plan");
+    model->setHeaderData(8, Qt::Horizontal, "Join Date");
+    
+    return model;
+}
+
+/**
+ * @brief Filter members by gender
+ * @param genre Gender (Male/Female)
+ * @return QSqlQueryModel with filtered members
+ */
+QSqlQueryModel* Member::filtrerParGenre(const QString &genre)
+{
+    QSqlQueryModel* model = new QSqlQueryModel();
+    
+    QSqlQuery query;
+    query.prepare("SELECT CIN, FIRST_NAME, LAST_NAME, GENDER, AGE, "
+                  "EMAIL, PHONE, SUBSCRIPTION_PLAN, JOIN_DATE "
+                  "FROM MEMBERS "
+                  "WHERE UPPER(GENDER) = UPPER(:genre) "
+                  "ORDER BY JOIN_DATE DESC");
+    query.bindValue(":genre", genre);
+    
+    if (!query.exec()) {
+        qDebug() << "Member::filtrerParGenre() - Query failed:" << query.lastError().text();
+    }
+    
+    model->setQuery(std::move(query));
+    
+    // Set header labels
+    model->setHeaderData(0, Qt::Horizontal, "CIN");
+    model->setHeaderData(1, Qt::Horizontal, "First Name");
+    model->setHeaderData(2, Qt::Horizontal, "Last Name");
+    model->setHeaderData(3, Qt::Horizontal, "Gender");
+    model->setHeaderData(4, Qt::Horizontal, "Age");
+    model->setHeaderData(5, Qt::Horizontal, "Email");
+    model->setHeaderData(6, Qt::Horizontal, "Phone");
+    model->setHeaderData(7, Qt::Horizontal, "Subscription Plan");
+    model->setHeaderData(8, Qt::Horizontal, "Join Date");
+    
+    return model;
+}
+
+// ============================================================================
+// UI METHODS (VIEW LAYER)
+// ============================================================================
+
+// Helper function to populate QTableWidget from QSqlQueryModel
+void populateMemberTableWidget(QTableWidget* table, QSqlQueryModel* model, Member* member = nullptr)
+{
+    if (!table || !model) return;
+    
+    // CRITICAL: Store counts before any operations to prevent race conditions
+    const int dataColCount = model->columnCount();
+    const int totalColCount = dataColCount + 1; // +1 for Actions column
+    const int rowCount = model->rowCount();
+    const int actionsColIndex = dataColCount; // Actions column is the last one
+    
+    // CRITICAL: Clear all existing widgets to prevent memory leaks and conflicts
+    table->clearContents();
+    table->setRowCount(0);
+    
+    // Set column count (add 1 for Actions column)
+    table->setColumnCount(totalColCount);
+    
+    // Set headers for data columns
+    for (int col = 0; col < dataColCount; ++col) {
+        table->setHorizontalHeaderItem(col, new QTableWidgetItem(model->headerData(col, Qt::Horizontal).toString()));
+    }
+    
+    // Set header for Actions column
+    table->setHorizontalHeaderItem(actionsColIndex, new QTableWidgetItem("Actions"));
+    
+    // Set row count
+    table->setRowCount(rowCount);
+    
+    // Populate data
+    for (int row = 0; row < rowCount; ++row) {
+        // CRITICAL: Get CIN (primary key) from first column for stable reference
+        QString cin = model->data(model->index(row, 0)).toString();
+        
+        // Validate CIN before proceeding (prevent empty action widgets)
+        if (cin.isEmpty()) {
+            qDebug() << "Warning: Empty CIN at row" << row << "- skipping action buttons";
+        }
+        
+        // Add data columns
+        for (int col = 0; col < dataColCount; ++col) {
+            QTableWidgetItem* item = new QTableWidgetItem(model->data(model->index(row, col)).toString());
+            item->setFlags(item->flags() & ~Qt::ItemIsEditable); // Make read-only
+            table->setItem(row, col, item);
+        }
+        
+        // Create Actions column with Edit and Delete buttons (only if CIN is valid)
+        if (!cin.isEmpty()) {
+            QWidget* actionWidget = new QWidget(table); // CRITICAL: Set parent to table for proper ownership
+            QHBoxLayout* actionLayout = new QHBoxLayout(actionWidget);
+            actionLayout->setContentsMargins(4, 2, 4, 2);
+            actionLayout->setSpacing(4);
+            
+            // Create Edit button
+            QPushButton* editButton = new QPushButton("Edit", actionWidget);
+            editButton->setIcon(QIcon(":/icons/icons/edit.png"));
+            editButton->setIconSize(QSize(16, 16));
+            editButton->setStyleSheet(
+                "QPushButton { "
+                "background-color: rgba(22, 165, 179, 0.10); "
+                "color: #2c3e50; "
+                "border: 1.5px solid rgba(22, 165, 179, 0.65); "
+                "padding: 5px 10px; "
+                "border-radius: 4px; "
+                "font-size: 12px; "
+                "} "
+                "QPushButton:hover { "
+                "background-color: #e67e22; "
+                "color: white; "
+                "}"
+            );
+            
+            // Create Delete button
+            QPushButton* deleteButton = new QPushButton("Delete", actionWidget);
+            deleteButton->setIcon(QIcon(":/icons/icons/delete.png"));
+            deleteButton->setIconSize(QSize(16, 16));
+            deleteButton->setStyleSheet(
+                "QPushButton { "
+                "background-color: rgba(22, 165, 179, 0.10); "
+                "color: #2c3e50; "
+                "border: 1.5px solid rgba(22, 165, 179, 0.65); "
+                "padding: 5px 10px; "
+                "border-radius: 4px; "
+                "font-size: 12px; "
+                "} "
+                "QPushButton:hover { "
+                "background-color: #c0392b; "
+                "color: white; "
+                "}"
+            );
+            
+            // CRITICAL FIX: Capture CIN (primary key) instead of row index
+            // This ensures the correct member is always edited/deleted regardless of sorting/filtering
+            if (member) {
+                QObject::connect(editButton, &QPushButton::clicked, member, [member, cin]() {
+                    member->onEditMemberByCin(cin);
+                });
+                QObject::connect(deleteButton, &QPushButton::clicked, member, [member, cin]() {
+                    member->onDeleteMemberByCin(cin);
+                });
+            }
+            
+            actionLayout->addWidget(editButton);
+            actionLayout->addWidget(deleteButton);
+            actionLayout->addStretch();
+            
+            // CRITICAL: Use stored column index instead of model->columnCount()
+            table->setCellWidget(row, actionsColIndex, actionWidget);
+        } else {
+            // If CIN is empty, create empty widget to maintain table structure
+            QWidget* emptyWidget = new QWidget(table);
+            table->setCellWidget(row, actionsColIndex, emptyWidget);
+        }
+    }
+    
+    // Clean up model (safe now because we stored all needed values)
+    delete model;
+}
+
+void Member::setupMemberTable()
+{
+    if (!ui) return;
+    
+    // Configure table appearance
+    ui->memberTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->memberTable->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->memberTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->memberTable->setAlternatingRowColors(true);
+    ui->memberTable->setSortingEnabled(true);
+    ui->memberTable->horizontalHeader()->setStretchLastSection(true);
+    
+    // Populate with data (pass 'this' for button connections)
+    populateMemberTableWidget(ui->memberTable, Member::afficher(), this);
+}
+
+void Member::refreshMemberTable()
+{
+    if (!ui) return;
+    populateMemberTableWidget(ui->memberTable, Member::afficher(), this);
+}
+
+// ============================================================================
+// UI HANDLER METHODS
+// ============================================================================
+
+void Member::onConfirmAdd()
+{
+    if (!ui) return;
+    
+    qDebug() << "Member::onConfirmAdd() called"; // DEBUG
+    
+    // Check if we're in edit mode (editingCin is set)
+    if (!editingCin.isEmpty()) {
+        qDebug() << "Edit mode detected, calling onConfirmUpdate() instead"; // DEBUG
+        onConfirmUpdate();
+        return;
+    }
+    
+    QString cin = ui->memberIdLineEdit->text().trimmed();
+    QString firstName = ui->memberFirstNameLineEdit->text().trimmed();
+    QString lastName = ui->memberLastNameLineEdit->text().trimmed();
+    QString gender = ui->memberGenderComboBox->currentText();
+    int age = ui->memberAgeSpinBox->value();
+    QString email = ui->memberEmailLineEdit->text().trimmed();
+    QString phone = ui->memberPhoneLineEdit->text().trimmed();
+    QString subscriptionPlan = ui->memberSubscriptionComboBox->currentText();
+    QDate joinDate = ui->memberJoinDateEdit->date();
+    
+    qDebug() << "Member data:" << cin << firstName << lastName << gender << age; // DEBUG
+    
+    Member member(cin, firstName, lastName, gender, age, email, phone, 
+                  subscriptionPlan, joinDate);
+    
+    // Check if CIN already exists first
+    if (Member::cinExiste(cin)) {
+        QMessageBox::warning(parentWidget, "Duplicate CIN", 
+            "A member with this CIN already exists!");
+        return;
+    }
+    
+    // Check if email already exists
+    if (!email.isEmpty() && Member::emailExiste(email)) {
+        QMessageBox::warning(parentWidget, "Duplicate Email", 
+            "This email is already registered!");
+        return;
+    }
+    
+    if (member.ajouter()) {
+        QMessageBox::information(parentWidget, "Success", 
+            QString("Member %1 %2 added successfully!").arg(firstName, lastName));
+        clearMemberForm();
+        refreshMemberTable();
+    } else {
+        // Show detailed validation error message
+        QString errorMsg = "Please fix the following errors:\n\n";
+        
+        if (cin.trimmed().isEmpty() || firstName.trimmed().isEmpty() || lastName.trimmed().isEmpty() ||
+            gender.trimmed().isEmpty() || email.trimmed().isEmpty() || phone.trimmed().isEmpty() ||
+            subscriptionPlan.trimmed().isEmpty() || !joinDate.isValid() || age <= 0) {
+            errorMsg += "• All fields must be filled\n";
+        }
+        if (cin.length() != 8 || !cin.contains(QRegularExpression("^[0-9]{8}$"))) {
+            errorMsg += "• CIN must be exactly 8 numeric digits\n";
+        }
+        if (!firstName.contains(QRegularExpression("^[A-Za-z\\s\\-']+$"))) {
+            errorMsg += "• First name can only contain letters, spaces, hyphens, and apostrophes\n";
+        }
+        if (!lastName.contains(QRegularExpression("^[A-Za-z\\s\\-']+$"))) {
+            errorMsg += "• Last name can only contain letters, spaces, hyphens, and apostrophes\n";
+        }
+        if (!email.contains(QRegularExpression("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$"))) {
+            errorMsg += "• Invalid email format\n";
+        }
+        if (age < 5 || age > 100) {
+            errorMsg += "• Age must be between 5 and 100\n";
+        }
+        if (phone.length() != 8 || !phone.contains(QRegularExpression("^[0-9]{8}$"))) {
+            errorMsg += "• Phone must be exactly 8 numeric digits\n";
+        }
+        
+        QMessageBox::critical(parentWidget, "Validation Error", errorMsg);
+    }
+}
+
+void Member::onConfirmUpdate()
+{
+    if (!ui || editingCin.isEmpty()) return;
+    
+    qDebug() << "Member::onConfirmUpdate() called - Editing CIN:" << editingCin; // DEBUG
+    
+    Member member(editingCin,
+                  ui->memberFirstNameLineEdit->text().trimmed(),
+                  ui->memberLastNameLineEdit->text().trimmed(),
+                  ui->memberGenderComboBox->currentText(),
+                  ui->memberAgeSpinBox->value(),
+                  ui->memberEmailLineEdit->text().trimmed(),
+                  ui->memberPhoneLineEdit->text().trimmed(),
+                  ui->memberSubscriptionComboBox->currentText(),
+                  ui->memberJoinDateEdit->date());
+    
+    qDebug() << "Updating member:" << member.getFirstName() << member.getLastName(); // DEBUG
+    
+    if (member.modifier()) {
+        QMessageBox::information(parentWidget, "Success", "Member updated!");
+        clearMemberForm();
+        refreshMemberTable();
+        editingCin = "";
+    } else {
+        QMessageBox::critical(parentWidget, "Error", "Failed to update member.");
+    }
+}
+
+void Member::onConfirmDelete()
+{
+    if (!ui) return;
+    QModelIndexList selected = ui->memberTable->selectionModel()->selectedRows();
+    if (selected.isEmpty()) {
+        QMessageBox::warning(parentWidget, "No Selection", "Select a member to delete.");
+        return;
+    }
+    
+    QString cin = ui->memberTable->model()->data(ui->memberTable->model()->index(selected.first().row(), 0)).toString();
+    QString name = ui->memberTable->model()->data(ui->memberTable->model()->index(selected.first().row(), 1)).toString() + " " +
+                   ui->memberTable->model()->data(ui->memberTable->model()->index(selected.first().row(), 2)).toString();
+    
+    if (QMessageBox::question(parentWidget, "Confirm", QString("Delete %1?").arg(name)) == QMessageBox::Yes) {
+        Member member;
+        if (member.supprimer(cin)) {
+            QMessageBox::information(parentWidget, "Success", "Member deleted!");
+            refreshMemberTable();
+        } else {
+            QMessageBox::critical(parentWidget, "Error", "Failed to delete.");
+        }
+    }
+}
+
+// CRITICAL FIX: CIN-based edit/delete methods (stable across table changes)
+void Member::onEditMemberByCin(const QString &cin)
+{
+    if (!ui || cin.isEmpty()) return;
+    
+    // Fetch member data directly from database using CIN
+    Member* member = Member::rechercherParCin(cin);
+    if (member) {
+        loadMemberToForm(member);
+        delete member;
+        ui->memberTabWidget->setCurrentIndex(1); // Switch to Add/Edit tab
+    } else {
+        QMessageBox::warning(parentWidget, "Not Found", 
+            QString("Member with CIN %1 not found.").arg(cin));
+    }
+}
+
+void Member::onDeleteMemberByCin(const QString &cin)
+{
+    if (!ui || cin.isEmpty()) return;
+    
+    // Fetch member data to display confirmation with name
+    Member* member = Member::rechercherParCin(cin);
+    if (!member) {
+        QMessageBox::warning(parentWidget, "Not Found", 
+            QString("Member with CIN %1 not found.").arg(cin));
+        return;
+    }
+    
+    QString name = member->getFirstName() + " " + member->getLastName();
+    delete member;
+    
+    // Confirm deletion
+    if (QMessageBox::question(parentWidget, "Confirm Delete", 
+        QString("Are you sure you want to delete member:\n%1 (CIN: %2)?").arg(name, cin),
+        QMessageBox::Yes | QMessageBox::No) == QMessageBox::Yes) {
+        
+        Member tempMember;
+        if (tempMember.supprimer(cin)) {
+            QMessageBox::information(parentWidget, "Success", "Member deleted successfully!");
+            refreshMemberTable();
+        } else {
+            QMessageBox::critical(parentWidget, "Error", "Failed to delete member.");
+        }
+    }
+}
+
+// Legacy row-based methods (kept for backward compatibility with selection-based delete)
 void Member::onEditMember(int row)
 {
-    // Get member data from the selected row
-    QString id = ui->memberTable->item(row, 0)->text();
-    QString firstName = ui->memberTable->item(row, 1)->text();
-    QString lastName = ui->memberTable->item(row, 2)->text();
-    QString gender = ui->memberTable->item(row, 3)->text();
-    QString age = ui->memberTable->item(row, 4)->text();
-    QString email = ui->memberTable->item(row, 5)->text();
-    QString phone = ui->memberTable->item(row, 6)->text();
-    QString subscription = ui->memberTable->item(row, 7)->text();
-    QString joinDate = ui->memberTable->item(row, 8)->text();
+    if (!ui || row < 0 || row >= ui->memberTable->rowCount()) return;
     
-    // Switch to Add Member tab for editing
-    ui->memberTabWidget->setCurrentIndex(1); // Switch to Add tab (index 1)
+    QTableWidgetItem* cinItem = ui->memberTable->item(row, 0);
+    if (!cinItem) return;
     
-    // Populate the form fields with selected member data
-    ui->memberIdLineEdit->setText(id);
-    ui->memberFirstNameLineEdit->setText(firstName);
-    ui->memberLastNameLineEdit->setText(lastName);
-    ui->memberAgeSpinBox->setValue(age.toInt());
-    ui->memberEmailLineEdit->setText(email);
-    ui->memberPhoneLineEdit->setText(phone);
-    
-    // Set gender combo box
-    int genderIndex = ui->memberGenderComboBox->findText(gender);
-    if (genderIndex >= 0) {
-        ui->memberGenderComboBox->setCurrentIndex(genderIndex);
-    }
-    
-    // Set subscription combo box
-    int subscriptionIndex = ui->memberSubscriptionComboBox->findText(subscription);
-    if (subscriptionIndex >= 0) {
-        ui->memberSubscriptionComboBox->setCurrentIndex(subscriptionIndex);
-    }
-    
-    // Set join date
-    QDate date = QDate::fromString(joinDate, "yyyy-MM-dd");
-    ui->memberJoinDateEdit->setDate(date);
-    
-    QMessageBox::information(parentWidget, "Edit Member", 
-        QString("Editing member: %1 %2\nID: %3").arg(firstName, lastName, id));
+    onEditMemberByCin(cinItem->text());
 }
 
 void Member::onDeleteMember(int row)
 {
-    // Get member data from the selected row
-    QString id = ui->memberTable->item(row, 0)->text();
-    QString firstName = ui->memberTable->item(row, 1)->text();
-    QString lastName = ui->memberTable->item(row, 2)->text();
+    if (!ui || row < 0 || row >= ui->memberTable->rowCount()) return;
     
-    // Show confirmation dialog
-    QMessageBox::StandardButton reply = QMessageBox::question(parentWidget, 
-        "Delete Member", 
-        QString("Are you sure you want to delete member:\n%1 %2 (ID: %3)?").arg(firstName, lastName, id),
-        QMessageBox::Yes | QMessageBox::No);
+    QTableWidgetItem* cinItem = ui->memberTable->item(row, 0);
+    if (!cinItem) return;
     
-    if (reply == QMessageBox::Yes) {
-        // Remove the row from the table
-        ui->memberTable->removeRow(row);
-        
-        QMessageBox::information(parentWidget, "Member Deleted", 
-            QString("Member %1 %2 has been successfully deleted.").arg(firstName, lastName));
+    onDeleteMemberByCin(cinItem->text());
+}
+
+void Member::clearMemberForm()
+{
+    if (!ui) return;
+    ui->memberIdLineEdit->clear();
+    ui->memberIdLineEdit->setEnabled(true);
+    ui->memberFirstNameLineEdit->clear();
+    ui->memberLastNameLineEdit->clear();
+    ui->memberEmailLineEdit->clear();
+    ui->memberPhoneLineEdit->clear();
+    ui->memberGenderComboBox->setCurrentIndex(0);
+    ui->memberSubscriptionComboBox->setCurrentIndex(0);
+    ui->memberAgeSpinBox->setValue(18);
+    ui->memberJoinDateEdit->setDate(QDate::currentDate());
+    editingCin = "";
+    
+    // Reset to add mode UI
+    ui->memberConfirmAddButton->setVisible(true);  // Show the Add button
+    ui->memberConfirmUpdateButton->setVisible(false);  // Hide the Update button
+}
+
+void Member::onSearchMembers()
+{
+    if (!ui) return;
+    QString search = ui->memberSearchLineEdit->text().trimmed();
+    if (search.isEmpty()) {
+        refreshMemberTable();
+    } else {
+        populateMemberTableWidget(ui->memberTable, Member::rechercherParNom(search), this);
+    }
+}
+
+void Member::onFilterByPlan()
+{
+    if (!ui) return;
+    QString plan = ui->memberSubscriptionComboBox->currentText();
+    if (plan == "All" || plan.isEmpty()) {
+        refreshMemberTable();
+    } else {
+        populateMemberTableWidget(ui->memberTable, Member::filtrerParPlan(plan), this);
+    }
+}
+
+void Member::onFilterByGender()
+{
+    if (!ui) return;
+    QString gender = ui->memberGenderComboBox->currentText();
+    if (gender == "All" || gender.isEmpty()) {
+        refreshMemberTable();
+    } else {
+        populateMemberTableWidget(ui->memberTable, Member::filtrerParGenre(gender), this);
     }
 }
 
 void Member::onSortMembers()
 {
-    // Sort by First Name column (index 1)
-    sortTableByName(ui->memberTable, 1);
+    if (!ui) return;
+    static bool asc = true;
+    ui->memberTable->sortByColumn(8, asc ? Qt::AscendingOrder : Qt::DescendingOrder); // Sort by Join Date
+    asc = !asc;
 }
 
 void Member::onExportMembers()
 {
-    exportTableToPdf(ui->memberTable, "members.pdf", tr("List of Members"));
+    if (!ui) return;
+    exportTableToPdf(ui->memberTable, "members.pdf", "Member List");
 }
 
-// Generic sort by Name column (default index 1)
-void Member::sortTableByName(QTableWidget* table, int nameColumnIndex)
+void Member::loadMemberToForm(Member* member)
 {
-    if (!table) return;
-
-    // Toggle sorting order: if already sorted ascending, switch to descending
-    static Qt::SortOrder lastOrder = Qt::AscendingOrder;
-    lastOrder = (lastOrder == Qt::AscendingOrder) ? Qt::DescendingOrder : Qt::AscendingOrder;
-
-    table->sortItems(nameColumnIndex, lastOrder);
-}
-
-// Export a QTableWidget to CSV (visible rows only, excluding action button cells)
-bool Member::exportTableToCsv(QTableWidget* table, const QString& defaultName)
-{
-    if (!table) return false;
-
-    QString filter = "CSV Files (*.csv)";
-    QString fileName = QFileDialog::getSaveFileName(parentWidget, tr("Export to CSV"), defaultName, filter);
-    if (fileName.isEmpty()) return false;
-
-    QFile file(fileName);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QMessageBox::warning(parentWidget, tr("Export Failed"), tr("Could not open file for writing."));
-        return false;
-    }
-
-    QTextStream out(&file);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    out.setEncoding(QStringConverter::Utf8);
-#else
-    out.setCodec("UTF-8");
-#endif
-
-    // Write header (exclude last column if it is Actions)
-    int columns = table->columnCount();
-    int headerColumns = columns;
-    if (columns > 0) {
-        QTableWidgetItem* lastHeader = table->horizontalHeaderItem(columns - 1);
-        if (lastHeader && lastHeader->text().trimmed().compare("Actions", Qt::CaseInsensitive) == 0) {
-            headerColumns = columns - 1;
-        }
-    }
-    for (int c = 0; c < headerColumns; ++c) {
-        QString h = table->horizontalHeaderItem(c) ? table->horizontalHeaderItem(c)->text() : QString();
-        // CSV escaping: double any embedded quotes
-        h.replace("\"", "\"\"");
-        out << '"' << h << '"';
-        if (c < headerColumns - 1) out << ',';
-    }
-    out << '\n';
-
-    // Write data rows (visible only)
-    for (int r = 0; r < table->rowCount(); ++r) {
-        if (table->isRowHidden(r)) continue; // skip filtered-out rows
-        for (int c = 0; c < headerColumns; ++c) {
-            QTableWidgetItem* item = table->item(r, c);
-            QString val = item ? item->text() : QString();
-            // CSV escaping: double any embedded quotes
-            val.replace("\"", "\"\"");
-            out << '"' << val << '"';
-            if (c < headerColumns - 1) out << ',';
-        }
-        out << '\n';
-    }
-
-    file.close();
-    QMessageBox::information(parentWidget, tr("Export Successful"), tr("Data exported to CSV successfully."));
-    return true;
+    if (!member || !ui) return;
+    editingCin = member->getCin();
+    ui->memberIdLineEdit->setText(member->getCin());
+    ui->memberIdLineEdit->setEnabled(false);
+    ui->memberFirstNameLineEdit->setText(member->getFirstName());
+    ui->memberLastNameLineEdit->setText(member->getLastName());
+    ui->memberGenderComboBox->setCurrentText(member->getGender());
+    ui->memberAgeSpinBox->setValue(member->getAge());
+    ui->memberEmailLineEdit->setText(member->getEmail());
+    ui->memberPhoneLineEdit->setText(member->getPhone());
+    ui->memberSubscriptionComboBox->setCurrentText(member->getSubscriptionPlan());
+    ui->memberJoinDateEdit->setDate(member->getJoinDate());
+    
+    // Switch to edit mode UI
+    ui->memberConfirmAddButton->setVisible(false);  // Hide the Add button
+    ui->memberConfirmUpdateButton->setVisible(true);  // Show the Update button
+    ui->memberTabWidget->setCurrentIndex(1);  // Switch to Add/Edit tab
 }
 
 bool Member::exportTableToPdf(QTableWidget* table, const QString& defaultName, const QString& title)
 {
     if (!table) return false;
-
-    QString filter = "PDF Files (*.pdf)";
-    QString fileName = QFileDialog::getSaveFileName(parentWidget, tr("Export to PDF"), defaultName, filter);
-    if (fileName.isEmpty()) return false;
-
-    QPrinter printer(QPrinter::PrinterResolution);
+    QString file = QFileDialog::getSaveFileName(parentWidget, "Export PDF", defaultName, "PDF (*.pdf)");
+    if (file.isEmpty()) return false;
+    
+    QPrinter printer;
     printer.setOutputFormat(QPrinter::PdfFormat);
-    printer.setOutputFileName(fileName);
+    printer.setOutputFileName(file);
     printer.setPageMargins(QMarginsF(15, 15, 15, 15), QPageLayout::Millimeter);
-
-    QTextDocument document;
-    QString html = "<html><head><style>";
-    html += "table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; }";
-    html += "th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }";
-    html += "th { background-color: #f2f2f2; font-weight: bold; }";
-    html += "tr:nth-child(even) { background-color: #f9f9f9; }";
-    html += ".title { font-size: 18px; font-weight: bold; text-align: center; margin-bottom: 10px; }";
-    html += ".subtitle { font-size: 12px; text-align: center; margin-bottom: 20px; color: #666; }";
-    html += "</style></head><body>";
     
-    html += QString("<div class='title'>%1</div>").arg(title.toHtmlEscaped());
-    html += "<div class='subtitle'>Generated by VIBRA CLUB • " + QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm") + "</div>";
+    QTextDocument doc;
+    QString html = "<h1>" + title + "</h1><table border='1' cellpadding='5'><tr>";
     
-    html += "<table>";
-
     // Add headers (exclude Actions column)
-    html += "<tr>";
-    int headerColumns = table->columnCount();
-    if (headerColumns > 0) {
-        QTableWidgetItem* lastHeader = table->horizontalHeaderItem(headerColumns - 1);
-        if (lastHeader && lastHeader->text().trimmed().compare("Actions", Qt::CaseInsensitive) == 0) {
-            headerColumns = headerColumns - 1;
-        }
-    }
-    for (int c = 0; c < headerColumns; ++c) {
-        QString header = table->horizontalHeaderItem(c) ? table->horizontalHeaderItem(c)->text() : QString();
-        html += QString("<th>%1</th>").arg(header.toHtmlEscaped());
+    int colCount = table->columnCount() - 1; // Exclude last column (Actions)
+    for (int c = 0; c < colCount; ++c) {
+        QTableWidgetItem* headerItem = table->horizontalHeaderItem(c);
+        html += "<th>" + (headerItem ? headerItem->text() : "") + "</th>";
     }
     html += "</tr>";
-
-    // Add data rows (visible only)
+    
+    // Add data rows
     for (int r = 0; r < table->rowCount(); ++r) {
-        if (table->isRowHidden(r)) continue;
         html += "<tr>";
-        for (int c = 0; c < headerColumns; ++c) {
+        for (int c = 0; c < colCount; ++c) {
             QTableWidgetItem* item = table->item(r, c);
-            QString cellText = item ? item->text() : QString();
-            html += QString("<td>%1</td>").arg(cellText.toHtmlEscaped());
+            html += "<td>" + (item ? item->text() : "") + "</td>";
         }
         html += "</tr>";
     }
+    html += "</table>";
+    doc.setHtml(html);
+    doc.print(&printer);
     
-    html += "</table></body></html>";
-    
-    document.setHtml(html);
-    document.print(&printer);
-    
-    QMessageBox::information(parentWidget, tr("Export Successful"), tr("Data exported to PDF successfully."));
+    QMessageBox::information(parentWidget, "Success", "PDF exported!");
     return true;
 }

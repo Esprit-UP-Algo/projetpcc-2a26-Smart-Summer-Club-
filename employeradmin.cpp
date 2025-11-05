@@ -51,6 +51,10 @@ EmployerAdmin::EmployerAdmin(QWidget *parent)
     // Set current date for hire date
     ui->hireDateEdit->setDate(QDate::currentDate());
     
+    // Initialize button visibility (hide Update buttons, show Add buttons)
+    ui->confirmUpdateButton->setVisible(false);  // Employee Update button hidden by default
+    ui->memberConfirmUpdateButton->setVisible(false);  // Member Update button hidden by default
+    
     // Enable sorting on list tables
     ui->employeeTable->setSortingEnabled(true);
     ui->memberTable->setSortingEnabled(true);
@@ -95,6 +99,9 @@ void EmployerAdmin::setupConnections()
     connect(ui->employeeExportButton, &QPushButton::clicked, employeeManager, &Employee::onExportEmployees);
 
     // Member management buttons - delegate to memberManager
+    connect(ui->memberConfirmAddButton, &QPushButton::clicked, memberManager, &Member::onConfirmAdd);
+    connect(ui->memberConfirmUpdateButton, &QPushButton::clicked, memberManager, &Member::onConfirmUpdate);
+    connect(ui->memberSearchLineEdit, &QLineEdit::textChanged, memberManager, &Member::onSearchMembers);
     connect(ui->memberSortButton, &QPushButton::clicked, memberManager, &Member::onSortMembers);
     connect(ui->memberExportButton, &QPushButton::clicked, memberManager, &Member::onExportMembers);
 
