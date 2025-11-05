@@ -599,7 +599,7 @@ QPushButton:disabled {
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>4</number>
+             <number>1</number>
             </property>
             <widget class="QWidget" name="employeePage">
              <layout class="QVBoxLayout" name="employeePageLayout">
@@ -744,7 +744,7 @@ QPushButton:disabled {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>853</width>
+                       <width>536</width>
                        <height>637</height>
                       </rect>
                      </property>
@@ -1668,7 +1668,7 @@ QPushButton:disabled {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>495</width>
+                       <width>853</width>
                        <height>571</height>
                       </rect>
                      </property>
@@ -2279,8 +2279,8 @@ QPushButton:disabled {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>612</width>
-                       <height>371</height>
+                       <width>870</width>
+                       <height>545</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="equipmentFormMainLayout">
@@ -2913,8 +2913,8 @@ QComboBox QAbstractItemView {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>611</width>
-                       <height>497</height>
+                       <width>870</width>
+                       <height>545</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="activityFormMainLayout">
@@ -3507,8 +3507,8 @@ QComboBox QAbstractItemView {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>870</width>
-                       <height>608</height>
+                       <width>585</width>
+                       <height>422</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="paymentFormMainLayout">
@@ -3845,8 +3845,8 @@ QComboBox QAbstractItemView {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>870</width>
-                       <height>608</height>
+                       <width>629</width>
+                       <height>536</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="paymentStatsContentLayout">
