@@ -48,6 +48,7 @@ private:
     
     void setupCostAnalysisChart(); // New function for setting up the chart
     void setupConnections();
+    void setupInputValidators(); // Setup input field validators
     void setupIcons();  // Optional icon setup
     void setupTabIcons(); // Set icons for tab widgets
     void setupButtonStyling();  // Apply consistent button styling

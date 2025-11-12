@@ -1,6 +1,11 @@
 #include "employeradmin.h"
 #include "ui_employeradmin.h"
 #include <QPixmap>
+#include <QValidator>
+#include <QIntValidator>
+#include <QDoubleValidator>
+#include <QRegularExpressionValidator>
+#include <QRegularExpression>
 
 EmployerAdmin::EmployerAdmin(QWidget *parent)
     : QMainWindow(parent)
@@ -32,6 +37,9 @@ EmployerAdmin::EmployerAdmin(QWidget *parent)
     
     // Setup connections
     setupConnections();
+    
+    // Setup input field validators
+    setupInputValidators();
     
     // Setup tables through management classes
     employeeManager->setupEmployeeTable();
@@ -102,6 +110,7 @@ void EmployerAdmin::setupConnections()
     // Member management buttons - delegate to memberManager
     connect(ui->memberConfirmAddButton, &QPushButton::clicked, memberManager, &Member::onConfirmAdd);
     connect(ui->memberConfirmUpdateButton, &QPushButton::clicked, memberManager, &Member::onConfirmUpdate);
+    connect(ui->memberUploadPhotoButton, &QPushButton::clicked, memberManager, &Member::onUploadPhoto);
     connect(ui->memberSearchLineEdit, &QLineEdit::textChanged, memberManager, &Member::onSearchMembers);
     connect(ui->memberSortButton, &QPushButton::clicked, memberManager, &Member::onSortMembers);
     connect(ui->memberExportButton, &QPushButton::clicked, memberManager, &Member::onExportMembers);
@@ -268,6 +277,154 @@ void EmployerAdmin::setupButtonStyling()
     ui->activitySearchButton->setStyleSheet(actionButtonStyle);
     ui->activityConfirmButton->setStyleSheet(actionButtonStyle);
     ui->activityUpdateButton->setStyleSheet(actionButtonStyle);
+}
+
+void EmployerAdmin::setupInputValidators()
+{
+    // ============================================================================
+    // EMPLOYEE FORM VALIDATORS
+    // ============================================================================
+    
+    // CIN Field (empIdLineEdit) - Only 8 numeric digits (Tunisian CIN format)
+    QRegularExpression cinRegex("^[0-9]{0,8}$");
+    QRegularExpressionValidator *cinValidator = new QRegularExpressionValidator(cinRegex, this);
+    ui->empIdLineEdit->setValidator(cinValidator);
+    ui->empIdLineEdit->setMaxLength(8);  // Limit to exactly 8 digits
+    
+    // Phone Field (phoneLineEdit) - Only 8 numeric digits (Tunisian phone format)
+    QRegularExpression phoneRegex("^[0-9]{0,8}$");
+    QRegularExpressionValidator *phoneValidator = new QRegularExpressionValidator(phoneRegex, this);
+    ui->phoneLineEdit->setValidator(phoneValidator);
+    ui->phoneLineEdit->setMaxLength(8);  // Limit to exactly 8 digits
+    
+    // Salary Field (salaryLineEdit) - Only positive decimal numbers
+    QDoubleValidator *salaryValidator = new QDoubleValidator(0.0, 999999999.99, 2, this);
+    salaryValidator->setNotation(QDoubleValidator::StandardNotation);
+    ui->salaryLineEdit->setValidator(salaryValidator);
+    
+    // First Name Field (firstNameLineEdit) - Only letters, spaces, hyphens, apostrophes
+    QRegularExpression nameRegex("^[A-Za-zÀ-ÿ\\s\\-']*$");
+    QRegularExpressionValidator *firstNameValidator = new QRegularExpressionValidator(nameRegex, this);
+    ui->firstNameLineEdit->setValidator(firstNameValidator);
+    
+    // Last Name Field (lastNameLineEdit) - Only letters, spaces, hyphens, apostrophes
+    QRegularExpressionValidator *lastNameValidator = new QRegularExpressionValidator(nameRegex, this);
+    ui->lastNameLineEdit->setValidator(lastNameValidator);
+    
+
+    
+    // ============================================================================
+    // MEMBER FORM VALIDATORS
+    // ============================================================================
+    
+    // Member ID Field (memberIdLineEdit) - Only 8 numeric digits (Tunisian CIN format)
+    QRegularExpressionValidator *memberIdValidator = new QRegularExpressionValidator(cinRegex, this);
+    ui->memberIdLineEdit->setValidator(memberIdValidator);
+    ui->memberIdLineEdit->setMaxLength(8);  // Limit to exactly 8 digits
+    
+    // Member Phone Field (memberPhoneLineEdit) - Only 8 numeric digits
+    QRegularExpressionValidator *memberPhoneValidator = new QRegularExpressionValidator(phoneRegex, this);
+    ui->memberPhoneLineEdit->setValidator(memberPhoneValidator);
+    ui->memberPhoneLineEdit->setMaxLength(8);  // Limit to exactly 8 digits
+    
+    // Member First Name Field (memberFirstNameLineEdit) - Only letters, spaces, hyphens, apostrophes
+    QRegularExpressionValidator *memberFirstNameValidator = new QRegularExpressionValidator(nameRegex, this);
+    ui->memberFirstNameLineEdit->setValidator(memberFirstNameValidator);
+    
+    // Member Last Name Field (memberLastNameLineEdit) - Only letters, spaces, hyphens, apostrophes
+    QRegularExpressionValidator *memberLastNameValidator = new QRegularExpressionValidator(nameRegex, this);
+    ui->memberLastNameLineEdit->setValidator(memberLastNameValidator);
+    
+    // Member Email Field (memberEmailLineEdit) - Email format validation
+    QRegularExpression memberEmailRegex("^[A-Za-z0-9._%+-]*@?[A-Za-z0-9.-]*\\.?[A-Za-z]*$");
+    QRegularExpressionValidator *memberEmailValidator = new QRegularExpressionValidator(memberEmailRegex, this);
+    ui->memberEmailLineEdit->setValidator(memberEmailValidator);
+    
+    // ============================================================================
+    // EQUIPMENT FORM VALIDATORS
+    // ============================================================================
+    
+    // Equipment Price Field (equipmentPriceLineEdit) - Only positive decimal numbers
+    QDoubleValidator *equipmentPriceValidator = new QDoubleValidator(0.0, 999999999.99, 2, this);
+    equipmentPriceValidator->setNotation(QDoubleValidator::StandardNotation);
+    ui->equipmentPriceLineEdit->setValidator(equipmentPriceValidator);
+    
+    // Equipment Name Field (equipmentNameLineEdit) - Letters, spaces, numbers, hyphens, apostrophes
+    QRegularExpression equipmentNameRegex("^[A-Za-zÀ-ÿ0-9\\s\\-']*$");
+    QRegularExpressionValidator *equipmentNameValidator = new QRegularExpressionValidator(equipmentNameRegex, this);
+    ui->equipmentNameLineEdit->setValidator(equipmentNameValidator);
+    
+    // Equipment Brand Field (equipmentBrandLineEdit) - Letters, spaces, numbers, hyphens, apostrophes
+    QRegularExpressionValidator *equipmentBrandValidator = new QRegularExpressionValidator(equipmentNameRegex, this);
+    ui->equipmentBrandLineEdit->setValidator(equipmentBrandValidator);
+    
+    // Equipment Model Field (equipmentModelLineEdit) - Letters, spaces, numbers, hyphens, apostrophes
+    QRegularExpressionValidator *equipmentModelValidator = new QRegularExpressionValidator(equipmentNameRegex, this);
+    ui->equipmentModelLineEdit->setValidator(equipmentModelValidator);
+    
+    // ============================================================================
+    // ACTIVITY FORM VALIDATORS
+    // ============================================================================
+    
+    // Activity Responsible Field (responsibleLineEdit) - Only letters, spaces, hyphens, apostrophes
+    QRegularExpressionValidator *responsibleValidator = new QRegularExpressionValidator(nameRegex, this);
+    ui->responsibleLineEdit->setValidator(responsibleValidator);
+    
+    // ============================================================================
+    // PAYMENT FORM VALIDATORS
+    // ============================================================================
+    
+    // Payment Member ID Field (paymentMemberEdit) - Only 8 numeric digits (optional field)
+    QRegularExpressionValidator *paymentMemberValidator = new QRegularExpressionValidator(cinRegex, this);
+    ui->paymentMemberEdit->setValidator(paymentMemberValidator);
+    ui->paymentMemberEdit->setMaxLength(8);  // Limit to exactly 8 digits
+    
+    // ============================================================================
+    // TOOLTIPS AND PLACEHOLDERS
+    // ============================================================================
+    
+    // Employee field tooltips
+    ui->empIdLineEdit->setToolTip("Enter exactly 8 numeric digits (e.g., 12345678)");
+    ui->phoneLineEdit->setToolTip("Enter exactly 8 numeric digits (e.g., 55123456)");
+    ui->salaryLineEdit->setToolTip("Enter a positive salary amount (e.g., 1500.50)");
+    ui->firstNameLineEdit->setToolTip("Enter first name (letters, spaces, hyphens, apostrophes only)");
+    ui->lastNameLineEdit->setToolTip("Enter last name (letters, spaces, hyphens, apostrophes only)");
+
+    
+    // Member field tooltips
+    ui->memberIdLineEdit->setToolTip("Enter exactly 8 numeric digits (e.g., 12345678)");
+    ui->memberPhoneLineEdit->setToolTip("Enter exactly 8 numeric digits (e.g., 55123456)");
+    ui->memberFirstNameLineEdit->setToolTip("Enter first name (letters, spaces, hyphens, apostrophes only)");
+    ui->memberLastNameLineEdit->setToolTip("Enter last name (letters, spaces, hyphens, apostrophes only)");
+    ui->memberEmailLineEdit->setToolTip("Enter valid email address (e.g., member@example.com)");
+    
+    // Equipment field tooltips
+    ui->equipmentPriceLineEdit->setToolTip("Enter a positive price amount (e.g., 299.99)");
+    ui->equipmentNameLineEdit->setToolTip("Enter equipment name (letters, numbers, spaces, hyphens, apostrophes)");
+    ui->equipmentBrandLineEdit->setToolTip("Enter equipment brand (letters, numbers, spaces, hyphens, apostrophes)");
+    ui->equipmentModelLineEdit->setToolTip("Enter equipment model (letters, numbers, spaces, hyphens, apostrophes)");
+    
+    // Activity field tooltips
+    ui->responsibleLineEdit->setToolTip("Enter responsible employee name (letters, spaces, hyphens, apostrophes only)");
+    
+    // Payment field tooltips
+    ui->paymentMemberEdit->setToolTip("Enter member ID if applicable (exactly 8 numeric digits)");
+    
+    // Employee field placeholders
+    ui->empIdLineEdit->setPlaceholderText("12345678 (8 digits)");
+    ui->phoneLineEdit->setPlaceholderText("55123456 (8 digits)");
+    ui->salaryLineEdit->setPlaceholderText("1500.50");
+    
+    // Member field placeholders
+    ui->memberIdLineEdit->setPlaceholderText("12345678 (8 digits)");
+    ui->memberPhoneLineEdit->setPlaceholderText("55123456 (8 digits)");
+    ui->memberEmailLineEdit->setPlaceholderText("member@example.com");
+    
+    // Equipment field placeholders
+    ui->equipmentPriceLineEdit->setPlaceholderText("299.99");
+    
+    // Payment field placeholders
+    ui->paymentMemberEdit->setPlaceholderText("12345678 (optional)");
 }
 
 void EmployerAdmin::updateNavigationStyle()

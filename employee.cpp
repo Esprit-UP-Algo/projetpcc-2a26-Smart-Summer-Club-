@@ -826,7 +826,7 @@ void Employee::onConfirmAdd()
     QString cin = ui->empIdLineEdit->text().trimmed();
     QString firstName = ui->firstNameLineEdit->text().trimmed();
     QString lastName = ui->lastNameLineEdit->text().trimmed();
-    QString position = ui->positionLineEdit->text().trimmed();
+    QString position = ui->positionComboBox->currentText();
     QString department = ui->departmentComboBox->currentText();
     QDate hireDate = ui->hireDateEdit->date();
     QString status = ui->statusComboBox->currentText();
@@ -908,7 +908,7 @@ void Employee::onConfirmUpdate()
     Employee emp(editingCin,
                 ui->firstNameLineEdit->text().trimmed(),
                 ui->lastNameLineEdit->text().trimmed(),
-                ui->positionLineEdit->text().trimmed(),
+                ui->positionComboBox->currentText(),
                 ui->departmentComboBox->currentText(),
                 ui->hireDateEdit->date(),
                 ui->statusComboBox->currentText(),
@@ -1030,7 +1030,7 @@ void Employee::clearEmployeeForm()
     ui->empIdLineEdit->setEnabled(true);
     ui->firstNameLineEdit->clear();
     ui->lastNameLineEdit->clear();
-    ui->positionLineEdit->clear();
+    ui->positionComboBox->setCurrentIndex(0);
     ui->emailLineEdit->clear();
     ui->phoneLineEdit->clear();
     ui->salaryLineEdit->clear();
@@ -1115,7 +1115,7 @@ void Employee::loadEmployeeToForm(Employee* emp)
     ui->empIdLineEdit->setEnabled(false);
     ui->firstNameLineEdit->setText(emp->getFirstName());
     ui->lastNameLineEdit->setText(emp->getLastName());
-    ui->positionLineEdit->setText(emp->getPosition());
+    ui->positionComboBox->setCurrentText(emp->getPosition());
     ui->departmentComboBox->setCurrentText(emp->getDepartment());
     ui->hireDateEdit->setDate(emp->getHireDate());
     ui->statusComboBox->setCurrentText(emp->getStatus());

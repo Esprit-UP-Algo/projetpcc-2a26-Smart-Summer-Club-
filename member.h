@@ -9,6 +9,7 @@
 #include <QSqlError>
 #include <QVariant>
 #include <QMetaType>
+#include <QByteArray>
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QFileDialog>
@@ -33,7 +34,7 @@ public:
     Member();
     Member(QString cin, QString firstName, QString lastName, QString gender, 
            int age, QString email, QString phone, QString subscriptionPlan, 
-           QDate joinDate);
+           QDate joinDate, QByteArray photo = QByteArray());
     Member(Ui::EmployerAdmin *ui, QWidget *parent = nullptr);
     ~Member();
 
@@ -47,6 +48,7 @@ public:
     QString getPhone() const;
     QString getSubscriptionPlan() const;
     QDate getJoinDate() const;
+    QByteArray getPhoto() const;
 
     // Setters (for update operations)
     void setCin(const QString &cin);
@@ -58,6 +60,7 @@ public:
     void setPhone(const QString &phone);
     void setSubscriptionPlan(const QString &subscriptionPlan);
     void setJoinDate(const QDate &joinDate);
+    void setPhoto(const QByteArray &photo);
 
     // CRUD Operations (Model Layer)
     bool ajouter();  // CREATE
@@ -97,6 +100,7 @@ public:
     void onSearchMembers();
     void onFilterByPlan();
     void onFilterByGender();
+    void onUploadPhoto();
 
 private:
     // Member attributes matching MEMBERS table structure
@@ -109,11 +113,13 @@ private:
     QString phone;
     QString subscriptionPlan;
     QDate joinDate;
+    QByteArray photo;
     
     // UI members
     Ui::EmployerAdmin *ui;
     QWidget *parentWidget;
     QString editingCin;
+    QString selectedPhotoPath;
     
     // Helper validation methods
     bool validerEmail() const;
@@ -126,6 +132,7 @@ private:
     // Helper UI methods
     void loadMemberToForm(Member* member);
     bool exportTableToPdf(QTableWidget* table, const QString& defaultName, const QString& title);
+    QByteArray loadPhotoAsBlob(const QString& path);
 };
 
 #endif // MEMBER_H

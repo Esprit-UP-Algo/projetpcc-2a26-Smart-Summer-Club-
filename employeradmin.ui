@@ -1002,15 +1002,70 @@ QPushButton:disabled {
                          <item row="0" column="1">
                           <widget class="QLineEdit" name="empIdLineEdit">
                            <property name="placeholderText">
-                            <string>e.g., EMP001</string>
+                            <string>e.g., 14471254</string>
                            </property>
                           </widget>
                          </item>
                          <item row="2" column="3">
-                          <widget class="QLineEdit" name="positionLineEdit">
-                           <property name="placeholderText">
-                            <string>e.g., Manager, Instructor, etc.</string>
+                          <widget class="QComboBox" name="positionComboBox">
+                           <property name="styleSheet">
+                            <string notr="true">padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;</string>
                            </property>
+                           <item>
+                            <property name="text">
+                             <string>Manager</string>
+                            </property>
+                           </item>
+                           <item>
+                            <property name="text">
+                             <string>Assistant Manager</string>
+                            </property>
+                           </item>
+                           <item>
+                            <property name="text">
+                             <string>Instructor</string>
+                            </property>
+                           </item>
+                           <item>
+                            <property name="text">
+                             <string>Personal Trainer</string>
+                            </property>
+                           </item>
+                           <item>
+                            <property name="text">
+                             <string>Receptionist</string>
+                            </property>
+                           </item>
+                           <item>
+                            <property name="text">
+                             <string>Maintenance Staff</string>
+                            </property>
+                           </item>
+                           <item>
+                            <property name="text">
+                             <string>Security Guard</string>
+                            </property>
+                           </item>
+                           <item>
+                            <property name="text">
+                             <string>Cleaning Staff</string>
+                            </property>
+                           </item>
+                           <item>
+                            <property name="text">
+                             <string>IT Support</string>
+                            </property>
+                           </item>
+                           <item>
+                            <property name="text">
+                             <string>Accountant</string>
+                            </property>
+                           </item>
+                           <item>
+                            <property name="text">
+                             <string>Other</string>
+                            </property>
+                           </item>
                           </widget>
                          </item>
                          <item row="4" column="3">

@@ -6,6 +6,8 @@
 #include <QPrinter>
 #include <QPageLayout>
 #include <QFile>
+#include <QPixmap>
+#include <QIODevice>
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QWidget>
@@ -17,26 +19,26 @@
 Member::Member()
     : QObject(nullptr), cin(""), firstName(""), lastName(""), gender(""), 
       age(0), email(""), phone(""), subscriptionPlan(""), 
-      joinDate(QDate::currentDate()),
-      ui(nullptr), parentWidget(nullptr), editingCin("")
+      joinDate(QDate::currentDate()), photo(QByteArray()),
+      ui(nullptr), parentWidget(nullptr), editingCin(""), selectedPhotoPath("")
 {
 }
 
 Member::Member(QString cin, QString firstName, QString lastName, QString gender,
                int age, QString email, QString phone, QString subscriptionPlan,
-               QDate joinDate)
+               QDate joinDate, QByteArray photo)
     : QObject(nullptr), cin(cin), firstName(firstName), lastName(lastName),
       gender(gender), age(age), email(email), phone(phone),
-      subscriptionPlan(subscriptionPlan), joinDate(joinDate),
-      ui(nullptr), parentWidget(nullptr), editingCin("")
+      subscriptionPlan(subscriptionPlan), joinDate(joinDate), photo(photo),
+      ui(nullptr), parentWidget(nullptr), editingCin(""), selectedPhotoPath("")
 {
 }
 
 Member::Member(Ui::EmployerAdmin *ui, QWidget *parent)
     : QObject(parent), cin(""), firstName(""), lastName(""), gender(""),
       age(0), email(""), phone(""), subscriptionPlan(""),
-      joinDate(QDate::currentDate()),
-      ui(ui), parentWidget(parent), editingCin("")
+      joinDate(QDate::currentDate()), photo(QByteArray()),
+      ui(ui), parentWidget(parent), editingCin(""), selectedPhotoPath("")
 {
 }
 
@@ -57,6 +59,7 @@ QString Member::getEmail() const { return email; }
 QString Member::getPhone() const { return phone; }
 QString Member::getSubscriptionPlan() const { return subscriptionPlan; }
 QDate Member::getJoinDate() const { return joinDate; }
+QByteArray Member::getPhoto() const { return photo; }
 
 // ============================================================================
 // SETTERS
@@ -73,6 +76,7 @@ void Member::setEmail(const QString &email) { this->email = email; }
 void Member::setPhone(const QString &phone) { this->phone = phone; }
 void Member::setSubscriptionPlan(const QString &subscriptionPlan) { this->subscriptionPlan = subscriptionPlan; }
 void Member::setJoinDate(const QDate &joinDate) { this->joinDate = joinDate; }
+void Member::setPhoto(const QByteArray &photo) { this->photo = photo; }
 
 // ============================================================================
 // VALIDATION METHODS
@@ -296,10 +300,10 @@ bool Member::ajouter()
     QSqlQuery query;
     query.prepare("INSERT INTO MEMBERS "
                   "(CIN, FIRST_NAME, LAST_NAME, GENDER, AGE, EMAIL, PHONE, "
-                  "SUBSCRIPTION_PLAN, JOIN_DATE) "
+                  "SUBSCRIPTION_PLAN, JOIN_DATE, PHOTO) "
                   "VALUES "
                   "(:cin, :firstName, :lastName, :gender, :age, :email, :phone, "
-                  ":subscriptionPlan, :joinDate)");
+                  ":subscriptionPlan, :joinDate, :photo)");
     
     // Bind values
     query.bindValue(":cin", cin);
@@ -311,6 +315,7 @@ bool Member::ajouter()
     query.bindValue(":phone", phone.isEmpty() ? QVariant(QString()) : phone);
     query.bindValue(":subscriptionPlan", subscriptionPlan.isEmpty() ? QVariant(QString()) : subscriptionPlan);
     query.bindValue(":joinDate", joinDate.isValid() ? joinDate : QDate::currentDate());
+    query.bindValue(":photo", photo.isEmpty() ? QVariant(QByteArray()) : photo);
     
     // Execute query
     if (!query.exec()) {
@@ -422,6 +427,7 @@ bool Member::modifier()
                   "PHONE = :phone, "
                   "SUBSCRIPTION_PLAN = :subscriptionPlan, "
                   "JOIN_DATE = :joinDate, "
+                  "PHOTO = :photo, "
                   "UPDATED_DATE = SYSDATE "
                   "WHERE CIN = :cin");
     
@@ -435,6 +441,7 @@ bool Member::modifier()
     query.bindValue(":phone", phone.isEmpty() ? QVariant(QString()) : phone);
     query.bindValue(":subscriptionPlan", subscriptionPlan.isEmpty() ? QVariant(QString()) : subscriptionPlan);
     query.bindValue(":joinDate", joinDate.isValid() ? joinDate : QDate::currentDate());
+    query.bindValue(":photo", photo.isEmpty() ? QVariant(QByteArray()) : photo);
     
     // Execute query
     if (!query.exec()) {
@@ -766,10 +773,16 @@ void Member::onConfirmAdd()
     QString subscriptionPlan = ui->memberSubscriptionComboBox->currentText();
     QDate joinDate = ui->memberJoinDateEdit->date();
     
+    // Handle photo if selected
+    QByteArray photoBlob;
+    if (!selectedPhotoPath.isEmpty()) {
+        photoBlob = loadPhotoAsBlob(selectedPhotoPath);
+    }
+    
     qDebug() << "Member data:" << cin << firstName << lastName << gender << age; // DEBUG
     
     Member member(cin, firstName, lastName, gender, age, email, phone, 
-                  subscriptionPlan, joinDate);
+                  subscriptionPlan, joinDate, photoBlob);
     
     // Check if CIN already exists first
     if (Member::cinExiste(cin)) {
@@ -828,6 +841,12 @@ void Member::onConfirmUpdate()
     
     qDebug() << "Member::onConfirmUpdate() called - Editing CIN:" << editingCin; // DEBUG
     
+    // Handle photo if selected  
+    QByteArray photoBlob;
+    if (!selectedPhotoPath.isEmpty()) {
+        photoBlob = loadPhotoAsBlob(selectedPhotoPath);
+    }
+    
     Member member(editingCin,
                   ui->memberFirstNameLineEdit->text().trimmed(),
                   ui->memberLastNameLineEdit->text().trimmed(),
@@ -836,7 +855,8 @@ void Member::onConfirmUpdate()
                   ui->memberEmailLineEdit->text().trimmed(),
                   ui->memberPhoneLineEdit->text().trimmed(),
                   ui->memberSubscriptionComboBox->currentText(),
-                  ui->memberJoinDateEdit->date());
+                  ui->memberJoinDateEdit->date(),
+                  photoBlob);
     
     qDebug() << "Updating member:" << member.getFirstName() << member.getLastName(); // DEBUG
     
@@ -956,6 +976,11 @@ void Member::clearMemberForm()
     ui->memberAgeSpinBox->setValue(18);
     ui->memberJoinDateEdit->setDate(QDate::currentDate());
     editingCin = "";
+    selectedPhotoPath = "";
+    
+    // Clear photo display
+    ui->memberPhotoLabel->clear();
+    ui->memberPhotoLabel->setText("Upload Member Photo");
     
     // Reset to add mode UI
     ui->memberConfirmAddButton->setVisible(true);  // Show the Add button
@@ -1067,4 +1092,23 @@ bool Member::exportTableToPdf(QTableWidget* table, const QString& defaultName, c
     
     QMessageBox::information(parentWidget, "Success", "PDF exported!");
     return true;
+}
+
+void Member::onUploadPhoto()
+{
+    if (!ui) return;
+    QString file = QFileDialog::getOpenFileName(parentWidget, "Select Photo", "", "Images (*.png *.jpg *.jpeg)");
+    if (!file.isEmpty()) {
+        selectedPhotoPath = file;
+        ui->memberPhotoLabel->setPixmap(QPixmap(file).scaled(150, 150, Qt::KeepAspectRatio));
+    }
+}
+
+QByteArray Member::loadPhotoAsBlob(const QString& path)
+{
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly)) return QByteArray();
+    QByteArray data = file.readAll();
+    file.close();
+    return data;
 }

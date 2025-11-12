@@ -89,41 +89,41 @@ public:
     QVBoxLayout *formMainLayout;
     QFrame *formFrame;
     QGridLayout *gridLayout;
-    QLineEdit *firstNameLineEdit;
-    QLabel *departmentLabel;
-    QComboBox *genderComboBox;
-    QLineEdit *empIdLineEdit;
-    QComboBox *statusComboBox;
-    QLabel *positionLabel;
-    QLineEdit *lastNameLineEdit;
-    QLabel *genderLabel;
-    QLabel *empIdLabel;
-    QSpinBox *ageSpinBox;
-    QLineEdit *positionLineEdit;
-    QLabel *passwordLabel;
-    QLineEdit *salaryLineEdit;
-    QDateEdit *hireDateEdit;
-    QLineEdit *emailLineEdit;
-    QLineEdit *passwordLineEedit;
-    QLabel *statusLabel;
-    QLabel *ageLabel;
+    QFrame *photoFrame;
+    QVBoxLayout *photoLayout;
+    QLabel *photoLabel;
+    QPushButton *employeeUploadPhotoButton;
+    QLabel *firstNameLabel;
     QComboBox *departmentComboBox;
-    QLabel *emailLabel;
-    QLabel *salaryLabel;
+    QLineEdit *passwordLineEedit;
+    QComboBox *genderComboBox;
+    QLabel *phoneLabel;
     QFrame *buttonFrame;
     QHBoxLayout *buttonLayout;
     QSpacerItem *buttonSpacer;
     QPushButton *confirmAddButton;
     QPushButton *confirmUpdateButton;
-    QLabel *hireDateLabel;
+    QLabel *genderLabel;
+    QSpinBox *ageSpinBox;
     QLabel *lastNameLabel;
-    QLabel *firstNameLabel;
+    QLineEdit *emailLineEdit;
+    QLineEdit *salaryLineEdit;
+    QDateEdit *hireDateEdit;
+    QLabel *departmentLabel;
+    QLabel *emailLabel;
+    QLineEdit *empIdLineEdit;
+    QComboBox *positionComboBox;
+    QComboBox *statusComboBox;
+    QLineEdit *lastNameLineEdit;
+    QLabel *hireDateLabel;
+    QLineEdit *firstNameLineEdit;
+    QLabel *positionLabel;
+    QLabel *ageLabel;
+    QLabel *salaryLabel;
+    QLabel *passwordLabel;
+    QLabel *empIdLabel;
+    QLabel *statusLabel;
     QLineEdit *phoneLineEdit;
-    QLabel *phoneLabel;
-    QFrame *photoFrame;
-    QVBoxLayout *photoLayout;
-    QLabel *photoLabel;
-    QPushButton *employeeUploadPhotoButton;
     QWidget *statisticsTab;
     QVBoxLayout *statisticsLayout;
     QFrame *statsFrame;
@@ -313,29 +313,33 @@ public:
     QVBoxLayout *activityFormMainLayout;
     QFrame *activityFormFrame;
     QGridLayout *activityFormLayout;
-    QTimeEdit *eventTimeEdit;
-    QLabel *responsibleLabel;
-    QLabel *activityIdLabel;
-    QLabel *activityStatusLabel;
-    QLineEdit *activityIdLineEdit;
-    QDateEdit *eventDateEdit;
     QSpinBox *activityAgeSpinBox;
-    QLabel *eventDateLabel;
-    QLineEdit *responsibleLineEdit;
-    QLabel *activityDescriptionLabel;
-    QLabel *eventTimeLabel;
     QFrame *activityButtonFrame;
     QHBoxLayout *activityButtonLayout;
     QSpacerItem *activityButtonSpacer;
     QPushButton *activityConfirmButton;
     QPushButton *activityUpdateButton;
-    QComboBox *activityStatusComboBox;
+    QTimeEdit *eventTimeEdit;
+    QLabel *activityDescriptionLabel;
     QLabel *activityAgeLabel;
-    QComboBox *activityTypeComboBox;
+    QLabel *activityCapacityLabel;
     QFrame *activityDescriptionFrame;
     QVBoxLayout *activityDescriptionLayout;
     QTextEdit *activityDescriptionTextEdit;
+    QWidget *responsibleWidget;
+    QHBoxLayout *responsibleLayout;
+    QComboBox *responsibleComboBox;
+    QLineEdit *responsibleLineEdit;
+    QPushButton *responsibleToggleButton;
+    QSpinBox *activityCapacitySpinBox;
+    QLabel *eventTimeLabel;
+    QLabel *responsibleLabel;
+    QDateEdit *eventDateEdit;
+    QLabel *eventDateLabel;
+    QLabel *activityStatusLabel;
+    QComboBox *activityStatusComboBox;
     QLabel *activityTypeLabel;
+    QComboBox *activityTypeComboBox;
     QWidget *activityStatisticsTab;
     QVBoxLayout *activityStatisticsLayout;
     QFrame *activityStatsFrame;
@@ -970,7 +974,7 @@ public:
         scrollArea->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName("scrollAreaWidgetContents");
-        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 536, 637));
+        scrollAreaWidgetContents->setGeometry(QRect(0, -86, 853, 631));
         formMainLayout = new QVBoxLayout(scrollAreaWidgetContents);
         formMainLayout->setObjectName("formMainLayout");
         formFrame = new QFrame(scrollAreaWidgetContents);
@@ -979,113 +983,34 @@ public:
         formFrame->setStyleSheet(QString::fromUtf8("margin : 2px;"));
         gridLayout = new QGridLayout(formFrame);
         gridLayout->setObjectName("gridLayout");
-        firstNameLineEdit = new QLineEdit(formFrame);
-        firstNameLineEdit->setObjectName("firstNameLineEdit");
+        photoFrame = new QFrame(formFrame);
+        photoFrame->setObjectName("photoFrame");
+        photoFrame->setStyleSheet(QString::fromUtf8("border: 2px dashed #16a5b3; border-radius: 8px; background-color: #f8f9fa;"));
+        photoLayout = new QVBoxLayout(photoFrame);
+        photoLayout->setObjectName("photoLayout");
+        photoLabel = new QLabel(photoFrame);
+        photoLabel->setObjectName("photoLabel");
+        photoLabel->setStyleSheet(QString::fromUtf8("color: #16a5b3; font-weight: 600; padding: 20px;"));
+        photoLabel->setAlignment(Qt::AlignmentFlag::AlignCenter);
 
-        gridLayout->addWidget(firstNameLineEdit, 1, 1, 1, 1);
+        photoLayout->addWidget(photoLabel);
 
-        departmentLabel = new QLabel(formFrame);
-        departmentLabel->setObjectName("departmentLabel");
-        departmentLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+        employeeUploadPhotoButton = new QPushButton(photoFrame);
+        employeeUploadPhotoButton->setObjectName("employeeUploadPhotoButton");
+        QIcon icon7;
+        icon7.addFile(QString::fromUtf8(":/icons/icons/add.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+        employeeUploadPhotoButton->setIcon(icon7);
 
-        gridLayout->addWidget(departmentLabel, 6, 2, 1, 1);
+        photoLayout->addWidget(employeeUploadPhotoButton);
 
-        genderComboBox = new QComboBox(formFrame);
-        genderComboBox->addItem(QString());
-        genderComboBox->addItem(QString());
-        genderComboBox->addItem(QString());
-        genderComboBox->setObjectName("genderComboBox");
 
-        gridLayout->addWidget(genderComboBox, 3, 1, 1, 1);
+        gridLayout->addWidget(photoFrame, 8, 3, 1, 1);
 
-        empIdLineEdit = new QLineEdit(formFrame);
-        empIdLineEdit->setObjectName("empIdLineEdit");
+        firstNameLabel = new QLabel(formFrame);
+        firstNameLabel->setObjectName("firstNameLabel");
+        firstNameLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
 
-        gridLayout->addWidget(empIdLineEdit, 0, 1, 1, 1);
-
-        statusComboBox = new QComboBox(formFrame);
-        statusComboBox->addItem(QString());
-        statusComboBox->addItem(QString());
-        statusComboBox->addItem(QString());
-        statusComboBox->setObjectName("statusComboBox");
-
-        gridLayout->addWidget(statusComboBox, 4, 3, 1, 1);
-
-        positionLabel = new QLabel(formFrame);
-        positionLabel->setObjectName("positionLabel");
-        positionLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
-
-        gridLayout->addWidget(positionLabel, 2, 2, 1, 1);
-
-        lastNameLineEdit = new QLineEdit(formFrame);
-        lastNameLineEdit->setObjectName("lastNameLineEdit");
-
-        gridLayout->addWidget(lastNameLineEdit, 2, 1, 1, 1);
-
-        genderLabel = new QLabel(formFrame);
-        genderLabel->setObjectName("genderLabel");
-        genderLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
-
-        gridLayout->addWidget(genderLabel, 3, 0, 1, 1);
-
-        empIdLabel = new QLabel(formFrame);
-        empIdLabel->setObjectName("empIdLabel");
-        empIdLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
-
-        gridLayout->addWidget(empIdLabel, 0, 0, 1, 1);
-
-        ageSpinBox = new QSpinBox(formFrame);
-        ageSpinBox->setObjectName("ageSpinBox");
-        ageSpinBox->setStyleSheet(QString::fromUtf8("padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;"));
-        ageSpinBox->setMinimum(18);
-        ageSpinBox->setMaximum(65);
-        ageSpinBox->setValue(25);
-
-        gridLayout->addWidget(ageSpinBox, 4, 1, 1, 1);
-
-        positionLineEdit = new QLineEdit(formFrame);
-        positionLineEdit->setObjectName("positionLineEdit");
-
-        gridLayout->addWidget(positionLineEdit, 2, 3, 1, 1);
-
-        passwordLabel = new QLabel(formFrame);
-        passwordLabel->setObjectName("passwordLabel");
-        passwordLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
-
-        gridLayout->addWidget(passwordLabel, 0, 2, 1, 1);
-
-        salaryLineEdit = new QLineEdit(formFrame);
-        salaryLineEdit->setObjectName("salaryLineEdit");
-
-        gridLayout->addWidget(salaryLineEdit, 3, 3, 1, 1);
-
-        hireDateEdit = new QDateEdit(formFrame);
-        hireDateEdit->setObjectName("hireDateEdit");
-        hireDateEdit->setStyleSheet(QString::fromUtf8("padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;"));
-
-        gridLayout->addWidget(hireDateEdit, 1, 3, 1, 1);
-
-        emailLineEdit = new QLineEdit(formFrame);
-        emailLineEdit->setObjectName("emailLineEdit");
-
-        gridLayout->addWidget(emailLineEdit, 5, 1, 2, 1);
-
-        passwordLineEedit = new QLineEdit(formFrame);
-        passwordLineEedit->setObjectName("passwordLineEedit");
-
-        gridLayout->addWidget(passwordLineEedit, 0, 3, 1, 1);
-
-        statusLabel = new QLabel(formFrame);
-        statusLabel->setObjectName("statusLabel");
-        statusLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
-
-        gridLayout->addWidget(statusLabel, 4, 2, 1, 1);
-
-        ageLabel = new QLabel(formFrame);
-        ageLabel->setObjectName("ageLabel");
-        ageLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
-
-        gridLayout->addWidget(ageLabel, 4, 0, 1, 1);
+        gridLayout->addWidget(firstNameLabel, 1, 0, 1, 1);
 
         departmentComboBox = new QComboBox(formFrame);
         departmentComboBox->addItem(QString());
@@ -1095,19 +1020,26 @@ public:
         departmentComboBox->addItem(QString());
         departmentComboBox->setObjectName("departmentComboBox");
 
-        gridLayout->addWidget(departmentComboBox, 6, 3, 1, 1);
+        gridLayout->addWidget(departmentComboBox, 7, 3, 1, 1);
 
-        emailLabel = new QLabel(formFrame);
-        emailLabel->setObjectName("emailLabel");
-        emailLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+        passwordLineEedit = new QLineEdit(formFrame);
+        passwordLineEedit->setObjectName("passwordLineEedit");
 
-        gridLayout->addWidget(emailLabel, 6, 0, 1, 1);
+        gridLayout->addWidget(passwordLineEedit, 0, 3, 1, 1);
 
-        salaryLabel = new QLabel(formFrame);
-        salaryLabel->setObjectName("salaryLabel");
-        salaryLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+        genderComboBox = new QComboBox(formFrame);
+        genderComboBox->addItem(QString());
+        genderComboBox->addItem(QString());
+        genderComboBox->addItem(QString());
+        genderComboBox->setObjectName("genderComboBox");
 
-        gridLayout->addWidget(salaryLabel, 3, 2, 1, 1);
+        gridLayout->addWidget(genderComboBox, 3, 1, 1, 1);
+
+        phoneLabel = new QLabel(formFrame);
+        phoneLabel->setObjectName("phoneLabel");
+        phoneLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+
+        gridLayout->addWidget(phoneLabel, 8, 0, 1, 1);
 
         buttonFrame = new QFrame(formFrame);
         buttonFrame->setObjectName("buttonFrame");
@@ -1120,8 +1052,6 @@ public:
         confirmAddButton = new QPushButton(buttonFrame);
         confirmAddButton->setObjectName("confirmAddButton");
         confirmAddButton->setMinimumSize(QSize(150, 45));
-        QIcon icon7;
-        icon7.addFile(QString::fromUtf8(":/icons/icons/add.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
         confirmAddButton->setIcon(icon7);
 
         buttonLayout->addWidget(confirmAddButton);
@@ -1137,13 +1067,22 @@ public:
         buttonLayout->addWidget(confirmUpdateButton);
 
 
-        gridLayout->addWidget(buttonFrame, 10, 0, 1, 4);
+        gridLayout->addWidget(buttonFrame, 11, 0, 1, 4);
 
-        hireDateLabel = new QLabel(formFrame);
-        hireDateLabel->setObjectName("hireDateLabel");
-        hireDateLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+        genderLabel = new QLabel(formFrame);
+        genderLabel->setObjectName("genderLabel");
+        genderLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
 
-        gridLayout->addWidget(hireDateLabel, 1, 2, 1, 1);
+        gridLayout->addWidget(genderLabel, 3, 0, 1, 1);
+
+        ageSpinBox = new QSpinBox(formFrame);
+        ageSpinBox->setObjectName("ageSpinBox");
+        ageSpinBox->setStyleSheet(QString::fromUtf8("padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;"));
+        ageSpinBox->setMinimum(18);
+        ageSpinBox->setMaximum(65);
+        ageSpinBox->setValue(25);
+
+        gridLayout->addWidget(ageSpinBox, 4, 1, 1, 1);
 
         lastNameLabel = new QLabel(formFrame);
         lastNameLabel->setObjectName("lastNameLabel");
@@ -1151,43 +1090,120 @@ public:
 
         gridLayout->addWidget(lastNameLabel, 2, 0, 1, 1);
 
-        firstNameLabel = new QLabel(formFrame);
-        firstNameLabel->setObjectName("firstNameLabel");
-        firstNameLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+        emailLineEdit = new QLineEdit(formFrame);
+        emailLineEdit->setObjectName("emailLineEdit");
 
-        gridLayout->addWidget(firstNameLabel, 1, 0, 1, 1);
+        gridLayout->addWidget(emailLineEdit, 7, 1, 1, 1);
+
+        salaryLineEdit = new QLineEdit(formFrame);
+        salaryLineEdit->setObjectName("salaryLineEdit");
+
+        gridLayout->addWidget(salaryLineEdit, 3, 3, 1, 1);
+
+        hireDateEdit = new QDateEdit(formFrame);
+        hireDateEdit->setObjectName("hireDateEdit");
+        hireDateEdit->setStyleSheet(QString::fromUtf8("padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;"));
+
+        gridLayout->addWidget(hireDateEdit, 1, 3, 1, 1);
+
+        departmentLabel = new QLabel(formFrame);
+        departmentLabel->setObjectName("departmentLabel");
+        departmentLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+
+        gridLayout->addWidget(departmentLabel, 7, 2, 1, 1);
+
+        emailLabel = new QLabel(formFrame);
+        emailLabel->setObjectName("emailLabel");
+        emailLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+
+        gridLayout->addWidget(emailLabel, 7, 0, 1, 1);
+
+        empIdLineEdit = new QLineEdit(formFrame);
+        empIdLineEdit->setObjectName("empIdLineEdit");
+
+        gridLayout->addWidget(empIdLineEdit, 0, 1, 1, 1);
+
+        positionComboBox = new QComboBox(formFrame);
+        positionComboBox->addItem(QString());
+        positionComboBox->addItem(QString());
+        positionComboBox->addItem(QString());
+        positionComboBox->addItem(QString());
+        positionComboBox->addItem(QString());
+        positionComboBox->addItem(QString());
+        positionComboBox->addItem(QString());
+        positionComboBox->addItem(QString());
+        positionComboBox->addItem(QString());
+        positionComboBox->addItem(QString());
+        positionComboBox->addItem(QString());
+        positionComboBox->setObjectName("positionComboBox");
+        positionComboBox->setStyleSheet(QString::fromUtf8("padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;"));
+
+        gridLayout->addWidget(positionComboBox, 2, 3, 1, 1);
+
+        statusComboBox = new QComboBox(formFrame);
+        statusComboBox->addItem(QString());
+        statusComboBox->addItem(QString());
+        statusComboBox->addItem(QString());
+        statusComboBox->setObjectName("statusComboBox");
+
+        gridLayout->addWidget(statusComboBox, 4, 3, 1, 1);
+
+        lastNameLineEdit = new QLineEdit(formFrame);
+        lastNameLineEdit->setObjectName("lastNameLineEdit");
+
+        gridLayout->addWidget(lastNameLineEdit, 2, 1, 1, 1);
+
+        hireDateLabel = new QLabel(formFrame);
+        hireDateLabel->setObjectName("hireDateLabel");
+        hireDateLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+
+        gridLayout->addWidget(hireDateLabel, 1, 2, 1, 1);
+
+        firstNameLineEdit = new QLineEdit(formFrame);
+        firstNameLineEdit->setObjectName("firstNameLineEdit");
+
+        gridLayout->addWidget(firstNameLineEdit, 1, 1, 1, 1);
+
+        positionLabel = new QLabel(formFrame);
+        positionLabel->setObjectName("positionLabel");
+        positionLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+
+        gridLayout->addWidget(positionLabel, 2, 2, 1, 1);
+
+        ageLabel = new QLabel(formFrame);
+        ageLabel->setObjectName("ageLabel");
+        ageLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+
+        gridLayout->addWidget(ageLabel, 4, 0, 1, 1);
+
+        salaryLabel = new QLabel(formFrame);
+        salaryLabel->setObjectName("salaryLabel");
+        salaryLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+
+        gridLayout->addWidget(salaryLabel, 3, 2, 1, 1);
+
+        passwordLabel = new QLabel(formFrame);
+        passwordLabel->setObjectName("passwordLabel");
+        passwordLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+
+        gridLayout->addWidget(passwordLabel, 0, 2, 1, 1);
+
+        empIdLabel = new QLabel(formFrame);
+        empIdLabel->setObjectName("empIdLabel");
+        empIdLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+
+        gridLayout->addWidget(empIdLabel, 0, 0, 1, 1);
+
+        statusLabel = new QLabel(formFrame);
+        statusLabel->setObjectName("statusLabel");
+        statusLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+
+        gridLayout->addWidget(statusLabel, 4, 2, 1, 1);
 
         phoneLineEdit = new QLineEdit(formFrame);
         phoneLineEdit->setObjectName("phoneLineEdit");
 
-        gridLayout->addWidget(phoneLineEdit, 7, 1, 1, 1);
-
-        phoneLabel = new QLabel(formFrame);
-        phoneLabel->setObjectName("phoneLabel");
-        phoneLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
-
-        gridLayout->addWidget(phoneLabel, 7, 0, 1, 1);
-
-        photoFrame = new QFrame(formFrame);
-        photoFrame->setObjectName("photoFrame");
-        photoFrame->setStyleSheet(QString::fromUtf8("border: 2px dashed #16a5b3; border-radius: 8px; background-color: #f8f9fa;"));
-        photoLayout = new QVBoxLayout(photoFrame);
-        photoLayout->setObjectName("photoLayout");
-        photoLabel = new QLabel(photoFrame);
-        photoLabel->setObjectName("photoLabel");
-        photoLabel->setStyleSheet(QString::fromUtf8("color: #16a5b3; font-weight: 600; padding: 20px;"));
-        photoLabel->setAlignment(Qt::AlignmentFlag::AlignCenter);
-
-        photoLayout->addWidget(photoLabel);
-
-        employeeUploadPhotoButton = new QPushButton(photoFrame);
-        employeeUploadPhotoButton->setObjectName("employeeUploadPhotoButton");
-        employeeUploadPhotoButton->setIcon(icon7);
-
-        photoLayout->addWidget(employeeUploadPhotoButton);
-
-
-        gridLayout->addWidget(photoFrame, 7, 3, 1, 1);
+        gridLayout->addWidget(phoneLineEdit, 8, 1, 1, 1);
 
 
         formMainLayout->addWidget(formFrame);
@@ -2267,42 +2283,6 @@ public:
         activityFormLayout->setObjectName("activityFormLayout");
         activityFormLayout->setHorizontalSpacing(20);
         activityFormLayout->setVerticalSpacing(15);
-        eventTimeEdit = new QTimeEdit(activityFormFrame);
-        eventTimeEdit->setObjectName("eventTimeEdit");
-        eventTimeEdit->setStyleSheet(QString::fromUtf8("padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;"));
-
-        activityFormLayout->addWidget(eventTimeEdit, 3, 4, 1, 1);
-
-        responsibleLabel = new QLabel(activityFormFrame);
-        responsibleLabel->setObjectName("responsibleLabel");
-        responsibleLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
-
-        activityFormLayout->addWidget(responsibleLabel, 4, 0, 1, 1);
-
-        activityIdLabel = new QLabel(activityFormFrame);
-        activityIdLabel->setObjectName("activityIdLabel");
-        activityIdLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
-
-        activityFormLayout->addWidget(activityIdLabel, 0, 0, 1, 1);
-
-        activityStatusLabel = new QLabel(activityFormFrame);
-        activityStatusLabel->setObjectName("activityStatusLabel");
-        activityStatusLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
-
-        activityFormLayout->addWidget(activityStatusLabel, 4, 3, 1, 1);
-
-        activityIdLineEdit = new QLineEdit(activityFormFrame);
-        activityIdLineEdit->setObjectName("activityIdLineEdit");
-
-        activityFormLayout->addWidget(activityIdLineEdit, 0, 1, 1, 1);
-
-        eventDateEdit = new QDateEdit(activityFormFrame);
-        eventDateEdit->setObjectName("eventDateEdit");
-        eventDateEdit->setStyleSheet(QString::fromUtf8("padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;"));
-        eventDateEdit->setCalendarPopup(true);
-
-        activityFormLayout->addWidget(eventDateEdit, 3, 1, 1, 1);
-
         activityAgeSpinBox = new QSpinBox(activityFormFrame);
         activityAgeSpinBox->setObjectName("activityAgeSpinBox");
         activityAgeSpinBox->setStyleSheet(QString::fromUtf8("padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;"));
@@ -2310,30 +2290,7 @@ public:
         activityAgeSpinBox->setMaximum(120);
         activityAgeSpinBox->setValue(18);
 
-        activityFormLayout->addWidget(activityAgeSpinBox, 1, 1, 1, 1);
-
-        eventDateLabel = new QLabel(activityFormFrame);
-        eventDateLabel->setObjectName("eventDateLabel");
-        eventDateLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
-
-        activityFormLayout->addWidget(eventDateLabel, 3, 0, 1, 1);
-
-        responsibleLineEdit = new QLineEdit(activityFormFrame);
-        responsibleLineEdit->setObjectName("responsibleLineEdit");
-
-        activityFormLayout->addWidget(responsibleLineEdit, 4, 1, 1, 2);
-
-        activityDescriptionLabel = new QLabel(activityFormFrame);
-        activityDescriptionLabel->setObjectName("activityDescriptionLabel");
-        activityDescriptionLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
-
-        activityFormLayout->addWidget(activityDescriptionLabel, 6, 0, 1, 1);
-
-        eventTimeLabel = new QLabel(activityFormFrame);
-        eventTimeLabel->setObjectName("eventTimeLabel");
-        eventTimeLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
-
-        activityFormLayout->addWidget(eventTimeLabel, 3, 2, 1, 1);
+        activityFormLayout->addWidget(activityAgeSpinBox, 0, 1, 1, 1);
 
         activityButtonFrame = new QFrame(activityFormFrame);
         activityButtonFrame->setObjectName("activityButtonFrame");
@@ -2359,34 +2316,31 @@ public:
         activityButtonLayout->addWidget(activityUpdateButton);
 
 
-        activityFormLayout->addWidget(activityButtonFrame, 7, 0, 1, 5);
+        activityFormLayout->addWidget(activityButtonFrame, 7, 0, 1, 7);
 
-        activityStatusComboBox = new QComboBox(activityFormFrame);
-        activityStatusComboBox->addItem(QString());
-        activityStatusComboBox->addItem(QString());
-        activityStatusComboBox->addItem(QString());
-        activityStatusComboBox->addItem(QString());
-        activityStatusComboBox->addItem(QString());
-        activityStatusComboBox->setObjectName("activityStatusComboBox");
+        eventTimeEdit = new QTimeEdit(activityFormFrame);
+        eventTimeEdit->setObjectName("eventTimeEdit");
+        eventTimeEdit->setStyleSheet(QString::fromUtf8("padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;"));
 
-        activityFormLayout->addWidget(activityStatusComboBox, 4, 4, 1, 1);
+        activityFormLayout->addWidget(eventTimeEdit, 3, 3, 1, 3);
+
+        activityDescriptionLabel = new QLabel(activityFormFrame);
+        activityDescriptionLabel->setObjectName("activityDescriptionLabel");
+        activityDescriptionLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+
+        activityFormLayout->addWidget(activityDescriptionLabel, 6, 0, 1, 1);
 
         activityAgeLabel = new QLabel(activityFormFrame);
         activityAgeLabel->setObjectName("activityAgeLabel");
         activityAgeLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
 
-        activityFormLayout->addWidget(activityAgeLabel, 1, 0, 1, 1);
+        activityFormLayout->addWidget(activityAgeLabel, 0, 0, 1, 1);
 
-        activityTypeComboBox = new QComboBox(activityFormFrame);
-        activityTypeComboBox->addItem(QString());
-        activityTypeComboBox->addItem(QString());
-        activityTypeComboBox->addItem(QString());
-        activityTypeComboBox->addItem(QString());
-        activityTypeComboBox->addItem(QString());
-        activityTypeComboBox->addItem(QString());
-        activityTypeComboBox->setObjectName("activityTypeComboBox");
+        activityCapacityLabel = new QLabel(activityFormFrame);
+        activityCapacityLabel->setObjectName("activityCapacityLabel");
+        activityCapacityLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
 
-        activityFormLayout->addWidget(activityTypeComboBox, 1, 4, 1, 1);
+        activityFormLayout->addWidget(activityCapacityLabel, 2, 0, 1, 1);
 
         activityDescriptionFrame = new QFrame(activityFormFrame);
         activityDescriptionFrame->setObjectName("activityDescriptionFrame");
@@ -2400,13 +2354,104 @@ public:
         activityDescriptionLayout->addWidget(activityDescriptionTextEdit);
 
 
-        activityFormLayout->addWidget(activityDescriptionFrame, 6, 1, 1, 4);
+        activityFormLayout->addWidget(activityDescriptionFrame, 6, 1, 1, 6);
+
+        responsibleWidget = new QWidget(activityFormFrame);
+        responsibleWidget->setObjectName("responsibleWidget");
+        responsibleLayout = new QHBoxLayout(responsibleWidget);
+        responsibleLayout->setSpacing(8);
+        responsibleLayout->setObjectName("responsibleLayout");
+        responsibleLayout->setContentsMargins(0, 0, 0, 0);
+        responsibleComboBox = new QComboBox(responsibleWidget);
+        responsibleComboBox->addItem(QString());
+        responsibleComboBox->setObjectName("responsibleComboBox");
+        responsibleComboBox->setStyleSheet(QString::fromUtf8("padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;"));
+        responsibleComboBox->setEditable(false);
+
+        responsibleLayout->addWidget(responsibleComboBox);
+
+        responsibleLineEdit = new QLineEdit(responsibleWidget);
+        responsibleLineEdit->setObjectName("responsibleLineEdit");
+        responsibleLineEdit->setStyleSheet(QString::fromUtf8("padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;"));
+
+        responsibleLayout->addWidget(responsibleLineEdit);
+
+        responsibleToggleButton = new QPushButton(responsibleWidget);
+        responsibleToggleButton->setObjectName("responsibleToggleButton");
+        responsibleToggleButton->setMinimumSize(QSize(100, 40));
+        responsibleToggleButton->setStyleSheet(QString::fromUtf8("background-color: #3498db; color: white; padding: 8px 12px; border-radius: 6px;"));
+
+        responsibleLayout->addWidget(responsibleToggleButton);
+
+
+        activityFormLayout->addWidget(responsibleWidget, 4, 1, 1, 2);
+
+        activityCapacitySpinBox = new QSpinBox(activityFormFrame);
+        activityCapacitySpinBox->setObjectName("activityCapacitySpinBox");
+        activityCapacitySpinBox->setStyleSheet(QString::fromUtf8("padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;"));
+        activityCapacitySpinBox->setMinimum(1);
+        activityCapacitySpinBox->setMaximum(500);
+        activityCapacitySpinBox->setValue(30);
+
+        activityFormLayout->addWidget(activityCapacitySpinBox, 2, 1, 1, 1);
+
+        eventTimeLabel = new QLabel(activityFormFrame);
+        eventTimeLabel->setObjectName("eventTimeLabel");
+        eventTimeLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+
+        activityFormLayout->addWidget(eventTimeLabel, 3, 2, 1, 1);
+
+        responsibleLabel = new QLabel(activityFormFrame);
+        responsibleLabel->setObjectName("responsibleLabel");
+        responsibleLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+
+        activityFormLayout->addWidget(responsibleLabel, 4, 0, 1, 1);
+
+        eventDateEdit = new QDateEdit(activityFormFrame);
+        eventDateEdit->setObjectName("eventDateEdit");
+        eventDateEdit->setStyleSheet(QString::fromUtf8("padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;"));
+        eventDateEdit->setCalendarPopup(true);
+
+        activityFormLayout->addWidget(eventDateEdit, 3, 1, 1, 1);
+
+        eventDateLabel = new QLabel(activityFormFrame);
+        eventDateLabel->setObjectName("eventDateLabel");
+        eventDateLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+
+        activityFormLayout->addWidget(eventDateLabel, 3, 0, 1, 1);
+
+        activityStatusLabel = new QLabel(activityFormFrame);
+        activityStatusLabel->setObjectName("activityStatusLabel");
+        activityStatusLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+
+        activityFormLayout->addWidget(activityStatusLabel, 4, 3, 1, 1);
+
+        activityStatusComboBox = new QComboBox(activityFormFrame);
+        activityStatusComboBox->addItem(QString());
+        activityStatusComboBox->addItem(QString());
+        activityStatusComboBox->addItem(QString());
+        activityStatusComboBox->addItem(QString());
+        activityStatusComboBox->addItem(QString());
+        activityStatusComboBox->setObjectName("activityStatusComboBox");
+
+        activityFormLayout->addWidget(activityStatusComboBox, 4, 4, 1, 2);
 
         activityTypeLabel = new QLabel(activityFormFrame);
         activityTypeLabel->setObjectName("activityTypeLabel");
         activityTypeLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
 
-        activityFormLayout->addWidget(activityTypeLabel, 1, 2, 1, 1);
+        activityFormLayout->addWidget(activityTypeLabel, 2, 2, 1, 1);
+
+        activityTypeComboBox = new QComboBox(activityFormFrame);
+        activityTypeComboBox->addItem(QString());
+        activityTypeComboBox->addItem(QString());
+        activityTypeComboBox->addItem(QString());
+        activityTypeComboBox->addItem(QString());
+        activityTypeComboBox->addItem(QString());
+        activityTypeComboBox->addItem(QString());
+        activityTypeComboBox->setObjectName("activityTypeComboBox");
+
+        activityFormLayout->addWidget(activityTypeComboBox, 2, 3, 1, 3);
 
 
         activityFormMainLayout->addWidget(activityFormFrame);
@@ -2951,11 +2996,11 @@ public:
 
         retranslateUi(EmployerAdmin);
 
-        stackedWidget->setCurrentIndex(1);
+        stackedWidget->setCurrentIndex(0);
         employeeTabWidget->setCurrentIndex(1);
         memberTabWidget->setCurrentIndex(0);
         equipmentTabWidget->setCurrentIndex(0);
-        activityTabWidget->setCurrentIndex(0);
+        activityTabWidget->setCurrentIndex(1);
         paymentTabWidget->setCurrentIndex(0);
 
 
@@ -2995,46 +3040,56 @@ public:
         QTableWidgetItem *___qtablewidgetitem6 = employeeTable->horizontalHeaderItem(6);
         ___qtablewidgetitem6->setText(QCoreApplication::translate("EmployerAdmin", "Actions", nullptr));
         employeeTabWidget->setTabText(employeeTabWidget->indexOf(listTab), QCoreApplication::translate("EmployerAdmin", " List of Employees", nullptr));
-        firstNameLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Enter first name", nullptr));
-        departmentLabel->setText(QCoreApplication::translate("EmployerAdmin", "Department:", nullptr));
-        genderComboBox->setItemText(0, QCoreApplication::translate("EmployerAdmin", "Male", nullptr));
-        genderComboBox->setItemText(1, QCoreApplication::translate("EmployerAdmin", "Female", nullptr));
-        genderComboBox->setItemText(2, QCoreApplication::translate("EmployerAdmin", "Other", nullptr));
-
-        empIdLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "e.g., EMP001", nullptr));
-        statusComboBox->setItemText(0, QCoreApplication::translate("EmployerAdmin", "Active", nullptr));
-        statusComboBox->setItemText(1, QCoreApplication::translate("EmployerAdmin", "Inactive", nullptr));
-        statusComboBox->setItemText(2, QCoreApplication::translate("EmployerAdmin", "On Leave", nullptr));
-
-        positionLabel->setText(QCoreApplication::translate("EmployerAdmin", "Position:", nullptr));
-        lastNameLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Enter last name", nullptr));
-        genderLabel->setText(QCoreApplication::translate("EmployerAdmin", "Gender:", nullptr));
-        empIdLabel->setText(QCoreApplication::translate("EmployerAdmin", "CIN :", nullptr));
-        positionLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "e.g., Manager, Instructor, etc.", nullptr));
-        passwordLabel->setText(QCoreApplication::translate("EmployerAdmin", "Password", nullptr));
-        salaryLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Enter salary amount", nullptr));
-        emailLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "employee@esprit.tn", nullptr));
-        passwordLineEedit->setText(QCoreApplication::translate("EmployerAdmin", "Enter password  ", nullptr));
-        passwordLineEedit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Enter salary amount", nullptr));
-        statusLabel->setText(QCoreApplication::translate("EmployerAdmin", "Status:", nullptr));
-        ageLabel->setText(QCoreApplication::translate("EmployerAdmin", "Age:", nullptr));
+        photoLabel->setText(QCoreApplication::translate("EmployerAdmin", " Upload Employee Photo", nullptr));
+        employeeUploadPhotoButton->setText(QCoreApplication::translate("EmployerAdmin", "Choose File", nullptr));
+        firstNameLabel->setText(QCoreApplication::translate("EmployerAdmin", "First Name:", nullptr));
         departmentComboBox->setItemText(0, QCoreApplication::translate("EmployerAdmin", "Activity Management", nullptr));
         departmentComboBox->setItemText(1, QCoreApplication::translate("EmployerAdmin", "Member Management", nullptr));
         departmentComboBox->setItemText(2, QCoreApplication::translate("EmployerAdmin", "Equipment Management", nullptr));
         departmentComboBox->setItemText(3, QCoreApplication::translate("EmployerAdmin", "Payment Management", nullptr));
         departmentComboBox->setItemText(4, QCoreApplication::translate("EmployerAdmin", "General Administration", nullptr));
 
-        emailLabel->setText(QCoreApplication::translate("EmployerAdmin", "Email:", nullptr));
-        salaryLabel->setText(QCoreApplication::translate("EmployerAdmin", "Salary:", nullptr));
+        passwordLineEedit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Enter password", nullptr));
+        genderComboBox->setItemText(0, QCoreApplication::translate("EmployerAdmin", "Male", nullptr));
+        genderComboBox->setItemText(1, QCoreApplication::translate("EmployerAdmin", "Female", nullptr));
+        genderComboBox->setItemText(2, QCoreApplication::translate("EmployerAdmin", "Other", nullptr));
+
+        phoneLabel->setText(QCoreApplication::translate("EmployerAdmin", "Phone Number:", nullptr));
         confirmAddButton->setText(QCoreApplication::translate("EmployerAdmin", "Confirm Add", nullptr));
         confirmUpdateButton->setText(QCoreApplication::translate("EmployerAdmin", "Confirm Update", nullptr));
-        hireDateLabel->setText(QCoreApplication::translate("EmployerAdmin", "Hire Date:", nullptr));
+        genderLabel->setText(QCoreApplication::translate("EmployerAdmin", "Gender:", nullptr));
         lastNameLabel->setText(QCoreApplication::translate("EmployerAdmin", "Last Name:", nullptr));
-        firstNameLabel->setText(QCoreApplication::translate("EmployerAdmin", "First Name:", nullptr));
+        emailLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "employee@esprit.tn", nullptr));
+        salaryLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Enter salary amount", nullptr));
+        departmentLabel->setText(QCoreApplication::translate("EmployerAdmin", "Department:", nullptr));
+        emailLabel->setText(QCoreApplication::translate("EmployerAdmin", "Email:", nullptr));
+        empIdLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "e.g., 14471254", nullptr));
+        positionComboBox->setItemText(0, QCoreApplication::translate("EmployerAdmin", "Manager", nullptr));
+        positionComboBox->setItemText(1, QCoreApplication::translate("EmployerAdmin", "Assistant Manager", nullptr));
+        positionComboBox->setItemText(2, QCoreApplication::translate("EmployerAdmin", "Instructor", nullptr));
+        positionComboBox->setItemText(3, QCoreApplication::translate("EmployerAdmin", "Personal Trainer", nullptr));
+        positionComboBox->setItemText(4, QCoreApplication::translate("EmployerAdmin", "Receptionist", nullptr));
+        positionComboBox->setItemText(5, QCoreApplication::translate("EmployerAdmin", "Maintenance Staff", nullptr));
+        positionComboBox->setItemText(6, QCoreApplication::translate("EmployerAdmin", "Security Guard", nullptr));
+        positionComboBox->setItemText(7, QCoreApplication::translate("EmployerAdmin", "Cleaning Staff", nullptr));
+        positionComboBox->setItemText(8, QCoreApplication::translate("EmployerAdmin", "IT Support", nullptr));
+        positionComboBox->setItemText(9, QCoreApplication::translate("EmployerAdmin", "Accountant", nullptr));
+        positionComboBox->setItemText(10, QCoreApplication::translate("EmployerAdmin", "Other", nullptr));
+
+        statusComboBox->setItemText(0, QCoreApplication::translate("EmployerAdmin", "Active", nullptr));
+        statusComboBox->setItemText(1, QCoreApplication::translate("EmployerAdmin", "Inactive", nullptr));
+        statusComboBox->setItemText(2, QCoreApplication::translate("EmployerAdmin", "On Leave", nullptr));
+
+        lastNameLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Enter last name", nullptr));
+        hireDateLabel->setText(QCoreApplication::translate("EmployerAdmin", "Hire Date:", nullptr));
+        firstNameLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Enter first name", nullptr));
+        positionLabel->setText(QCoreApplication::translate("EmployerAdmin", "Position:", nullptr));
+        ageLabel->setText(QCoreApplication::translate("EmployerAdmin", "Age:", nullptr));
+        salaryLabel->setText(QCoreApplication::translate("EmployerAdmin", "Salary:", nullptr));
+        passwordLabel->setText(QCoreApplication::translate("EmployerAdmin", "Password", nullptr));
+        empIdLabel->setText(QCoreApplication::translate("EmployerAdmin", "CIN :", nullptr));
+        statusLabel->setText(QCoreApplication::translate("EmployerAdmin", "Status:", nullptr));
         phoneLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "+216 55 123 456", nullptr));
-        phoneLabel->setText(QCoreApplication::translate("EmployerAdmin", "Phone Number:", nullptr));
-        photoLabel->setText(QCoreApplication::translate("EmployerAdmin", " Upload Employee Photo", nullptr));
-        employeeUploadPhotoButton->setText(QCoreApplication::translate("EmployerAdmin", "Choose File", nullptr));
         employeeTabWidget->setTabText(employeeTabWidget->indexOf(addTab), QCoreApplication::translate("EmployerAdmin", " Add Employee", nullptr));
         totalEmpTitle->setText(QCoreApplication::translate("EmployerAdmin", "Total Hours Worked", nullptr));
         totalEmpNumber->setText(QCoreApplication::translate("EmployerAdmin", "47", nullptr));
@@ -3244,25 +3299,30 @@ public:
         QTableWidgetItem *___qtablewidgetitem53 = activityTable->horizontalHeaderItem(7);
         ___qtablewidgetitem53->setText(QCoreApplication::translate("EmployerAdmin", "Actions", nullptr));
         activityTabWidget->setTabText(activityTabWidget->indexOf(activityListTab), QCoreApplication::translate("EmployerAdmin", " List of Activities", nullptr));
-        eventTimeEdit->setDisplayFormat(QCoreApplication::translate("EmployerAdmin", "HH:mm", nullptr));
-        responsibleLabel->setText(QCoreApplication::translate("EmployerAdmin", "Responsible/Actor:", nullptr));
-        activityIdLabel->setText(QCoreApplication::translate("EmployerAdmin", "Activity ID:", nullptr));
-        activityStatusLabel->setText(QCoreApplication::translate("EmployerAdmin", "Status:", nullptr));
-        activityIdLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "e.g., ACT001", nullptr));
         activityAgeSpinBox->setSuffix(QCoreApplication::translate("EmployerAdmin", " years", nullptr));
-        eventDateLabel->setText(QCoreApplication::translate("EmployerAdmin", "Event Date:", nullptr));
-        responsibleLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Enter responsible person or instructor name", nullptr));
-        activityDescriptionLabel->setText(QCoreApplication::translate("EmployerAdmin", "Activity Description:", nullptr));
-        eventTimeLabel->setText(QCoreApplication::translate("EmployerAdmin", "Event Time:", nullptr));
         activityConfirmButton->setText(QCoreApplication::translate("EmployerAdmin", " Confirm Add Activity", nullptr));
         activityUpdateButton->setText(QCoreApplication::translate("EmployerAdmin", " Update Activity", nullptr));
+        eventTimeEdit->setDisplayFormat(QCoreApplication::translate("EmployerAdmin", "HH:mm", nullptr));
+        activityDescriptionLabel->setText(QCoreApplication::translate("EmployerAdmin", "Activity Description:", nullptr));
+        activityAgeLabel->setText(QCoreApplication::translate("EmployerAdmin", "Age Requirement:", nullptr));
+        activityCapacityLabel->setText(QCoreApplication::translate("EmployerAdmin", "Capacity:", nullptr));
+        activityDescriptionTextEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Enter detailed activity description, requirements, or notes...", nullptr));
+        responsibleComboBox->setItemText(0, QCoreApplication::translate("EmployerAdmin", "Select Employee...", nullptr));
+
+        responsibleLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Enter responsible person or instructor name", nullptr));
+        responsibleToggleButton->setText(QCoreApplication::translate("EmployerAdmin", "Use Manual", nullptr));
+        activityCapacitySpinBox->setSuffix(QCoreApplication::translate("EmployerAdmin", " people", nullptr));
+        eventTimeLabel->setText(QCoreApplication::translate("EmployerAdmin", "Event Time:", nullptr));
+        responsibleLabel->setText(QCoreApplication::translate("EmployerAdmin", "Responsible/Actor:", nullptr));
+        eventDateLabel->setText(QCoreApplication::translate("EmployerAdmin", "Event Date:", nullptr));
+        activityStatusLabel->setText(QCoreApplication::translate("EmployerAdmin", "Status:", nullptr));
         activityStatusComboBox->setItemText(0, QCoreApplication::translate("EmployerAdmin", "Scheduled", nullptr));
         activityStatusComboBox->setItemText(1, QCoreApplication::translate("EmployerAdmin", "In Progress", nullptr));
         activityStatusComboBox->setItemText(2, QCoreApplication::translate("EmployerAdmin", "Completed", nullptr));
         activityStatusComboBox->setItemText(3, QCoreApplication::translate("EmployerAdmin", "Cancelled", nullptr));
         activityStatusComboBox->setItemText(4, QCoreApplication::translate("EmployerAdmin", "Postponed", nullptr));
 
-        activityAgeLabel->setText(QCoreApplication::translate("EmployerAdmin", "Age Requirement:", nullptr));
+        activityTypeLabel->setText(QCoreApplication::translate("EmployerAdmin", "Activity Type:", nullptr));
         activityTypeComboBox->setItemText(0, QCoreApplication::translate("EmployerAdmin", "Group Class", nullptr));
         activityTypeComboBox->setItemText(1, QCoreApplication::translate("EmployerAdmin", "Personal Training", nullptr));
         activityTypeComboBox->setItemText(2, QCoreApplication::translate("EmployerAdmin", "Workshop", nullptr));
@@ -3270,8 +3330,6 @@ public:
         activityTypeComboBox->setItemText(4, QCoreApplication::translate("EmployerAdmin", "Event", nullptr));
         activityTypeComboBox->setItemText(5, QCoreApplication::translate("EmployerAdmin", "Maintenance", nullptr));
 
-        activityDescriptionTextEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Enter detailed activity description, requirements, or notes...", nullptr));
-        activityTypeLabel->setText(QCoreApplication::translate("EmployerAdmin", "Activity Type:", nullptr));
         activityTabWidget->setTabText(activityTabWidget->indexOf(activityAddTab), QCoreApplication::translate("EmployerAdmin", " Add Activity", nullptr));
         totalActivitiesTitle->setText(QCoreApplication::translate("EmployerAdmin", "Total Activities", nullptr));
         totalActivitiesNumber->setText(QCoreApplication::translate("EmployerAdmin", "127", nullptr));
