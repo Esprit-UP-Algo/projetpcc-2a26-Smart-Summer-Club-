@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>443</width>
-    <height>707</height>
+    <width>1101</width>
+    <height>663</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,34 +15,61 @@
   </property>
   <property name="styleSheet">
    <string notr="true">QDialog {
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-                               stop:0 #16a5b3, stop:1 #139aa6);
+    background-color: #4DB6C3;
+    border-radius: 20px;
 }
 
-#loginFrame {
+#mainFrame {
     background-color: white;
-    border-radius: 15px;
-    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 20px;
+    border: none;
 }
 
-#logoLabel {
-    font-size: 32px;
+#leftFrame {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                               stop:0 #4DB6C3, stop:1 #2E9CAA);
+    border-radius: 20px 0px 0px 20px;
+}
+
+#rightFrame {
+    background-color: white;
+    border-radius: 0px 20px 20px 0px;
+    padding: 40px;
+}
+
+#beachLabel {
+    background-color: transparent;
+    border: none;
+}
+
+#logoCircle {
+    background-color: transparent;
+    border-radius: 30px;
+    border: none;
+}
+
+#welcomeLabel {
+    font-size: 28px;
     font-weight: bold;
-    color: #16a5b3;
-    margin-bottom: 10px;
+    color: #2c3e50;
+    background-color: transparent;
+    border: none;
+}
+
+#emailLabel {
+    font-size: 16px;
+    color: #7f8c8d;
+    background-color: transparent;
+    border: none;
+    margin-bottom: 20px;
 }
 
 #subtitleLabel {
-    font-size: 16px;
-    color: #7f8c8d;
-    margin-bottom: 30px;
-}
-
-QLabel {
     font-size: 14px;
-    font-weight: 600;
-    color: #2c3e50;
-    margin-bottom: 5px;
+    color: #4DB6C3;
+    background-color: transparent;
+    border: none;
+    margin-bottom: 30px;
 }
 
 QLineEdit {
@@ -55,27 +82,47 @@ QLineEdit {
 }
 
 QLineEdit:focus {
-    border-color: #16a5b3;
+    border-color: #4DB6C3;
     outline: none;
 }
 
-#loginButton {
-    background-color: #16a5b3;
+#loginButton, #nextButton {
+    background-color: #4DB6C3;
     color: white;
     border: none;
-    padding: 15px;
-    border-radius: 8px;
+    padding: 15px 30px;
+    border-radius: 25px;
     font-size: 16px;
     font-weight: 600;
-    margin-top: 10px;
+    margin-right: 10px;
 }
 
-#loginButton:hover {
-    background-color: #139aa6;
+#loginButton:hover, #nextButton:hover {
+    background-color: #2E9CAA;
 }
 
-#loginButton:pressed {
-    background-color: #0f858f;
+#loginButton:pressed, #nextButton:pressed {
+    background-color: #1E7A85;
+}
+
+#backButton {
+    background-color: transparent;
+    color: #4DB6C3;
+    border: 2px solid #4DB6C3;
+    padding: 15px 30px;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: 600;
+    margin-right: 10px;
+}
+
+#backButton:hover {
+    background-color: #4DB6C3;
+    color: white;
+}
+
+#backButton:pressed {
+    background-color: #2E9CAA;
 }
 
 #errorLabel {
@@ -83,155 +130,460 @@ QLineEdit:focus {
     font-size: 13px;
     font-weight: normal;
     margin-top: 10px;
+    background-color: transparent;
+    border: none;
 }</string>
   </property>
   <layout class="QVBoxLayout" name="mainLayout">
    <property name="spacing">
-    <number>0</number>
+    <number>20</number>
    </property>
    <property name="leftMargin">
-    <number>40</number>
+    <number>20</number>
    </property>
    <property name="topMargin">
-    <number>40</number>
+    <number>20</number>
    </property>
    <property name="rightMargin">
-    <number>40</number>
+    <number>20</number>
    </property>
    <property name="bottomMargin">
-    <number>40</number>
+    <number>20</number>
    </property>
    <item>
-    <widget class="QFrame" name="loginFrame">
-     <layout class="QVBoxLayout" name="loginLayout">
+    <widget class="QFrame" name="mainFrame">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+       <number>0</number>
+      </property>
       <property name="leftMargin">
-       <number>40</number>
+       <number>0</number>
       </property>
       <property name="topMargin">
-       <number>40</number>
+       <number>0</number>
       </property>
       <property name="rightMargin">
-       <number>40</number>
+       <number>0</number>
       </property>
       <property name="bottomMargin">
-       <number>40</number>
+       <number>0</number>
       </property>
       <item>
-       <widget class="QLabel" name="logo">
+       <widget class="QFrame" name="leftFrame">
         <property name="minimumSize">
          <size>
-          <width>0</width>
-          <height>100</height>
+          <width>450</width>
+          <height>0</height>
          </size>
         </property>
-        <property name="styleSheet">
-         <string notr="true">padding-left :90;</string>
-        </property>
-        <property name="text">
-         <string/>
-        </property>
-        <property name="margin">
-         <number>0</number>
-        </property>
+        <layout class="QVBoxLayout" name="leftLayout">
+         <property name="leftMargin">
+          <number>40</number>
+         </property>
+         <property name="topMargin">
+          <number>40</number>
+         </property>
+         <property name="rightMargin">
+          <number>40</number>
+         </property>
+         <property name="bottomMargin">
+          <number>40</number>
+         </property>
+         <item>
+          <spacer name="leftTopSpacer">
+           <property name="orientation">
+            <enum>Qt::Orientation::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>100</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="beachLabel">
+           <property name="minimumSize">
+            <size>
+             <width>300</width>
+             <height>300</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="pixmap">
+            <pixmap resource="resources.qrc">:/icons/assests/VibraClubBanner.png</pixmap>
+           </property>
+           <property name="scaledContents">
+            <bool>true</bool>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="leftBottomSpacer">
+           <property name="orientation">
+            <enum>Qt::Orientation::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>100</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="logoLabel">
-        <property name="text">
-         <string>VIBRA CLUB</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignmentFlag::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="subtitleLabel">
-        <property name="text">
-         <string>Application for  club managemnt</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignmentFlag::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="topSpacer">
-        <property name="orientation">
-         <enum>Qt::Orientation::Vertical</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
+       <widget class="QFrame" name="rightFrame">
+        <property name="minimumSize">
          <size>
-          <width>20</width>
-          <height>20</height>
+          <width>450</width>
+          <height>0</height>
          </size>
         </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QLabel" name="usernameLabel">
-        <property name="text">
-         <string>Username:</string>
-        </property>
+        <layout class="QVBoxLayout" name="rightLayout">
+         <property name="leftMargin">
+          <number>40</number>
+         </property>
+         <property name="topMargin">
+          <number>40</number>
+         </property>
+         <property name="rightMargin">
+          <number>40</number>
+         </property>
+         <property name="bottomMargin">
+          <number>40</number>
+         </property>
+         <item>
+          <widget class="QFrame" name="logoFrame">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>80</height>
+            </size>
+           </property>
+           <layout class="QHBoxLayout" name="logoLayout">
+            <item>
+             <spacer name="logoLeftSpacer">
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="logoCircle">
+              <property name="minimumSize">
+               <size>
+                <width>60</width>
+                <height>60</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>60</width>
+                <height>60</height>
+               </size>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="pixmap">
+               <pixmap resource="resources.qrc">:/icons/assests/VibraClubLogo.png</pixmap>
+              </property>
+              <property name="scaledContents">
+               <bool>true</bool>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignmentFlag::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="logoLabel">
+              <property name="styleSheet">
+               <string>font-size: 24px; font-weight: bold; color: #4DB6C3; margin-left: 10px;</string>
+              </property>
+              <property name="text">
+               <string>VIBRA CLUB</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="logoRightSpacer">
+              <property name="orientation">
+               <enum>Qt::Orientation::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <!-- Step 1: Email Input -->
+         <item>
+          <widget class="QStackedWidget" name="loginStackedWidget">
+           <property name="currentIndex">
+            <number>0</number>
+           </property>
+           <widget class="QWidget" name="emailPage">
+            <layout class="QVBoxLayout" name="emailPageLayout">
+             <item>
+              <widget class="QLabel" name="loginTitleLabel">
+               <property name="text">
+                <string>Sign In</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+               <property name="styleSheet">
+                <string>font-size: 28px; font-weight: bold; color: #2c3e50;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="emailInstructionLabel">
+               <property name="text">
+                <string>Enter your email to continue</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+               <property name="styleSheet">
+                <string>font-size: 16px; color: #7f8c8d; margin-bottom: 20px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="emailTopSpacer">
+               <property name="orientation">
+                <enum>Qt::Orientation::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>30</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="emailLineEdit">
+               <property name="placeholderText">
+                <string>📧 Enter your email address</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="emailErrorLabel">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+               <property name="styleSheet">
+                <string>color: #e74c3c; font-size: 13px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="emailMiddleSpacer">
+               <property name="orientation">
+                <enum>Qt::Orientation::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="nextButton">
+               <property name="text">
+                <string>Next</string>
+               </property>
+               <property name="icon">
+                <iconset resource="resources.qrc">
+                 <normaloff>:/icons/icons/next.png</normaloff>:/icons/icons/next.png</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="emailBottomSpacer">
+               <property name="orientation">
+                <enum>Qt::Orientation::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="passwordPage">
+            <layout class="QVBoxLayout" name="passwordPageLayout">
+             <item>
+              <widget class="QLabel" name="welcomeLabel">
+               <property name="text">
+                <string>Welcome Back</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="emailLabel">
+               <property name="text">
+                <string>user@example.com</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="subtitleLabel">
+               <property name="text">
+                <string>Application for club management</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="passwordTopSpacer">
+               <property name="orientation">
+                <enum>Qt::Orientation::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>30</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="passwordLineEdit">
+               <property name="echoMode">
+                <enum>QLineEdit::EchoMode::Password</enum>
+               </property>
+               <property name="placeholderText">
+                <string>🔒 Enter your password</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="passwordErrorLabel">
+               <property name="text">
+                <string/>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignCenter</set>
+               </property>
+               <property name="styleSheet">
+                <string>color: #e74c3c; font-size: 13px;</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="passwordMiddleSpacer">
+               <property name="orientation">
+                <enum>Qt::Orientation::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QFrame" name="passwordButtonFrame">
+               <layout class="QHBoxLayout" name="passwordButtonLayout">
+                <item>
+                 <widget class="QPushButton" name="backButton">
+                  <property name="text">
+                   <string>Back</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="resources.qrc">
+                    <normaloff>:/icons/icons/back.png</normaloff>:/icons/icons/back.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="loginButton">
+                  <property name="text">
+                   <string>Log In</string>
+                  </property>
+                  <property name="icon">
+                   <iconset resource="resources.qrc">
+                    <normaloff>:/icons/icons/login.png</normaloff>:/icons/icons/login.png</iconset>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </item>
+             <item>
+              <spacer name="passwordBottomSpacer">
+               <property name="orientation">
+                <enum>Qt::Orientation::Vertical</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>20</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+         </item>
+         <item>
+          <spacer name="bottomSpacer">
+           <property name="orientation">
+            <enum>Qt::Orientation::Vertical</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>20</width>
+             <height>40</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
        </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="usernameLineEdit">
-        <property name="placeholderText">
-         <string>Enter your username</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="passwordLabel">
-        <property name="text">
-         <string>Password:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="passwordLineEdit">
-        <property name="echoMode">
-         <enum>QLineEdit::EchoMode::Password</enum>
-        </property>
-        <property name="placeholderText">
-         <string>Enter your password</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="errorLabel">
-        <property name="text">
-         <string/>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignmentFlag::AlignCenter</set>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QPushButton" name="loginButton">
-        <property name="text">
-         <string>Login</string>
-        </property>
-        <property name="icon">
-         <iconset resource="resources.qrc">
-          <normaloff>:/icons/icons/add.png</normaloff>:/icons/icons/add.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="bottomSpacer">
-        <property name="orientation">
-         <enum>Qt::Orientation::Vertical</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
       </item>
      </layout>
     </widget>

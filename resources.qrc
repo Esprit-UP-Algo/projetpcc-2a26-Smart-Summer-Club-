@@ -11,5 +11,12 @@
        <file>icons/payment.png</file>
        <file>icons/search.png</file>
        <file>icons/statistic.png</file>
+       <file>assests/VibraClubLogo.png</file>
+       <file>assests/VibraClubBanner.png</file>
+       <file>icons/verified.png</file>
+       <file>icons/notverified.png</file>
+       <file>icons/back.png</file>
+       <file>icons/login.png</file>
+       <file>icons/next.png</file>
      </qresource>
    </RCC>

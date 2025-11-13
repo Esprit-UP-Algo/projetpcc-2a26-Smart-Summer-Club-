@@ -5,6 +5,7 @@
 #include <QMessageBox>
 
 QT_BEGIN_NAMESPACE
+class QLineEdit;
 namespace Ui {
 class Login;
 }
@@ -19,18 +20,23 @@ public:
     ~Login();
 
 private slots:
+    void onNextClicked();
     void onLoginClicked();
+    void onBackClicked();
 
 private:
     Ui::Login *ui;
     
     // Simple hardcoded credentials
-    const QString ADMIN_USERNAME = "admin";
+    const QString ADMIN_USERNAME = "adembg91@gmail.com";
     const QString ADMIN_PASSWORD = "admin";
     
     bool validateCredentials(const QString &username, const QString &password);
     void showError(const QString &message);
     void clearError();
+    void shakePasswordField();
+    void successAnimationEmail();
+    void successAnimationLogin();
 };
 
 #endif // LOGIN_H
