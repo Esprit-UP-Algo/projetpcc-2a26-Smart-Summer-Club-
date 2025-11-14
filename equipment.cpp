@@ -1,444 +1,796 @@
 #include "equipment.h"
 #include "ui_employeradmin.h"
-#include <QPixmap>
-#include <QFile>
-#include <QStringConverter>
-#include <QTextCursor>
-#include <QDateTime>
+#include <QRandomGenerator>
+#include <QMessageBox>
+#include <QFileDialog>
+#include <QTextStream>
+#include <QHeaderView>
+#include <QHBoxLayout>
+#include <QPushButton>
+#include <QBrush>
+#include <QColor>
+#include <QDebug>
 
 Equipment::Equipment(Ui::EmployerAdmin *ui, QWidget *parent)
-    : QObject(parent), ui(ui), parentWidget(parent), 
-      equipmentDetailsTable(nullptr), equipmentDetailsWidget(nullptr), 
-      isDetailsTableVisible(false)
+    : QObject(parent)
+    , ui(ui)
+    , parentWidget(parent)
+    , equipmentDetailsTable(nullptr)
+    , equipmentDetailsWidget(nullptr)
+    , sidePanelWidget(nullptr)
+    , isDetailsTableVisible(false)
+    , isSidePanelVisible(false)
+    , currentSelectedRow(-1)
 {
+    qDebug() << "=== Equipment Constructor Started ===";
+
+    setupEquipmentTable();
+    ui->equipmentTable->show();
+
+    // KEEP THESE WIDGETS HIDDEN AS THEY'RE NOT USED
+    setupEquipmentDetailsTable();  // This creates but hides the widget
+    createSidePanel();             // This creates but hides the widget
+
+    loadEquipmentTable();
+
+    // ENSURE MAIN TABLE IS VISIBLE
+    if (ui->equipmentTable) {
+        ui->equipmentTable->show();
+    }
+
+    connect(ui->equipmentTable, &QTableWidget::cellClicked,
+            this, &Equipment::onTableRowClicked);
+    connect(ui->equipmentConfirmButton, &QPushButton::clicked,
+            this, &Equipment::onConfirmAdd);
+    connect(ui->equipmentUpdateButton, &QPushButton::clicked,
+            this, &Equipment::onConfirmUpdate);
+    connect(ui->equipmentSearchButton, &QPushButton::clicked,
+            this, &Equipment::onSearchEquipment);
+    connect(ui->equipmentSortButton, &QPushButton::clicked,
+            this, &Equipment::onSortEquipment);
+    connect(ui->equipmentExportButton, &QPushButton::clicked,
+            this, &Equipment::onExportEquipment);
+
+    qDebug() << "=== Equipment Constructor Completed ===";
 }
 
 Equipment::~Equipment()
 {
-    if (equipmentDetailsWidget) {
-        delete equipmentDetailsWidget;
-    }
+    delete equipmentDetailsWidget;
+    delete sidePanelWidget;
 }
 
 void Equipment::setupEquipmentTable()
 {
+    qDebug() << "Setting up equipment table...";
+
     ui->equipmentTable->setColumnCount(6);
-    QStringList headers = {"Equipment ID", "Name", "Category", "Total Stock", "Status", "Actions"};
-    ui->equipmentTable->setHorizontalHeaderLabels(headers);
-    
-    // Set column widths
-    ui->equipmentTable->setColumnWidth(0, 100);  // Equipment ID
-    ui->equipmentTable->setColumnWidth(1, 150);  // Name
-    ui->equipmentTable->setColumnWidth(2, 120);  // Category
-    ui->equipmentTable->setColumnWidth(3, 80);   // Total Stock
-    ui->equipmentTable->setColumnWidth(4, 100);  // Status
-    ui->equipmentTable->setColumnWidth(5, 220);  // Actions
-    
-    // Make table read-only
-    ui->equipmentTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    QStringList hdr = {"Name","Type","Total Qty","Location","Status","Actions"};
+    ui->equipmentTable->setHorizontalHeaderLabels(hdr);
+    ui->equipmentTable->horizontalHeader()->setStretchLastSection(true);
+    ui->equipmentTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->equipmentTable->setSelectionMode(QAbstractItemView::SingleSelection);
+    ui->equipmentTable->setColumnWidth(0,200);
+    ui->equipmentTable->setColumnWidth(1,150);
+    ui->equipmentTable->setColumnWidth(2,120);
+    ui->equipmentTable->setColumnWidth(3,150);
+    ui->equipmentTable->setColumnWidth(4,200);
+
+    // Enable sorting
+    ui->equipmentTable->setSortingEnabled(true);
+
+    // ENSURE TABLE IS VISIBLE
+    ui->equipmentTable->show();
+
+    qDebug() << "Equipment table setup completed";
 }
 
-void Equipment::setupEquipmentDetailsTable()
+void Equipment::loadEquipmentTable()
 {
-    // Create the dynamic details widget and table
-    equipmentDetailsWidget = new QWidget();
-    equipmentDetailsWidget->setFixedSize(400, 400);
-    equipmentDetailsWidget->setVisible(false);
-    isDetailsTableVisible = false;
-    
-    // Set styling for the details widget
-    equipmentDetailsWidget->setStyleSheet(
-        "QWidget { "
-        "background-color: white; "
-        "border: 2px solid #16a5b3; "
-        "border-radius: 8px; "
-        "}"
-    );
-    
-    // Create the details table
-    equipmentDetailsTable = new QTableWidget();
-    equipmentDetailsTable->setColumnCount(2);
-    equipmentDetailsTable->setRowCount(6);
-    equipmentDetailsTable->setHorizontalHeaderLabels(QStringList() << "Property" << "Value");
-    equipmentDetailsTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    equipmentDetailsTable->verticalHeader()->setVisible(false);
-    equipmentDetailsTable->setAlternatingRowColors(true);
-    equipmentDetailsTable->setFixedSize(360, 300);
-    
-    // Set row height for better visibility
-    equipmentDetailsTable->verticalHeader()->setDefaultSectionSize(40);
-    
-    // Set column widths
-    equipmentDetailsTable->setColumnWidth(0, 170);
-    equipmentDetailsTable->setColumnWidth(1, 170);
-    
-    // Style the details table
-    equipmentDetailsTable->setStyleSheet(
-        "QTableWidget { "
-        "border: 1px solid #e0e4e7; "
-        "border-radius: 4px; "
-        "background-color: #f8fbfc; "
-        "font-size: 14px; "
-        "} "
-        "QHeaderView::section { "
-        "background-color: #16a5b3; "
-        "color: white; "
-        "padding: 10px; "
-        "border: none; "
-        "font-weight: bold; "
-        "font-size: 14px; "
-        "}"
-    );
-    
-    // Create layout for details widget
-    QVBoxLayout *detailsLayout = new QVBoxLayout(equipmentDetailsWidget);
-    
-    // Add title label
-    QLabel *titleLabel = new QLabel("Equipment Details");
-    titleLabel->setStyleSheet("font-weight: bold; font-size: 14px; color: #2c3e50; margin-bottom: 10px;");
-    titleLabel->setAlignment(Qt::AlignCenter);
-    
-    // Add close button
-    QPushButton *closeBtn = new QPushButton("×");
-    closeBtn->setFixedSize(25, 25);
-    closeBtn->setStyleSheet(
-        "QPushButton { "
-        "background-color: #c0392b; "
-        "color: white; "
-        "border: none; "
-        "border-radius: 12px; "
-        "font-size: 16px; "
-        "font-weight: bold; "
-        "} "
-        "QPushButton:hover { "
-        "background-color: #a93226; "
-        "}"
-    );
-    
-    connect(closeBtn, &QPushButton::clicked, this, &Equipment::hideEquipmentDetailsTable);
-    
-    // Create top layout with title and close button
-    QHBoxLayout *topLayout = new QHBoxLayout();
-    topLayout->addWidget(titleLabel);
-    topLayout->addStretch();
-    topLayout->addWidget(closeBtn);
-    
-    detailsLayout->addLayout(topLayout);
-    detailsLayout->addWidget(equipmentDetailsTable);
-    detailsLayout->setContentsMargins(10, 10, 10, 10);
-    
-    // Create a horizontal layout container for the equipmentListTab
-    if (ui->equipmentListTab) {
-        // Create a main horizontal layout for the tab content
-        QHBoxLayout *mainLayout = new QHBoxLayout();
-        mainLayout->setSpacing(15);
-        mainLayout->setContentsMargins(10, 10, 10, 10);
-        
-        // Create a container widget for the existing equipment table and controls
-        QWidget *tableContainer = new QWidget();
-        QVBoxLayout *tableLayout = new QVBoxLayout(tableContainer);
-        tableLayout->setContentsMargins(0, 0, 0, 0);
-        
-        // Add the table container and details widget to the main layout
-        mainLayout->addWidget(tableContainer, 3); // Table takes 75% of width
-        mainLayout->addWidget(equipmentDetailsWidget, 1); // Details take 25% of width
-        
-        // If the tab already has a layout, we need to work with it
-        QLayout *existingLayout = ui->equipmentListTab->layout();
-        if (!existingLayout) {
-            // If no layout exists, set our new layout
-            ui->equipmentListTab->setLayout(mainLayout);
+    qDebug() << "=== Starting loadEquipmentTable() ===";
+
+    ui->equipmentTable->blockSignals(true);
+    ui->equipmentTable->setRowCount(0);
+
+    QSqlQuery q;
+    bool querySuccess = q.exec(
+        "SELECT ID_EQ, NAME, CATEGORY, TOTAL_QUANTITY, AVAILABLE, IN_USE, "
+        "UNDER_MAINTENANCE, NVL(LOCATION,'Non spécifié') "
+        "FROM EQUIPEMENTS ORDER BY NAME"
+        );
+
+    qDebug() << "Query execution success:" << querySuccess;
+
+    if (!querySuccess) {
+        QSqlError error = q.lastError();
+        qDebug() << "Database error:" << error.text();
+        qDebug() << "Database error type:" << error.type();
+        qDebug() << "Database driver:" << q.lastError().driverText();
+
+        QMessageBox::critical(parentWidget, "DB Error", error.text());
+        ui->equipmentTable->blockSignals(false);
+        return;
+    }
+
+    qDebug() << "Query executed successfully";
+    qDebug() << "Number of rows returned:" << q.size();
+
+    int row = 0;
+    int recordCount = 0;
+
+    while (q.next())
+    {
+        recordCount++;
+        qDebug() << "Processing row" << row << "with data:";
+
+        int id = q.value(0).toInt();
+        QString name = q.value(1).toString();
+        QString cat = q.value(2).toString();
+        int total = q.value(3).toInt();
+        int avail = q.value(4).toInt();
+        int inUse = q.value(5).toInt();
+        int maint = q.value(6).toInt();
+        QString loc = q.value(7).toString();
+
+        qDebug() << "  ID:" << id << "Name:" << name << "Category:" << cat << "Total:" << total;
+
+        ui->equipmentTable->insertRow(row);
+
+        // Create items with dark text for light theme
+        QTableWidgetItem *itName = new QTableWidgetItem(name);
+        itName->setData(Qt::UserRole, id);
+        itName->setForeground(QBrush(QColor(44, 62, 80))); // Dark blue-gray from your theme
+        ui->equipmentTable->setItem(row, 0, itName);
+
+        QTableWidgetItem *itCat = new QTableWidgetItem(cat);
+        itCat->setForeground(QBrush(QColor(44, 62, 80)));
+        ui->equipmentTable->setItem(row, 1, itCat);
+
+        QTableWidgetItem *itTotal = new QTableWidgetItem(QString::number(total));
+        itTotal->setForeground(QBrush(QColor(44, 62, 80)));
+        ui->equipmentTable->setItem(row, 2, itTotal);
+
+        QTableWidgetItem *itLoc = new QTableWidgetItem(loc);
+        itLoc->setForeground(QBrush(QColor(44, 62, 80)));
+        ui->equipmentTable->setItem(row, 3, itLoc);
+
+        // Status items with proper colors for light theme
+        QString status = QString("%1 avail").arg(avail);
+        if (inUse) status += QString(", %1 in use").arg(inUse);
+        if (maint) status += QString(", %1 maint").arg(maint);
+        QTableWidgetItem *itStat = new QTableWidgetItem(status);
+
+        // Set colors that work well on light background
+        if (maint) {
+            itStat->setForeground(QBrush(QColor(220, 53, 69))); // Bootstrap danger red
+            itStat->setBackground(QBrush(QColor(255, 243, 245))); // Light red background
+        } else if (inUse) {
+            itStat->setForeground(QBrush(QColor(255, 153, 0))); // Orange
+            itStat->setBackground(QBrush(QColor(255, 248, 225))); // Light orange background
         } else {
-            // If layout exists, we'll add our details widget as a child of the tab
-            // and position it manually (fallback approach)
-            equipmentDetailsWidget->setParent(ui->equipmentListTab);
+            itStat->setForeground(QBrush(QColor(40, 167, 69))); // Bootstrap success green
+            itStat->setBackground(QBrush(QColor(235, 251, 238))); // Light green background
         }
+
+        // Ensure the item is selectable and has the right text alignment
+        itStat->setTextAlignment(Qt::AlignCenter);
+        ui->equipmentTable->setItem(row, 4, itStat);
+
+        // Create action buttons with better styling and debugging
+        QWidget *actionsWidget = new QWidget();
+        QHBoxLayout *actionsLayout = new QHBoxLayout(actionsWidget);
+        actionsLayout->setContentsMargins(5, 2, 5, 2);
+        actionsLayout->setSpacing(5);
+
+        QPushButton *editButton = new QPushButton("Edit");
+        QPushButton *deleteButton = new QPushButton("Delete");
+
+        editButton->setFixedSize(60, 25);
+        deleteButton->setFixedSize(60, 25);
+
+        // Style buttons to match your theme
+        editButton->setStyleSheet(
+            "QPushButton { "
+            "    background-color: rgba(22, 165, 179, 0.10); "
+            "    color: #2c3e50; "
+            "    border: 1.5px solid rgba(22, 165, 179, 0.65); "
+            "    border-radius: 10px; "
+            "    font-size: 11px; "
+            "    font-weight: 500; "
+            "}"
+            "QPushButton:hover { "
+            "    background-color: rgba(22, 165, 179, 0.18); "
+            "}"
+            "QPushButton:pressed { "
+            "    background-color: rgba(22, 165, 179, 0.26); "
+            "}"
+            );
+
+        deleteButton->setStyleSheet(
+            "QPushButton { "
+            "    background-color: rgba(220, 53, 69, 0.10); "
+            "    color: #2c3e50; "
+            "    border: 1.5px solid rgba(220, 53, 69, 0.65); "
+            "    border-radius: 10px; "
+            "    font-size: 11px; "
+            "    font-weight: 500; "
+            "}"
+            "QPushButton:hover { "
+            "    background-color: rgba(220, 53, 69, 0.18); "
+            "}"
+            "QPushButton:pressed { "
+            "    background-color: rgba(220, 53, 69, 0.26); "
+            "}"
+            );
+
+        actionsLayout->addWidget(editButton);
+        actionsLayout->addWidget(deleteButton);
+
+        // Remove any existing widget first
+        if (ui->equipmentTable->cellWidget(row, 5)) {
+            ui->equipmentTable->removeCellWidget(row, 5);
+        }
+        ui->equipmentTable->setCellWidget(row, 5, actionsWidget);
+
+        qDebug() << "Created action buttons for row" << row << "- Edit and Delete";
+
+        // EDIT BUTTON CONNECTION
+        connect(editButton, &QPushButton::clicked, this, [this, row, id, name]() {
+            qDebug() << "=== EDIT BUTTON CLICKED ===";
+            qDebug() << "Row:" << row << "ID:" << id << "Name:" << name;
+
+            currentSelectedRow = row;
+            QSqlQuery query;
+            query.prepare("SELECT NAME, CATEGORY, TOTAL_QUANTITY, STATUS, BRAND, MODEL, PURCHASE_PRICE, PURCHASE_DATE "
+                          "FROM EQUIPEMENTS WHERE ID_EQ = :id");
+            query.bindValue(":id", id);
+
+            if (query.exec() && query.next()) {
+                qDebug() << "Loading equipment data for editing...";
+
+                // Populate form fields
+                ui->equipmentNameLineEdit->setText(query.value(0).toString());
+                ui->equipmentCategoryComboBox->setCurrentText(query.value(1).toString());
+                ui->equipmentQuantitySpinBox->setValue(query.value(2).toInt());
+                ui->equipmentStatusComboBox->setCurrentText(query.value(3).toString());
+                ui->equipmentBrandLineEdit->setText(query.value(4).toString());
+                ui->equipmentModelLineEdit->setText(query.value(5).toString());
+
+                double price = query.value(6).toDouble();
+                ui->equipmentPriceLineEdit->setText(price > 0 ? QString::number(price, 'f', 2) : "");
+                ui->equipmentPurchaseDateEdit->setDate(query.value(7).toDate());
+
+                // Switch to update mode
+                ui->equipmentConfirmButton->setVisible(false);
+                ui->equipmentUpdateButton->setVisible(true);
+
+                // Switch to the form tab
+                ui->equipmentTabWidget->setCurrentIndex(1);
+
+                qDebug() << "Form populated successfully for editing";
+                QMessageBox::information(parentWidget, "Edit Mode",
+                                         QString("Now editing: %1\nMake your changes and click 'Update'").arg(name));
+            } else {
+                qDebug() << "Failed to load equipment data:" << query.lastError().text();
+                QMessageBox::critical(parentWidget, "Error",
+                                      "Failed to load equipment data: " + query.lastError().text());
+            }
+        });
+
+        // DELETE BUTTON CONNECTION
+        connect(deleteButton, &QPushButton::clicked, this, [this, id, name]() {
+            qDebug() << "=== DELETE BUTTON CLICKED ===";
+            qDebug() << "ID:" << id << "Name:" << name;
+
+            QMessageBox::StandardButton reply;
+            reply = QMessageBox::question(parentWidget,
+                                          "Confirm Deletion",
+                                          QString("Are you sure you want to delete:\n\n<b>%1</b>?\n\nThis action cannot be undone.").arg(name),
+                                          QMessageBox::Yes | QMessageBox::No,
+                                          QMessageBox::No); // Default to No for safety
+
+            if (reply == QMessageBox::Yes) {
+                qDebug() << "User confirmed deletion of:" << name;
+
+                QSqlQuery deleteQuery;
+                deleteQuery.prepare("DELETE FROM EQUIPEMENTS WHERE ID_EQ = :id");
+                deleteQuery.bindValue(":id", id);
+
+                if (deleteQuery.exec()) {
+                    qDebug() << "Successfully deleted equipment from database";
+                    QMessageBox::information(parentWidget, "Success",
+                                             QString("Equipment '%1' has been deleted successfully.").arg(name));
+                    loadEquipmentTable(); // Refresh the table
+                } else {
+                    qDebug() << "Failed to delete equipment:" << deleteQuery.lastError().text();
+                    QMessageBox::critical(parentWidget, "Error",
+                                          "Failed to delete equipment: " + deleteQuery.lastError().text());
+                }
+            } else {
+                qDebug() << "User cancelled deletion";
+            }
+        });
+
+        ++row;
     }
+
+    qDebug() << "Total records processed:" << recordCount;
+    qDebug() << "Final table row count:" << ui->equipmentTable->rowCount();
+
+    ui->equipmentTable->blockSignals(false);
+
+    // REMOVED: ui->equipmentTable->resizeColumnsToContents(); // This was causing columns to become narrower
+
+    qDebug() << "=== loadEquipmentTable() Completed ===";
 }
 
-void Equipment::onEquipmentDetails(const QStringList &equipmentData)
+void Equipment::onConfirmAdd()
 {
-    // Debug output
-    qDebug() << "Details button clicked, isDetailsTableVisible:" << isDetailsTableVisible;
-    qDebug() << "equipmentDetailsWidget exists:" << (equipmentDetailsWidget != nullptr);
-    qDebug() << "equipmentDetailsTable exists:" << (equipmentDetailsTable != nullptr);
-    
-    // Toggle the details table visibility
-    if (isDetailsTableVisible) {
-        hideEquipmentDetailsTable();
+    QString name = ui->equipmentNameLineEdit->text().trimmed();
+    QString cat = ui->equipmentCategoryComboBox->currentText();
+    int qty = ui->equipmentQuantitySpinBox->value();
+    QString status = ui->equipmentStatusComboBox->currentText();
+    QString brand = ui->equipmentBrandLineEdit->text().trimmed();
+    QString model = ui->equipmentModelLineEdit->text().trimmed();
+    QDate pDate = ui->equipmentPurchaseDateEdit->date();
+
+    // FIXED: Proper price conversion with NULL handling - using modern QMetaType
+    QString priceText = ui->equipmentPriceLineEdit->text().trimmed();
+    QVariant priceValue;
+    if (!priceText.isEmpty()) {
+        bool ok;
+        double price = priceText.toDouble(&ok);
+        if (ok && price > 0) {
+            priceValue = QVariant(price);
+        } else {
+            // Invalid price - set to NULL using modern method
+            priceValue = QVariant(QMetaType::fromType<double>());
+        }
     } else {
-        showEquipmentDetailsTable(equipmentData);
+        // Empty price - set to NULL using modern method
+        priceValue = QVariant(QMetaType::fromType<double>());
+    }
+
+    if (name.isEmpty() || brand.isEmpty()) {
+        QMessageBox::warning(parentWidget, "Input", "Name and Brand required");
+        return;
+    }
+
+    QString code;
+    do { code = "EQ-" + QString::number(QRandomGenerator::global()->bounded(100000)); }
+    while (codeExists(code));
+
+    QSqlQuery q;
+    q.prepare(
+        "INSERT INTO EQUIPEMENTS (EQUIP_CODE, NAME, CATEGORY, TOTAL_QUANTITY, AVAILABLE, "
+        "IN_USE, UNDER_MAINTENANCE, STATUS, BRAND, MODEL, PURCHASE_DATE, PURCHASE_PRICE, LOCATION) "
+        "VALUES (:code, :name, :cat, :qty, :avail, 0, 0, :status, :brand, :model, :date, :price, 'N/A')"
+        );
+    q.bindValue(":code", code);
+    q.bindValue(":name", name);
+    q.bindValue(":cat", cat);
+    q.bindValue(":qty", qty);
+    q.bindValue(":avail", qty);
+    q.bindValue(":status", status);
+    q.bindValue(":brand", brand);
+    q.bindValue(":model", model);
+    q.bindValue(":date", pDate);
+    q.bindValue(":price", priceValue);
+
+    qDebug() << "=== Starting onConfirmAdd() ===";
+    qDebug() << "Price value:" << priceValue;
+    qDebug() << "Price is null:" << priceValue.isNull();
+    qDebug() << "Price is valid:" << priceValue.isValid();
+
+    if (q.exec()) {
+        qDebug() << "Add successful";
+        clearForm();
+        loadEquipmentTable();  // DISPLAYS IMMEDIATELY
+        QMessageBox::information(parentWidget, "Success", "Added!");
+    } else {
+        qDebug() << "Add failed:" << q.lastError().text();
+        QMessageBox::critical(parentWidget, "Error", "Failed to add equipment: " + q.lastError().text());
     }
 }
 
-void Equipment::onEquipmentManage(const QStringList &equipmentData)
+void Equipment::onConfirmUpdate()
 {
-    // Extract equipment data from the passed list
-    QString equipmentId = equipmentData[0];
-    QString name = equipmentData[1];
-    QString category = equipmentData[2];
-    
-    // Switch to Add Equipment tab for editing
-    ui->equipmentTabWidget->setCurrentIndex(1); // Switch to Add tab (index 1)
-    
-    // Populate the form fields with selected equipment data
-    ui->equipmentNameLineEdit->setText(name);
-    
-    // Set category combo box
-    int categoryIndex = ui->equipmentCategoryComboBox->findText(category);
-    if (categoryIndex >= 0) {
-        ui->equipmentCategoryComboBox->setCurrentIndex(categoryIndex);
+    if (currentSelectedRow < 0) {
+        QMessageBox::warning(parentWidget, "Select", "Select a row first");
+        return;
     }
-    
-    QMessageBox::information(parentWidget, "Edit Equipment", 
-        QString("Editing equipment: %1\nID: %2\nCategory: %3").arg(name, equipmentId, category));
+    int id = ui->equipmentTable->item(currentSelectedRow, 0)->data(Qt::UserRole).toInt();
+
+    QString name = ui->equipmentNameLineEdit->text().trimmed();
+    QString cat = ui->equipmentCategoryComboBox->currentText();
+    int qty = ui->equipmentQuantitySpinBox->value();
+    QString status = ui->equipmentStatusComboBox->currentText();
+    QString brand = ui->equipmentBrandLineEdit->text().trimmed();
+    QString model = ui->equipmentModelLineEdit->text().trimmed();
+
+    // FIXED: Proper price conversion with NULL handling - using modern QMetaType
+    QString priceText = ui->equipmentPriceLineEdit->text().trimmed();
+    QVariant priceValue;
+    if (!priceText.isEmpty()) {
+        bool ok;
+        double price = priceText.toDouble(&ok);
+        if (ok && price > 0) {
+            priceValue = QVariant(price);
+        } else {
+            // Invalid price - set to NULL using modern method
+            priceValue = QVariant(QMetaType::fromType<double>());
+        }
+    } else {
+        // Empty price - set to NULL using modern method
+        priceValue = QVariant(QMetaType::fromType<double>());
+    }
+
+    QSqlQuery q;
+    q.prepare("UPDATE EQUIPEMENTS SET NAME=:n, CATEGORY=:c, TOTAL_QUANTITY=:q, STATUS=:s, BRAND=:b, MODEL=:m, PURCHASE_PRICE=:p WHERE ID_EQ=:id");
+    q.bindValue(":n", name);
+    q.bindValue(":c", cat);
+    q.bindValue(":q", qty);
+    q.bindValue(":s", status);
+    q.bindValue(":b", brand);
+    q.bindValue(":m", model);
+    q.bindValue(":p", priceValue);
+    q.bindValue(":id", id);
+
+    qDebug() << "=== Starting onConfirmUpdate() ===";
+    qDebug() << "Updating equipment ID:" << id;
+    qDebug() << "Price value:" << priceValue;
+    qDebug() << "Price is null:" << priceValue.isNull();
+    qDebug() << "Price is valid:" << priceValue.isValid();
+
+    if (q.exec()) {
+        qDebug() << "Update successful";
+        loadEquipmentTable();
+        clearForm();
+        QMessageBox::information(parentWidget, "Success", "Updated!");
+    } else {
+        qDebug() << "Update failed:" << q.lastError().text();
+        QMessageBox::critical(parentWidget, "Error", "Failed to update equipment: " + q.lastError().text());
+    }
 }
 
-void Equipment::onEquipmentDelete(const QStringList &equipmentData, int row)
+void Equipment::onSearchEquipment()
 {
-    // Extract equipment data from the passed list
-    QString equipmentId = equipmentData[0];
-    QString name = equipmentData[1];
-    QString category = equipmentData[2];
-    
-    // Show confirmation dialog
-    QMessageBox::StandardButton reply = QMessageBox::question(parentWidget, 
-        "Delete Equipment", 
-        QString("Are you sure you want to delete equipment:\n%1 - %2 (ID: %3)?").arg(category, name, equipmentId),
-        QMessageBox::Yes | QMessageBox::No);
-    
-    if (reply == QMessageBox::Yes) {
-        // Remove the row from the table
-        ui->equipmentTable->removeRow(row);
-        
-        QMessageBox::information(parentWidget, "Equipment Deleted", 
-            QString("Equipment %1 has been successfully deleted.").arg(name));
+    qDebug() << "=== Starting onSearchEquipment() ===";
+
+    QString txt = ui->equipmentSearchLineEdit->text().trimmed();
+    qDebug() << "Search text:" << txt;
+
+    if (txt.isEmpty()) {
+        qDebug() << "Empty search text, loading all equipment";
+        loadEquipmentTable();
+        return;
     }
+
+    QSqlQuery q;
+    q.prepare("SELECT ID_EQ, NAME, CATEGORY, TOTAL_QUANTITY, AVAILABLE, IN_USE, UNDER_MAINTENANCE, NVL(LOCATION,'Non spécifié') "
+              "FROM EQUIPEMENTS WHERE UPPER(NAME) LIKE UPPER(:t) OR UPPER(CATEGORY) LIKE UPPER(:t) "
+              "OR UPPER(BRAND) LIKE UPPER(:t) OR UPPER(MODEL) LIKE UPPER(:t) ORDER BY NAME");
+    q.bindValue(":t", "%" + txt + "%");
+
+    if (!q.exec()) {
+        QMessageBox::critical(parentWidget, "Error", q.lastError().text());
+        return;
+    }
+
+    ui->equipmentTable->blockSignals(true);
+    ui->equipmentTable->setSortingEnabled(false); // Disable sorting during update
+    ui->equipmentTable->setRowCount(0);
+
+    int row = 0;
+    int foundCount = 0;
+
+    while (q.next()) {
+        foundCount++;
+        int id = q.value(0).toInt();
+        QString name = q.value(1).toString();
+        QString cat = q.value(2).toString();
+        int total = q.value(3).toInt();
+        int avail = q.value(4).toInt();
+        int inUse = q.value(5).toInt();
+        int maint = q.value(6).toInt();
+        QString loc = q.value(7).toString();
+
+        ui->equipmentTable->insertRow(row);
+
+        // Create items with dark text for light theme
+        QTableWidgetItem *itName = new QTableWidgetItem(name);
+        itName->setData(Qt::UserRole, id);
+        itName->setForeground(QBrush(QColor(44, 62, 80))); // Dark blue-gray from your theme
+        ui->equipmentTable->setItem(row, 0, itName);
+
+        QTableWidgetItem *itCat = new QTableWidgetItem(cat);
+        itCat->setForeground(QBrush(QColor(44, 62, 80)));
+        ui->equipmentTable->setItem(row, 1, itCat);
+
+        QTableWidgetItem *itTotal = new QTableWidgetItem(QString::number(total));
+        itTotal->setForeground(QBrush(QColor(44, 62, 80)));
+        ui->equipmentTable->setItem(row, 2, itTotal);
+
+        QTableWidgetItem *itLoc = new QTableWidgetItem(loc);
+        itLoc->setForeground(QBrush(QColor(44, 62, 80)));
+        ui->equipmentTable->setItem(row, 3, itLoc);
+
+        // Status items with proper colors for light theme
+        QString status = QString("%1 avail").arg(avail);
+        if (inUse) status += QString(", %1 in use").arg(inUse);
+        if (maint) status += QString(", %1 maint").arg(maint);
+        QTableWidgetItem *itStat = new QTableWidgetItem(status);
+
+        // Set colors that work well on light background
+        if (maint) {
+            itStat->setForeground(QBrush(QColor(220, 53, 69))); // Bootstrap danger red
+            itStat->setBackground(QBrush(QColor(255, 243, 245))); // Light red background
+        } else if (inUse) {
+            itStat->setForeground(QBrush(QColor(255, 153, 0))); // Orange
+            itStat->setBackground(QBrush(QColor(255, 248, 225))); // Light orange background
+        } else {
+            itStat->setForeground(QBrush(QColor(40, 167, 69))); // Bootstrap success green
+            itStat->setBackground(QBrush(QColor(235, 251, 238))); // Light green background
+        }
+
+        // Ensure the item is selectable and has the right text alignment
+        itStat->setTextAlignment(Qt::AlignCenter);
+        ui->equipmentTable->setItem(row, 4, itStat);
+
+        // Create action buttons for search results
+        QWidget *actionsWidget = new QWidget();
+        QHBoxLayout *actionsLayout = new QHBoxLayout(actionsWidget);
+        actionsLayout->setContentsMargins(5, 2, 5, 2);
+        actionsLayout->setSpacing(5);
+
+        QPushButton *editButton = new QPushButton("Edit");
+        QPushButton *deleteButton = new QPushButton("Delete");
+
+        editButton->setFixedSize(60, 25);
+        deleteButton->setFixedSize(60, 25);
+
+        // Style buttons to match your theme
+        editButton->setStyleSheet(
+            "QPushButton { "
+            "    background-color: rgba(22, 165, 179, 0.10); "
+            "    color: #2c3e50; "
+            "    border: 1.5px solid rgba(22, 165, 179, 0.65); "
+            "    border-radius: 10px; "
+            "    font-size: 11px; "
+            "    font-weight: 500; "
+            "}"
+            "QPushButton:hover { "
+            "    background-color: rgba(22, 165, 179, 0.18); "
+            "}"
+            "QPushButton:pressed { "
+            "    background-color: rgba(22, 165, 179, 0.26); "
+            "}"
+            );
+
+        deleteButton->setStyleSheet(
+            "QPushButton { "
+            "    background-color: rgba(220, 53, 69, 0.10); "
+            "    color: #2c3e50; "
+            "    border: 1.5px solid rgba(220, 53, 69, 0.65); "
+            "    border-radius: 10px; "
+            "    font-size: 11px; "
+            "    font-weight: 500; "
+            "}"
+            "QPushButton:hover { "
+            "    background-color: rgba(220, 53, 69, 0.18); "
+            "}"
+            "QPushButton:pressed { "
+            "    background-color: rgba(220, 53, 69, 0.26); "
+            "}"
+            );
+
+        actionsLayout->addWidget(editButton);
+        actionsLayout->addWidget(deleteButton);
+        ui->equipmentTable->setCellWidget(row, 5, actionsWidget);
+
+        connect(editButton, &QPushButton::clicked, this, [this, row, id, name]() {
+            qDebug() << "=== EDIT BUTTON CLICKED (from search) ===";
+            qDebug() << "Row:" << row << "ID:" << id << "Name:" << name;
+
+            currentSelectedRow = row;
+            QSqlQuery query;
+            query.prepare("SELECT NAME, CATEGORY, TOTAL_QUANTITY, STATUS, BRAND, MODEL, PURCHASE_PRICE, PURCHASE_DATE "
+                          "FROM EQUIPEMENTS WHERE ID_EQ = :id");
+            query.bindValue(":id", id);
+
+            if (query.exec() && query.next()) {
+                qDebug() << "Loading equipment data for editing...";
+
+                // Populate form fields
+                ui->equipmentNameLineEdit->setText(query.value(0).toString());
+                ui->equipmentCategoryComboBox->setCurrentText(query.value(1).toString());
+                ui->equipmentQuantitySpinBox->setValue(query.value(2).toInt());
+                ui->equipmentStatusComboBox->setCurrentText(query.value(3).toString());
+                ui->equipmentBrandLineEdit->setText(query.value(4).toString());
+                ui->equipmentModelLineEdit->setText(query.value(5).toString());
+
+                double price = query.value(6).toDouble();
+                ui->equipmentPriceLineEdit->setText(price > 0 ? QString::number(price, 'f', 2) : "");
+                ui->equipmentPurchaseDateEdit->setDate(query.value(7).toDate());
+
+                // Switch to update mode
+                ui->equipmentConfirmButton->setVisible(false);
+                ui->equipmentUpdateButton->setVisible(true);
+
+                // Switch to the form tab
+                ui->equipmentTabWidget->setCurrentIndex(1);
+
+                qDebug() << "Form populated successfully for editing";
+                QMessageBox::information(parentWidget, "Edit Mode",
+                                         QString("Now editing: %1\nMake your changes and click 'Update'").arg(name));
+            } else {
+                qDebug() << "Failed to load equipment data:" << query.lastError().text();
+                QMessageBox::critical(parentWidget, "Error",
+                                      "Failed to load equipment data: " + query.lastError().text());
+            }
+        });
+
+        connect(deleteButton, &QPushButton::clicked, this, [this, id, name]() {
+            qDebug() << "=== DELETE BUTTON CLICKED (from search) ===";
+            qDebug() << "ID:" << id << "Name:" << name;
+
+            QMessageBox::StandardButton reply;
+            reply = QMessageBox::question(parentWidget,
+                                          "Confirm Deletion",
+                                          QString("Are you sure you want to delete:\n\n<b>%1</b>?\n\nThis action cannot be undone.").arg(name),
+                                          QMessageBox::Yes | QMessageBox::No,
+                                          QMessageBox::No);
+
+            if (reply == QMessageBox::Yes) {
+                qDebug() << "User confirmed deletion of:" << name;
+
+                QSqlQuery deleteQuery;
+                deleteQuery.prepare("DELETE FROM EQUIPEMENTS WHERE ID_EQ = :id");
+                deleteQuery.bindValue(":id", id);
+
+                if (deleteQuery.exec()) {
+                    qDebug() << "Successfully deleted equipment from database";
+                    QMessageBox::information(parentWidget, "Success",
+                                             QString("Equipment '%1' has been deleted successfully.").arg(name));
+                    loadEquipmentTable(); // Refresh the table
+                } else {
+                    qDebug() << "Failed to delete equipment:" << deleteQuery.lastError().text();
+                    QMessageBox::critical(parentWidget, "Error",
+                                          "Failed to delete equipment: " + deleteQuery.lastError().text());
+                }
+            } else {
+                qDebug() << "User cancelled deletion";
+            }
+        });
+
+        ++row;
+    }
+
+    qDebug() << "Search found" << foundCount << "records";
+
+    ui->equipmentTable->setSortingEnabled(true); // Re-enable sorting
+    ui->equipmentTable->blockSignals(false);
+
+    // REMOVED: ui->equipmentTable->resizeColumnsToContents(); // This was causing columns to become narrower
+
+    qDebug() << "=== onSearchEquipment() Completed ===";
 }
 
 void Equipment::onSortEquipment()
 {
-    // Sort by equipment name (index 1)
-    sortTableByName(ui->equipmentTable, 1);
+    qDebug() << "=== Starting onSortEquipment() ===";
+
+    // Toggle between ascending and descending
+    static bool ascending = true;
+
+    if (ascending) {
+        ui->equipmentTable->sortByColumn(0, Qt::AscendingOrder);
+        qDebug() << "Sorting by Name (Ascending)";
+    } else {
+        ui->equipmentTable->sortByColumn(0, Qt::DescendingOrder);
+        qDebug() << "Sorting by Name (Descending)";
+    }
+
+    ascending = !ascending;
+
+    qDebug() << "=== onSortEquipment() Completed ===";
 }
 
 void Equipment::onExportEquipment()
 {
-    exportTableToPdf(ui->equipmentTable, "equipment.pdf", tr("Equipment Inventory Report"));
-}
+    qDebug() << "=== Starting onExportEquipment() ===";
 
-void Equipment::showEquipmentDetailsTable(const QStringList &equipmentData)
-{
-    qDebug() << "showEquipmentDetailsTable called";
-    if (!equipmentDetailsTable || !equipmentDetailsWidget) {
-        qDebug() << "equipmentDetailsTable or equipmentDetailsWidget is null!";
+    QString path = QFileDialog::getSaveFileName(parentWidget, "Export CSV", "equipment.csv", "CSV (*.csv)");
+    if (path.isEmpty()) {
+        qDebug() << "Export cancelled by user";
         return;
     }
-    
-    // Extract data from the equipment data list
-    QString equipmentId = equipmentData[0];
-    QString name = equipmentData[1];
-    QString category = equipmentData[2];
-    QString totalStock = equipmentData[3];
-    QString available = equipmentData[4];
-    QString inUse = equipmentData[5];
-    QString maintenance = equipmentData[6];
-    
-    // Calculate percentages
-    double totalStockNum = totalStock.toDouble();
-    double usageRate = totalStockNum > 0 ? (inUse.toDouble() / totalStockNum) * 100 : 0;
-    double availableRate = totalStockNum > 0 ? (available.toDouble() / totalStockNum) * 100 : 0;
-    
-    // Populate the details table
-    equipmentDetailsTable->setItem(0, 0, new QTableWidgetItem("Equipment ID"));
-    equipmentDetailsTable->setItem(0, 1, new QTableWidgetItem(equipmentId));
-    
-    equipmentDetailsTable->setItem(1, 0, new QTableWidgetItem("Available"));
-    equipmentDetailsTable->setItem(1, 1, new QTableWidgetItem(available + " units"));
-    
-    equipmentDetailsTable->setItem(2, 0, new QTableWidgetItem("In Use"));
-    equipmentDetailsTable->setItem(2, 1, new QTableWidgetItem(inUse + " units"));
-    
-    equipmentDetailsTable->setItem(3, 0, new QTableWidgetItem("Under Maintenance"));
-    equipmentDetailsTable->setItem(3, 1, new QTableWidgetItem(maintenance + " units"));
-    
-    equipmentDetailsTable->setItem(4, 0, new QTableWidgetItem("Usage Rate"));
-    equipmentDetailsTable->setItem(4, 1, new QTableWidgetItem(QString::number(usageRate, 'f', 1) + "%"));
-    
-    equipmentDetailsTable->setItem(5, 0, new QTableWidgetItem("Availability Rate"));
-    equipmentDetailsTable->setItem(5, 1, new QTableWidgetItem(QString::number(availableRate, 'f', 1) + "%"));
-    
-    // Position the details widget to the right side of the tab
-    if (ui->equipmentListTab && ui->equipmentTable) {
-        // Get the equipment table position and size
-        QRect tableGeometry = ui->equipmentTable->geometry();
-        QSize tabSize = ui->equipmentListTab->size();
-        
-        // Position the details widget to the right of the equipment table
-        int x = tableGeometry.right() + 20; // 20 pixels margin from the table
-        int y = tableGeometry.top(); // Align with the top of the table
-        
-        // Make sure it fits within the tab bounds
-        if (x + equipmentDetailsWidget->width() > tabSize.width()) {
-            x = tabSize.width() - equipmentDetailsWidget->width() - 10;
-        }
-        
-        // Ensure it doesn't go off screen
-        if (x < tableGeometry.right() + 10) {
-            x = tableGeometry.right() + 10;
-        }
-        
-        equipmentDetailsWidget->move(x, y);
+
+    QFile f(path);
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qDebug() << "Failed to open file for writing:" << path;
+        QMessageBox::critical(parentWidget, "Error", "Cannot open file for writing!");
+        return;
     }
-    
-    // Show the details widget
-    qDebug() << "Setting widget visible at position:" << equipmentDetailsWidget->pos();
-    qDebug() << "Widget size:" << equipmentDetailsWidget->size();
-    equipmentDetailsWidget->setVisible(true);
-    equipmentDetailsWidget->raise(); // Bring to front
-    isDetailsTableVisible = true;
-    qDebug() << "Widget visibility set to:" << equipmentDetailsWidget->isVisible();
+
+    QTextStream out(&f);
+
+    // Write headers
+    for (int c = 0; c < 5; ++c) {
+        out << "\"" << ui->equipmentTable->horizontalHeaderItem(c)->text() << "\"";
+        if (c < 4) out << ",";
+    }
+    out << "\n";
+
+    // Write data
+    int rowCount = ui->equipmentTable->rowCount();
+    qDebug() << "Exporting" << rowCount << "rows to CSV";
+
+    for (int r = 0; r < rowCount; ++r) {
+        for (int c = 0; c < 5; ++c) {
+            QTableWidgetItem *it = ui->equipmentTable->item(r, c);
+            out << "\"" << (it ? it->text().replace("\"", "\"\"") : "") << "\"";
+            out << (c < 4 ? "," : "\n");
+        }
+    }
+
+    f.close();
+
+    qDebug() << "Export completed successfully to:" << path;
+    QMessageBox::information(parentWidget, "Success", QString("Exported %1 records to:\n%2").arg(rowCount).arg(path));
+
+    qDebug() << "=== onExportEquipment() Completed ===";
 }
 
-void Equipment::hideEquipmentDetailsTable()
+void Equipment::setupEquipmentDetailsTable()
 {
-    if (equipmentDetailsWidget) {
-        equipmentDetailsWidget->setVisible(false);
-        isDetailsTableVisible = false;
-    }
+    equipmentDetailsWidget = new QWidget(parentWidget);
+    equipmentDetailsWidget->hide();  // KEEP HIDDEN - NOT USED
+    QVBoxLayout *lay = new QVBoxLayout(equipmentDetailsWidget);
+    lay->addWidget(new QLabel("Equipment Details"));
+    equipmentDetailsTable = new QTableWidget;
+    equipmentDetailsTable->setColumnCount(4);
+    equipmentDetailsTable->setHorizontalHeaderLabels({"Name","Qty","Cond","Loc"});
+    equipmentDetailsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    lay->addWidget(equipmentDetailsTable);
+    QPushButton *close = new QPushButton("Close");
+    connect(close, &QPushButton::clicked, this, &Equipment::hideEquipmentDetailsTable);
+    lay->addWidget(close);
+    ui->equipmentPageLayout->addWidget(equipmentDetailsWidget);
 }
 
-// Generic sort by Name column (default index 1)
-void Equipment::sortTableByName(QTableWidget* table, int nameColumnIndex)
+void Equipment::createSidePanel()
 {
-    if (!table) return;
-
-    // Toggle sorting order: if already sorted ascending, switch to descending
-    static Qt::SortOrder lastOrder = Qt::AscendingOrder;
-    lastOrder = (lastOrder == Qt::AscendingOrder) ? Qt::DescendingOrder : Qt::AscendingOrder;
-
-    table->sortItems(nameColumnIndex, lastOrder);
+    sidePanelWidget = new QWidget(parentWidget);
+    sidePanelWidget->hide();  // KEEP HIDDEN - NOT USED
+    ui->equipmentPageLayout->addWidget(sidePanelWidget);
 }
 
-// Export a QTableWidget to CSV (visible rows only, excluding action button cells)
-bool Equipment::exportTableToCsv(QTableWidget* table, const QString& defaultName)
-{
-    if (!table) return false;
-
-    QString filter = "CSV Files (*.csv)";
-    QString fileName = QFileDialog::getSaveFileName(parentWidget, tr("Export to CSV"), defaultName, filter);
-    if (fileName.isEmpty()) return false;
-
-    QFile file(fileName);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QMessageBox::warning(parentWidget, tr("Export Failed"), tr("Could not open file for writing."));
-        return false;
-    }
-
-    QTextStream out(&file);
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-    out.setEncoding(QStringConverter::Utf8);
-#else
-    out.setCodec("UTF-8");
-#endif
-
-    // Write header (exclude last column if it is Actions)
-    int columns = table->columnCount();
-    int headerColumns = columns;
-    if (columns > 0) {
-        QTableWidgetItem* lastHeader = table->horizontalHeaderItem(columns - 1);
-        if (lastHeader && lastHeader->text().trimmed().compare("Actions", Qt::CaseInsensitive) == 0) {
-            headerColumns = columns - 1;
-        }
-    }
-    for (int c = 0; c < headerColumns; ++c) {
-        QString h = table->horizontalHeaderItem(c) ? table->horizontalHeaderItem(c)->text() : QString();
-        // CSV escaping: double any embedded quotes
-        h.replace("\"", "\"\"");
-        out << '"' << h << '"';
-        if (c < headerColumns - 1) out << ',';
-    }
-    out << '\n';
-
-    // Write data rows (visible only)
-    for (int r = 0; r < table->rowCount(); ++r) {
-        if (table->isRowHidden(r)) continue; // skip filtered-out rows
-        for (int c = 0; c < headerColumns; ++c) {
-            QTableWidgetItem* item = table->item(r, c);
-            QString val = item ? item->text() : QString();
-            // CSV escaping: double any embedded quotes
-            val.replace("\"", "\"\"");
-            out << '"' << val << '"';
-            if (c < headerColumns - 1) out << ',';
-        }
-        out << '\n';
-    }
-
-    file.close();
-    QMessageBox::information(parentWidget, tr("Export Successful"), tr("Data exported to CSV successfully."));
-    return true;
+void Equipment::onTableRowClicked(int row, int) {
+    currentSelectedRow = row;
+    qDebug() << "Row clicked:" << row;
 }
 
-bool Equipment::exportTableToPdf(QTableWidget* table, const QString& defaultName, const QString& title)
+void Equipment::hideEquipmentDetailsTable() {
+    equipmentDetailsWidget->hide();
+}
+
+void Equipment::clearForm()
 {
-    if (!table) return false;
+    ui->equipmentNameLineEdit->clear();
+    ui->equipmentBrandLineEdit->clear();
+    ui->equipmentModelLineEdit->clear();
+    ui->equipmentPriceLineEdit->clear();
+    ui->equipmentQuantitySpinBox->setValue(1);
+    ui->equipmentConfirmButton->setVisible(true);
+    ui->equipmentUpdateButton->setVisible(false);
+    currentSelectedRow = -1;
+}
 
-    QString filter = "PDF Files (*.pdf)";
-    QString fileName = QFileDialog::getSaveFileName(parentWidget, tr("Export to PDF"), defaultName, filter);
-    if (fileName.isEmpty()) return false;
-
-    QPrinter printer(QPrinter::PrinterResolution);
-    printer.setOutputFormat(QPrinter::PdfFormat);
-    printer.setOutputFileName(fileName);
-    printer.setPageMargins(QMarginsF(15, 15, 15, 15), QPageLayout::Millimeter);
-
-    QTextDocument document;
-    QString html = "<html><head><style>";
-    html += "table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; }";
-    html += "th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }";
-    html += "th { background-color: #f2f2f2; font-weight: bold; }";
-    html += "tr:nth-child(even) { background-color: #f9f9f9; }";
-    html += ".title { font-size: 18px; font-weight: bold; text-align: center; margin-bottom: 10px; }";
-    html += ".subtitle { font-size: 12px; text-align: center; margin-bottom: 20px; color: #666; }";
-    html += "</style></head><body>";
-    
-    html += QString("<div class='title'>%1</div>").arg(title.toHtmlEscaped());
-    html += "<div class='subtitle'>Generated by VIBRA CLUB • " + QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm") + "</div>";
-    
-    html += "<table>";
-
-    // Add headers (exclude Actions column)
-    html += "<tr>";
-    int headerColumns = table->columnCount();
-    if (headerColumns > 0) {
-        QTableWidgetItem* lastHeader = table->horizontalHeaderItem(headerColumns - 1);
-        if (lastHeader && lastHeader->text().trimmed().compare("Actions", Qt::CaseInsensitive) == 0) {
-            headerColumns = headerColumns - 1;
-        }
-    }
-    for (int c = 0; c < headerColumns; ++c) {
-        QString header = table->horizontalHeaderItem(c) ? table->horizontalHeaderItem(c)->text() : QString();
-        html += QString("<th>%1</th>").arg(header.toHtmlEscaped());
-    }
-    html += "</tr>";
-
-    // Add data rows (visible only)
-    for (int r = 0; r < table->rowCount(); ++r) {
-        if (table->isRowHidden(r)) continue;
-        html += "<tr>";
-        for (int c = 0; c < headerColumns; ++c) {
-            QTableWidgetItem* item = table->item(r, c);
-            QString cellText = item ? item->text() : QString();
-            html += QString("<td>%1</td>").arg(cellText.toHtmlEscaped());
-        }
-        html += "</tr>";
-    }
-    
-    html += "</table></body></html>";
-    
-    document.setHtml(html);
-    document.print(&printer);
-    
-    QMessageBox::information(parentWidget, tr("Export Successful"), tr("Data exported to PDF successfully."));
-    return true;
+bool Equipment::codeExists(const QString &code)
+{
+    QSqlQuery q;
+    q.prepare("SELECT 1 FROM EQUIPEMENTS WHERE EQUIP_CODE=:c");
+    q.bindValue(":c", code);
+    return q.exec() && q.next();
 }

@@ -2,28 +2,20 @@
 #define EQUIPMENT_H
 
 #include <QObject>
-#include <QTableWidget>
-#include <QTableWidgetItem>
-#include <QFileDialog>
-#include <QMessageBox>
-#include <QDate>
-#include <QFileInfo>
-#include <QIcon>
-#include <QDebug>
-#include <QTextStream>
-#include <QPrinter>
-#include <QTextDocument>
 #include <QWidget>
-#include <QVBoxLayout>
+#include <QTableWidget>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QMessageBox>
+#include <QFileDialog>
+#include <QTextStream>
+#include <QHeaderView>
 #include <QHBoxLayout>
-#include <QLabel>
 #include <QPushButton>
-#include <QLineEdit>
-#include <QComboBox>
-#include <QSpinBox>
-#include <QDateEdit>
+#include <QBrush>
+#include <QColor>
+#include <QRandomGenerator>
 
-// Forward declaration
 namespace Ui {
 class EmployerAdmin;
 }
@@ -36,34 +28,35 @@ public:
     explicit Equipment(Ui::EmployerAdmin *ui, QWidget *parent = nullptr);
     ~Equipment();
 
-    // Setup functions
     void setupEquipmentTable();
-    void setupEquipmentDetailsTable();
-    
-    // Equipment management functions
-    void onEquipmentDetails(const QStringList &equipmentData);
-    void onEquipmentManage(const QStringList &equipmentData);
-    void onEquipmentDelete(const QStringList &equipmentData, int row);
-    void onSortEquipment();
-    void onExportEquipment();
-    
-    // Details table functions
-    void showEquipmentDetailsTable(const QStringList &equipmentData);
-    void hideEquipmentDetailsTable();
+    void loadEquipmentTable();
+    void clearForm();
 
 private:
     Ui::EmployerAdmin *ui;
     QWidget *parentWidget;
-    
-    // Dynamic equipment details table
     QTableWidget *equipmentDetailsTable;
     QWidget *equipmentDetailsWidget;
+    QWidget *sidePanelWidget;
     bool isDetailsTableVisible;
-    
-    // Helper functions
-    void sortTableByName(QTableWidget* table, int nameColumnIndex = 1);
-    bool exportTableToCsv(QTableWidget* table, const QString& defaultName);
-    bool exportTableToPdf(QTableWidget* table, const QString& defaultName, const QString& title);
+    bool isSidePanelVisible;
+    int currentSelectedRow;
+
+    void setupEquipmentDetailsTable();
+    void createSidePanel();
+    bool codeExists(const QString &code);
+
+public slots:
+    void onConfirmAdd();
+    void onConfirmUpdate();
+    void onSearchEquipment();
+    void onSortEquipment();
+    void onExportEquipment();
+    void onTableRowClicked(int row, int column);
+    void hideEquipmentDetailsTable();
+
+    // REMOVED: onEditEquipment(), onDeleteEquipment()
+    // THEY ARE NOW LAMBDA-ONLY
 };
 
 #endif // EQUIPMENT_H
