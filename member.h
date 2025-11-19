@@ -17,6 +17,10 @@
 #include <QAbstractItemView>
 #include <QHeaderView>
 #include <QDebug>
+#include <QPixmap>
+#include <QLabel>
+#include <QEvent>
+#include <QCursor>
 
 // Forward declaration
 // ============================================================================
@@ -133,6 +137,35 @@ private:
     void loadMemberToForm(Member* member);
     bool exportTableToPdf(QTableWidget* table, const QString& defaultName, const QString& title);
     QByteArray loadPhotoAsBlob(const QString& path);
+};
+
+// Standalone event filter for photo hover preview
+class MemberPhotoHoverFilter : public QObject {
+    Q_OBJECT
+public:
+    MemberPhotoHoverFilter(const QPixmap& pixmap, QWidget* parent = nullptr)
+        : QObject(parent), m_pixmap(pixmap), m_popup(nullptr) {}
+protected:
+    bool eventFilter(QObject* obj, QEvent* event) override {
+        if (event->type() == QEvent::Enter) {
+            if (!m_popup) {
+                m_popup = new QLabel(qobject_cast<QWidget*>(obj));
+                m_popup->setWindowFlags(Qt::ToolTip);
+                m_popup->setAttribute(Qt::WA_TransparentForMouseEvents);
+                m_popup->setPixmap(m_pixmap.scaled(180, 180, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+                m_popup->resize(m_popup->pixmap().size());
+            }
+            QPoint globalPos = QCursor::pos();
+            m_popup->move(globalPos.x() + 20, globalPos.y() + 20);
+            m_popup->show();
+        } else if (event->type() == QEvent::Leave) {
+            if (m_popup) m_popup->hide();
+        }
+        return QObject::eventFilter(obj, event);
+    }
+private:
+    QPixmap m_pixmap;
+    QLabel* m_popup;
 };
 
 #endif // MEMBER_H

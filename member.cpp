@@ -335,26 +335,26 @@ QSqlQueryModel* Member::afficher()
 {
     QSqlQueryModel* model = new QSqlQueryModel();
     
-    model->setQuery("SELECT CIN, FIRST_NAME, LAST_NAME, GENDER, AGE, "
+    model->setQuery("SELECT PHOTO, CIN, FIRST_NAME, LAST_NAME, GENDER, AGE, "
                     "EMAIL, PHONE, SUBSCRIPTION_PLAN, JOIN_DATE "
                     "FROM MEMBERS "
                     "ORDER BY JOIN_DATE DESC");
-    
+
     if (model->lastError().isValid()) {
         qDebug() << "Member::afficher() - Query failed:" << model->lastError().text();
         return model;
     }
-    
     // Set header labels
-    model->setHeaderData(0, Qt::Horizontal, "CIN");
-    model->setHeaderData(1, Qt::Horizontal, "First Name");
-    model->setHeaderData(2, Qt::Horizontal, "Last Name");
-    model->setHeaderData(3, Qt::Horizontal, "Gender");
-    model->setHeaderData(4, Qt::Horizontal, "Age");
-    model->setHeaderData(5, Qt::Horizontal, "Email");
-    model->setHeaderData(6, Qt::Horizontal, "Phone");
-    model->setHeaderData(7, Qt::Horizontal, "Subscription Plan");
-    model->setHeaderData(8, Qt::Horizontal, "Join Date");
+    model->setHeaderData(0, Qt::Horizontal, "Photo");
+    model->setHeaderData(1, Qt::Horizontal, "CIN");
+    model->setHeaderData(2, Qt::Horizontal, "First Name");
+    model->setHeaderData(3, Qt::Horizontal, "Last Name");
+    model->setHeaderData(4, Qt::Horizontal, "Gender");
+    model->setHeaderData(5, Qt::Horizontal, "Age");
+    model->setHeaderData(6, Qt::Horizontal, "Email");
+    model->setHeaderData(7, Qt::Horizontal, "Phone");
+    model->setHeaderData(8, Qt::Horizontal, "Subscription Plan");
+    model->setHeaderData(9, Qt::Horizontal, "Join Date");
     
     qDebug() << "Member::afficher() - Loaded" << model->rowCount() << "members";
     return model;
@@ -636,16 +636,25 @@ void populateMemberTableWidget(QTableWidget* table, QSqlQueryModel* model, Membe
     
     // Populate data
     for (int row = 0; row < rowCount; ++row) {
-        // CRITICAL: Get CIN (primary key) from first column for stable reference
-        QString cin = model->data(model->index(row, 0)).toString();
-        
-        // Validate CIN before proceeding (prevent empty action widgets)
-        if (cin.isEmpty()) {
-            qDebug() << "Warning: Empty CIN at row" << row << "- skipping action buttons";
+        // CRITICAL: Get CIN (primary key) from column 1 (since 0 is now Photo)
+        QString cin = model->data(model->index(row, 1)).toString();
+        // Add photo thumbnail in column 0
+        QByteArray photoData = model->data(model->index(row, 0)).toByteArray();
+        QLabel* photoLabel = new QLabel(table);
+        photoLabel->setAlignment(Qt::AlignCenter);
+        QPixmap pixmap;
+        if (!photoData.isEmpty() && pixmap.loadFromData(photoData)) {
+            photoLabel->setPixmap(pixmap.scaled(48, 48, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        } else {
+            pixmap = QPixmap(":/icons/icons/default_user.png");
+            photoLabel->setPixmap(pixmap.scaled(48, 48, Qt::KeepAspectRatio, Qt::SmoothTransformation));
         }
-        
-        // Add data columns
-        for (int col = 0; col < dataColCount; ++col) {
+        table->setCellWidget(row, 0, photoLabel);
+        // Install hover event filter for larger preview
+        photoLabel->installEventFilter(new MemberPhotoHoverFilter(pixmap, photoLabel));
+
+        // Add data columns (shifted by +1)
+        for (int col = 1; col < dataColCount; ++col) {
             QTableWidgetItem* item = new QTableWidgetItem(model->data(model->index(row, col)).toString());
             item->setFlags(item->flags() & ~Qt::ItemIsEditable); // Make read-only
             table->setItem(row, col, item);

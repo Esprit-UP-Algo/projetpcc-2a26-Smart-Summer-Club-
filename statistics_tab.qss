@@ -1,0 +1,152 @@
+/* Root background */
+#StatisticsTab {
+    background: #f0f0f3;
+    font-family: "Segoe UI", "Roboto", Arial, sans-serif;
+}
+
+/* Header */
+#titleLabel {
+    font-size: 26px;
+    font-weight: 700;
+    color: #2c2c2c;
+    letter-spacing: 0.5px;
+}
+#subtitleLabel {
+    font-size: 13px;
+    font-weight: 500;
+    color: #6d6d6d;
+}
+#headerDivider {
+    background: #d9d9d9;
+    max-height: 1px;
+}
+
+/* Cards Container */
+#cardsContainer {
+    /* spacing handled by layout */
+}
+
+/* Individual Card Frame */
+#card {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #e5e6e8;
+    /* Simulated shadow */
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.06);
+}
+#card:hover {
+    border: 1px solid #c7d7ff;
+    background: #fcfcff;
+}
+
+/* Card icon */
+#iconLabel {
+    font-size: 30px;
+    line-height: 30px;
+    margin-bottom: 2px;
+}
+
+/* Card title */
+#cardTitle {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #7a7a7a;
+    letter-spacing: 0.8px;
+}
+
+/* Card value */
+#cardValue {
+    font-size: 40px;
+    font-weight: 700;
+    color: #2d4e82; /* base accent */
+}
+
+/* Alternate accent suggestions per card (apply programmatically if desired) */
+/* #cardUsers #cardValue { color: #2d4e82; } */
+/* #cardServers #cardValue { color: #2e7d32; } */
+/* #cardCommands #cardValue { color: #8e44ad; } */
+/* #cardGiveaways #cardValue { color: #c0392b; } */
+/* #cardTournaments #cardValue { color: #f39c12; } */
+
+/* Charts Section */
+#chartFrame {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #e5e6e8;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.05);
+}
+#chartFrame:hover {
+    border: 1px solid #c7d7ff;
+}
+#chartTitle {
+    font-size: 15px;
+    font-weight: 600;
+    color: #2c2c2c;
+    letter-spacing: 0.5px;
+}
+#chartPlaceholder {
+    background: #f8f9fa;
+    border: 1px dashed #d0d4d8;
+    border-radius: 10px;
+}
+
+/* Details Section */
+#detailsContainer {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #e5e6e8;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.04);
+    padding-top: 8px;
+}
+#sectionTitle {
+    font-size: 18px;
+    font-weight: 600;
+    color: #2c2c2c;
+}
+#detailsTable {
+    background: #ffffff;
+    gridline-color: #e0e0e0;
+    selection-background-color: #e3f0ff;
+    selection-color: #1f1f1f;
+    alternate-background-color: #f7f9fb;
+}
+#detailsTable QHeaderView::section {
+    background: #f2f3f5;
+    padding: 6px 8px;
+    border: 1px solid #e0e0e0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #3a3a3a;
+}
+#detailsTable QTableCornerButton::section {
+    background: #f2f3f5;
+    border: 1px solid #e0e0e0;
+}
+
+/* Scrollbars (optional modern styling) */
+QScrollBar:vertical {
+    background: transparent;
+    width: 10px;
+    margin: 2px 0 2px 0;
+}
+QScrollBar::handle:vertical {
+    background: #c0c6cc;
+    min-height: 30px;
+    border-radius: 5px;
+}
+QScrollBar::handle:vertical:hover {
+    background: #a9b1b9;
+}
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }
+QScrollBar:horizontal { height: 0; }
+
+/* Tooltip styling (if used later) */
+QToolTip {
+    background: #2d4e82;
+    color: #ffffff;
+    border: none;
+    padding: 6px 8px;
+    font-size: 11px;
+    border-radius: 6px;
+}

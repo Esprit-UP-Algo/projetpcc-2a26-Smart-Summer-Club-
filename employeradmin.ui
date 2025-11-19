@@ -6,15 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1262</width>
-    <height>852</height>
+    <width>1390</width>
+    <height>1112</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>VIBRA CLUB - Application Management</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QMainWindow { background-color: #f5f7fa; } /* Top Bar Styling */ #topBarFrame { /* Match sidebar: smooth horizontal gradient from left to right */ background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgba(22, 165, 179, 0.28), stop:1 rgba(22, 165, 179, 0.12)); border-bottom: 1px solid #e0e4e7; } #logoLabel { font-size: 24px; font-weight: bold; color: #2c3e50; } #userInfoFrame { background-color: transparent; } #userNameLabel { font-size: 14px; font-weight: 600; color: #2c3e50; } #userRoleLabel { font-size: 12px; color: #7f8c8d; } #userAvatarLabel { background-color: #3498db; border-radius: 20px; color: white; font-weight: bold; } /* Sidebar Styling */ #sidebarFrame { /* Smooth horizontal gradient from left to right with stronger presence on the left */ background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgba(22, 165, 179, 0.28), stop:1 rgba(22, 165, 179, 0.12)); border-right: 1px solid #e0e4e7; } #navigationFrame { background-color: transparent; } QPushButton#employeesButton, QPushButton#membersButton, QPushButton#equipmentButton, QPushButton#activitiesButton, QPushButton#paymentsButton { background-color: transparent; border: none; padding: 15px 20px; text-align: left; font-size: 14px; color: #2c3e50; border-radius: 8px; margin: 2px 10px; } QPushButton#employeesButton:hover, QPushButton#membersButton:hover, QPushButton#equipmentButton:hover, QPushButton#activitiesButton:hover, QPushButton#paymentsButton:hover { background-color: #e8f4f5; } QPushButton#employeesButton:checked, QPushButton#membersButton:checked, QPushButton#equipmentButton:checked, QPushButton#activitiesButton:checked, QPushButton#paymentsButton:checked { background-color: #16a5b3; color: white; } QPushButton#employeesButton:checked:hover, QPushButton#membersButton:checked:hover, QPushButton#equipmentButton:checked:hover, QPushButton#activitiesButton:checked:hover, QPushButton#paymentsButton:checked:hover { background-color: #139aa6; } /* Main Content Styling */ #mainContentFrame { background-color: transparent; } /* Tab Widget Styling */ QTabWidget::pane { border: 2px solid #16a5b3; background-color: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(22, 165, 179, 0.1); } QTabBar::tab { /* Unselected tabs mimic our button style: transparent teal with teal border */ background-color: rgba(22, 165, 179, 0.10); color: #2c3e50; padding: 12px 24px; margin-right: 2px; border-top-left-radius: 8px; border-top-right-radius: 8px; border: 1.5px solid rgba(22, 165, 179, 0.65); border-bottom: none; } QTabBar::tab:selected { background-color: #16a5b3; color: white; border-color: #16a5b3; font-weight: 600; } QTabBar::tab:hover:!selected { background-color: rgba(22, 165, 179, 0.18); border-color: #16a5b3; transition: all 0.3s ease; } /* Statistics Cards Styling */ QFrame[objectName*=&quot;Card&quot;] { background-color: white; border: 1px solid #e0e4e7; border-radius: 16px; padding: 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); } QFrame[objectName*=&quot;Card&quot;]:hover { box-shadow: 0 4px 20px rgba(22, 165, 179, 0.15); border-color: #16a5b3; transition: all 0.3s ease; } /* Form Styling */ QLineEdit { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); } QLineEdit:focus { border-color: #16a5b3; box-shadow: 0 0 0 3px rgba(22, 165, 179, 0.1); outline: none; } QLineEdit:hover { border-color: #16a5b3; transition: border-color 0.2s ease; } QComboBox { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); } QComboBox:focus { border-color: #16a5b3; box-shadow: 0 0 0 3px rgba(22, 165, 179, 0.1); } QComboBox:hover { border-color: #16a5b3; transition: border-color 0.2s ease; } QDateEdit, QSpinBox { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); } QDateEdit:focus, QSpinBox:focus { border-color: #16a5b3; box-shadow: 0 0 0 3px rgba(22, 165, 179, 0.1); } QTextEdit { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); } QTextEdit:focus { border-color: #16a5b3; box-shadow: 0 0 0 3px rgba(22, 165, 179, 0.1); } QPushButton#actionButton { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #16a5b3, stop:1 #139aa6); color: white; border: none; padding: 14px 28px; border-radius: 10px; font-size: 14px; font-weight: 600; box-shadow: 0 4px 8px rgba(22, 165, 179, 0.2); } QPushButton#actionButton:hover { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #139aa6, stop:1 #0f858f); box-shadow: 0 6px 12px rgba(22, 165, 179, 0.3); transform: translateY(-1px); } QPushButton#actionButton:pressed { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #0f858f, stop:1 #0c6b73); box-shadow: 0 2px 4px rgba(22, 165, 179, 0.2); transform: translateY(0px); } /* Table Styling */ QTableWidget { background-color: white; gridline-color: #e6eef0; border: 2px solid #16a5b3; /* teal border like the mock */ border-radius: 12px; selection-background-color: rgba(22, 165, 179, 0.14); selection-color: #2c3e50; } /* Header styled to main brand color */ QHeaderView::section { background-color: #16a5b3; color: white; padding: 8px 10px; border: none; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.25); } /* Corner button (top-left of table) to match header */ QTableCornerButton::section { background-color: #16a5b3; border: none; } /* Alternate rows for subtle striping */ QTableView::item:alternate { background: rgba(22, 165, 179, 0.03); } /* Selected row styling */ QTableView::item:selected { background: rgba(22, 165, 179, 0.14); color: #2c3e50; } /* Frame Styling */ QFrame { border-radius: 8px; } /* Label Styling */ QLabel { color: #2c3e50; } /* Search Frame Styling */ QFrame[objectName*=&quot;SearchFrame&quot;], QFrame[objectName*=&quot;searchFrame&quot;] { background-color: rgba(22, 165, 179, 0.02); border: 1px solid rgba(22, 165, 179, 0.1); border-radius: 12px; padding: 8px; } /* Default buttons: avoid gray; use brand color with high transparency */ QPushButton { background-color: rgba(22, 165, 179, 0.10); color: #2c3e50; border: 1.5px solid rgba(22, 165, 179, 0.65); padding: 10px 16px; border-radius: 10px; } QPushButton:hover { background-color: rgba(22, 165, 179, 0.18); } QPushButton:pressed { background-color: rgba(22, 165, 179, 0.26); } QPushButton:disabled { background-color: rgba(22, 165, 179, 0.06); color: #98a6ad; border-color: rgba(22, 165, 179, 0.25); }
+   <string notr="true">QMainWindow { background-color: #f5f7fa; } /* Top Bar Styling */ #topBarFrame { /* Match sidebar: smooth horizontal gradient from left to right */ background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgba(22, 165, 179, 0.28), stop:1 rgba(22, 165, 179, 0.12)); border-bottom: 1px solid #e0e4e7; } #logoLabel { font-size: 24px; font-weight: bold; color: #2c3e50; } #userInfoFrame { background-color: transparent; } #userNameLabel { font-size: 14px; font-weight: 600; color: #2c3e50; } #userRoleLabel { font-size: 12px; color: #7f8c8d; } #userAvatarLabel { background-color: #3498db; border-radius: 20px; color: white; font-weight: bold; } /* Sidebar Styling */ #sidebarFrame { /* Original gradient with teal colors */ background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgba(22, 165, 179, 0.28), stop:1 rgba(22, 165, 179, 0.12)); border-right: 1px solid #e0e4e7; } #navigationFrame { background-color: transparent; padding: 10px 0; } QPushButton#employeesButton, QPushButton#membersButton, QPushButton#equipmentButton, QPushButton#activitiesButton, QPushButton#paymentsButton { background-color: transparent; border: none; padding: 18px 24px; text-align: left; font-size: 15px; font-weight: 500; color: #34495e; border-radius: 12px; margin: 4px 16px; transition: all 0.3s ease; min-height: 20px; } QPushButton#employeesButton:hover, QPushButton#membersButton:hover, QPushButton#equipmentButton:hover, QPushButton#activitiesButton:hover, QPushButton#paymentsButton:hover { background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgba(22, 165, 179, 0.12), stop:1 rgba(22, 165, 179, 0.08)); color: #16a5b3; transform: translateX(4px); box-shadow: 0 2px 8px rgba(22, 165, 179, 0.15); } QPushButton#employeesButton:checked, QPushButton#membersButton:checked, QPushButton#equipmentButton:checked, QPushButton#activitiesButton:checked, QPushButton#paymentsButton:checked { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #16a5b3, stop:1 #139aa6); color: white; font-weight: 600; box-shadow: 0 4px 12px rgba(22, 165, 179, 0.25); transform: translateX(6px); } QPushButton#employeesButton:checked:hover, QPushButton#membersButton:checked:hover, QPushButton#equipmentButton:checked:hover, QPushButton#activitiesButton:checked:hover, QPushButton#paymentsButton:checked:hover { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #139aa6, stop:1 #0f858f); box-shadow: 0 6px 16px rgba(22, 165, 179, 0.35); } /* Settings and Logout Button Styling */ QPushButton#settingsButton, QPushButton#logoutButton { background-color: transparent; border: none; padding: 18px 24px; text-align: left; font-size: 15px; font-weight: 500; color: #34495e; border-radius: 12px; margin: 4px 16px; transition: all 0.3s ease; min-height: 20px; } QPushButton#settingsButton:hover, QPushButton#logoutButton:hover { background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgba(22, 165, 179, 0.12), stop:1 rgba(22, 165, 179, 0.08)); color: #16a5b3; transform: translateX(4px); box-shadow: 0 2px 8px rgba(22, 165, 179, 0.15); } /* Main Content Styling */ #mainContentFrame { background-color: transparent; } /* Tab Widget Styling */ QTabWidget::pane { border: 2px solid #16a5b3; background-color: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(22, 165, 179, 0.1); } QTabBar::tab { /* Unselected tabs mimic our button style: transparent teal with teal border */ background-color: rgba(22, 165, 179, 0.10); color: #2c3e50; padding: 12px 24px; margin-right: 2px; border-top-left-radius: 8px; border-top-right-radius: 8px; border: 1.5px solid rgba(22, 165, 179, 0.65); border-bottom: none; } QTabBar::tab:selected { background-color: #16a5b3; color: white; border-color: #16a5b3; font-weight: 600; } QTabBar::tab:hover:!selected { background-color: rgba(22, 165, 179, 0.18); border-color: #16a5b3; transition: all 0.3s ease; } /* Statistics Cards Styling */ QFrame[objectName*=&quot;Card&quot;] { background-color: white; border: 1px solid #e0e4e7; border-radius: 16px; padding: 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); } QFrame[objectName*=&quot;Card&quot;]:hover { box-shadow: 0 4px 20px rgba(22, 165, 179, 0.15); border-color: #16a5b3; transition: all 0.3s ease; } /* Form Styling */ QLineEdit { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); } QLineEdit:focus { border-color: #16a5b3; box-shadow: 0 0 0 3px rgba(22, 165, 179, 0.1); outline: none; } QLineEdit:hover { border-color: #16a5b3; transition: border-color 0.2s ease; } QComboBox { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); } QComboBox:focus { border-color: #16a5b3; box-shadow: 0 0 0 3px rgba(22, 165, 179, 0.1); } QComboBox:hover { border-color: #16a5b3; transition: border-color 0.2s ease; } QDateEdit, QSpinBox { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); } QDateEdit:focus, QSpinBox:focus { border-color: #16a5b3; box-shadow: 0 0 0 3px rgba(22, 165, 179, 0.1); } QTextEdit { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); } QTextEdit:focus { border-color: #16a5b3; box-shadow: 0 0 0 3px rgba(22, 165, 179, 0.1); } QPushButton#actionButton { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #16a5b3, stop:1 #139aa6); color: white; border: none; padding: 14px 28px; border-radius: 10px; font-size: 14px; font-weight: 600; box-shadow: 0 4px 8px rgba(22, 165, 179, 0.2); } QPushButton#actionButton:hover { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #139aa6, stop:1 #0f858f); box-shadow: 0 6px 12px rgba(22, 165, 179, 0.3); transform: translateY(-1px); } QPushButton#actionButton:pressed { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #0f858f, stop:1 #0c6b73); box-shadow: 0 2px 4px rgba(22, 165, 179, 0.2); transform: translateY(0px); } /* Table Styling */ QTableWidget { background-color: white; gridline-color: #e6eef0; border: 2px solid #16a5b3; /* teal border like the mock */ border-radius: 12px; selection-background-color: rgba(22, 165, 179, 0.14); selection-color: #2c3e50; } /* Header styled to main brand color */ QHeaderView::section { background-color: #16a5b3; color: white; padding: 8px 10px; border: none; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.25); } /* Corner button (top-left of table) to match header */ QTableCornerButton::section { background-color: #16a5b3; border: none; } /* Alternate rows for subtle striping */ QTableView::item:alternate { background: rgba(22, 165, 179, 0.03); } /* Selected row styling */ QTableView::item:selected { background: rgba(22, 165, 179, 0.14); color: #2c3e50; } /* Frame Styling */ QFrame { border-radius: 8px; } /* Label Styling */ QLabel { color: #2c3e50; } /* Search Frame Styling */ QFrame[objectName*=&quot;SearchFrame&quot;], QFrame[objectName*=&quot;searchFrame&quot;] { background-color: rgba(22, 165, 179, 0.02); border: 1px solid rgba(22, 165, 179, 0.1); border-radius: 12px; padding: 8px; } /* Default buttons: avoid gray; use brand color with high transparency */ QPushButton { background-color: rgba(22, 165, 179, 0.10); color: #2c3e50; border: 1.5px solid rgba(22, 165, 179, 0.65); padding: 10px 16px; border-radius: 10px; } QPushButton:hover { background-color: rgba(22, 165, 179, 0.18); } QPushButton:pressed { background-color: rgba(22, 165, 179, 0.26); } QPushButton:disabled { background-color: rgba(22, 165, 179, 0.06); color: #98a6ad; border-color: rgba(22, 165, 179, 0.25); }
 /* ===== FIX: Invisible text in login and search fields ===== */
 
 /* Make sure typed text is visible in all line edits */
@@ -186,37 +186,47 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
         <widget class="QFrame" name="sidebarFrame">
          <property name="minimumSize">
           <size>
-           <width>250</width>
+           <width>280</width>
            <height>0</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>250</width>
+           <width>280</width>
            <height>16777215</height>
           </size>
          </property>
          <layout class="QVBoxLayout" name="sidebarLayout">
           <property name="spacing">
-           <number>10</number>
+           <number>8</number>
           </property>
           <property name="leftMargin">
            <number>0</number>
           </property>
           <property name="topMargin">
-           <number>20</number>
+           <number>30</number>
           </property>
           <property name="rightMargin">
            <number>0</number>
           </property>
           <property name="bottomMargin">
-           <number>20</number>
+           <number>30</number>
           </property>
+          <item>
+           <widget class="QLabel" name="navigationTitle">
+            <property name="styleSheet">
+             <string notr="true">font-size: 14px; font-weight: 600; color: #7f8c8d; padding: 0 24px 8px 24px; text-transform: uppercase; letter-spacing: 1px;</string>
+            </property>
+            <property name="text">
+             <string>Navigation</string>
+            </property>
+           </widget>
+          </item>
           <item>
            <widget class="QFrame" name="navigationFrame">
             <layout class="QVBoxLayout" name="navigationLayout">
              <property name="spacing">
-              <number>5</number>
+              <number>8</number>
              </property>
              <item>
               <widget class="QPushButton" name="employeesButton">
@@ -307,6 +317,37 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
             </property>
            </spacer>
           </item>
+          <item>
+           <widget class="QFrame" name="bottomButtonsFrame">
+            <layout class="QVBoxLayout" name="bottomButtonsLayout">
+             <property name="spacing">
+              <number>8</number>
+             </property>
+             <item>
+              <widget class="QPushButton" name="settingsButton">
+               <property name="text">
+                <string>  Settings</string>
+               </property>
+               <property name="icon">
+                <iconset resource="resources.qrc">
+                 <normaloff>:/icons/icons/list.png</normaloff>:/icons/icons/list.png</iconset>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="logoutButton">
+               <property name="text">
+                <string>  Logout</string>
+               </property>
+               <property name="icon">
+                <iconset resource="resources.qrc">
+                 <normaloff>:/icons/icons/list.png</normaloff>:/icons/icons/list.png</iconset>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
@@ -328,7 +369,7 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>2</number>
+             <number>0</number>
             </property>
             <widget class="QWidget" name="employeePage">
              <layout class="QVBoxLayout" name="employeePageLayout">
@@ -345,7 +386,7 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
               <item>
                <widget class="QTabWidget" name="employeeTabWidget">
                 <property name="currentIndex">
-                 <number>1</number>
+                 <number>2</number>
                 </property>
                 <widget class="QWidget" name="listTab">
                  <attribute name="icon">
@@ -473,8 +514,8 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>636</width>
-                       <height>663</height>
+                       <width>1030</width>
+                       <height>857</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="formMainLayout">
@@ -576,11 +617,6 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                            <item>
                             <property name="text">
                              <string>Female</string>
-                            </property>
-                           </item>
-                           <item>
-                            <property name="text">
-                             <string>Other</string>
                             </property>
                            </item>
                           </widget>
@@ -926,31 +962,53 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                  </attribute>
                  <layout class="QVBoxLayout" name="statisticsLayout">
                   <item>
-                   <widget class="QFrame" name="statsFrame">
-                    <layout class="QGridLayout" name="statsGridLayout">
+                   <widget class="QFrame" name="headerFrame">
+                    <property name="styleSheet">
+                     <string notr="true">background: #ffffff; border:1px solid #e0e4e7; border-radius:16px; padding:18px;</string>
+                    </property>
+                    <layout class="QVBoxLayout" name="headerLayout">
+                     <item>
+                      <widget class="QLabel" name="titleLabel">
+                       <property name="styleSheet">
+                        <string notr="true">font-size:24px; font-weight:600; color:#2c3e50;</string>
+                       </property>
+                       <property name="text">
+                        <string>Employee Statistics Dashboard</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QFrame" name="cardsContainer">
+                    <property name="styleSheet">
+                     <string notr="true">background:transparent;</string>
+                    </property>
+                    <layout class="QGridLayout" name="cardsGrid">
                      <item row="0" column="0">
                       <widget class="QFrame" name="totalEmployeesCard">
                        <property name="styleSheet">
                         <string notr="true">background-color: white; border: 1px solid #e0e4e7; border-radius: 12px; padding: 20px;</string>
                        </property>
-                       <layout class="QVBoxLayout" name="totalEmpLayout">
+                       <layout class="QVBoxLayout" name="totalEmployeesLayout">
                         <item>
-                         <widget class="QLabel" name="totalEmpTitle">
+                         <widget class="QLabel" name="totalEmployeesTitle">
                           <property name="styleSheet">
                            <string notr="true">font-size: 16px; color: #7f8c8d; font-weight: 600;</string>
                           </property>
                           <property name="text">
-                           <string>Total Hours Worked</string>
+                           <string>Total Employees</string>
                           </property>
                          </widget>
                         </item>
                         <item>
-                         <widget class="QLabel" name="totalEmpNumber">
+                         <widget class="QLabel" name="totalEmployeesNumber">
                           <property name="styleSheet">
                            <string notr="true">font-size: 36px; font-weight: bold; color: #16a5b3;</string>
                           </property>
                           <property name="text">
-                           <string>47</string>
+                           <string>—</string>
                           </property>
                          </widget>
                         </item>
@@ -962,24 +1020,24 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                        <property name="styleSheet">
                         <string notr="true">background-color: white; border: 1px solid #e0e4e7; border-radius: 12px; padding: 20px;</string>
                        </property>
-                       <layout class="QVBoxLayout" name="activeEmpLayout">
+                       <layout class="QVBoxLayout" name="activeEmployeesLayout">
                         <item>
-                         <widget class="QLabel" name="activeEmpTitle">
+                         <widget class="QLabel" name="activeEmployeesTitle">
                           <property name="styleSheet">
                            <string notr="true">font-size: 16px; color: #7f8c8d; font-weight: 600;</string>
                           </property>
                           <property name="text">
-                           <string>Salary Expenses</string>
+                           <string>Active Employees</string>
                           </property>
                          </widget>
                         </item>
                         <item>
-                         <widget class="QLabel" name="activeEmpNumber">
+                         <widget class="QLabel" name="activeEmployeesNumber">
                           <property name="styleSheet">
-                           <string notr="true">font-size: 36px; font-weight: bold; color: #e67e22;</string>
+                           <string notr="true">font-size: 36px; font-weight: bold; color: #27ae60;</string>
                           </property>
                           <property name="text">
-                           <string>42</string>
+                           <string>—</string>
                           </property>
                          </widget>
                         </item>
@@ -987,111 +1045,143 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                       </widget>
                      </item>
                      <item row="0" column="2">
-                      <widget class="QFrame" name="newHiresCard">
+                      <widget class="QFrame" name="newEmployeesCard">
                        <property name="styleSheet">
                         <string notr="true">background-color: white; border: 1px solid #e0e4e7; border-radius: 12px; padding: 20px;</string>
                        </property>
-                       <layout class="QVBoxLayout" name="newHiresLayout">
+                       <layout class="QVBoxLayout" name="newEmployeesLayout">
                         <item>
-                         <widget class="QLabel" name="newHiresTitle">
+                         <widget class="QLabel" name="newEmployeesTitle">
                           <property name="styleSheet">
                            <string notr="true">font-size: 16px; color: #7f8c8d; font-weight: 600;</string>
                           </property>
                           <property name="text">
-                           <string>Revenue</string>
+                           <string>New This Month</string>
                           </property>
                          </widget>
                         </item>
                         <item>
-                         <widget class="QLabel" name="newHiresNumber">
+                         <widget class="QLabel" name="newEmployeesNumber">
                           <property name="styleSheet">
-                           <string notr="true">font-size: 36px; font-weight: bold; color: #27ae60;</string>
+                           <string notr="true">font-size: 36px; font-weight: bold; color: #e67e22;</string>
                           </property>
                           <property name="text">
-                           <string>8</string>
+                           <string>—</string>
                           </property>
                          </widget>
                         </item>
                        </layout>
                       </widget>
                      </item>
-                     <item row="1" column="0" colspan="3">
-                      <widget class="QFrame" name="departmentStatsFrame">
-                       <property name="styleSheet">
-                        <string notr="true">background-color: white; border: 1px solid #e0e4e7; border-radius: 12px;</string>
+                    </layout>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QFrame" name="chartsContainer">
+                    <property name="styleSheet">
+                     <string notr="true">background:transparent;</string>
+                    </property>
+                    <layout class="QGridLayout" name="chartsGrid">
+                     <item row="0" column="0">
+                      <widget class="QFrame" name="employeeDepartmentChartFrame">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
                        </property>
-                       <layout class="QVBoxLayout" name="deptStatsLayout">
+                       <property name="styleSheet">
+                        <string notr="true">background:#ffffff; border:1px solid #e0e4e7; border-radius:16px; padding:12px;</string>
+                       </property>
+                       <layout class="QVBoxLayout" name="employeeDepartmentChartLayout">
                         <item>
-                         <widget class="QLabel" name="deptStatsTitle">
+                         <widget class="QLabel" name="employeeDepartmentChartTitle">
                           <property name="styleSheet">
-                           <string notr="true">font-size: 18px; font-weight: bold; color: #2c3e50; margin: 10px;</string>
+                           <string notr="true">font-size:16px; font-weight:600; color:#2c3e50;</string>
                           </property>
                           <property name="text">
-                           <string>📈 Workload Distribution</string>
+                           <string>🏢 Department Distribution</string>
                           </property>
                          </widget>
                         </item>
                         <item>
-                         <widget class="QTableWidget" name="departmentStatsTable">
-                          <property name="alternatingRowColors">
-                           <bool>true</bool>
+                         <widget class="QLabel" name="employeeDepartmentChartPlaceholder">
+                          <property name="styleSheet">
+                           <string notr="true">color:#95a5a6; font-size:14px; padding:30px; border:2px dashed #bdc3c7; border-radius:12px; text-align:center;</string>
                           </property>
-                          <column>
-                           <property name="text">
-                            <string>Employee/Department</string>
-                           </property>
-                          </column>
-                          <column>
-                           <property name="text">
-                            <string>Hours Worked</string>
-                           </property>
-                          </column>
-                          <column>
-                           <property name="text">
-                            <string>Percentage</string>
-                           </property>
-                          </column>
+                          <property name="text">
+                           <string>Pie Chart Placeholder</string>
+                          </property>
                          </widget>
                         </item>
                        </layout>
                       </widget>
                      </item>
-                     <item row="2" column="0" colspan="3">
-                      <widget class="QFrame" name="costStatsFrame">
-                       <property name="styleSheet">
-                        <string notr="true">background-color: white; border: 1px solid #e0e4e7; border-radius: 12px;</string>
+                     <item row="0" column="1">
+                      <widget class="QFrame" name="employeeStatusChartFrame">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
                        </property>
-                       <layout class="QVBoxLayout" name="costStatsLayout">
+                       <property name="styleSheet">
+                        <string notr="true">background:#ffffff; border:1px solid #e0e4e7; border-radius:16px; padding:12px;</string>
+                       </property>
+                       <layout class="QVBoxLayout" name="employeeStatusChartLayout">
                         <item>
-                         <widget class="QLabel" name="costStatsTitle">
+                         <widget class="QLabel" name="employeeStatusChartTitle">
                           <property name="styleSheet">
-                           <string notr="true">font-size: 18px; font-weight: bold; color: #2c3e50; margin: 10px;</string>
+                           <string notr="true">font-size:16px; font-weight:600; color:#2c3e50;</string>
                           </property>
                           <property name="text">
-                           <string>💹 Cost Analysis (Salary Expenses vs. Revenue)</string>
+                           <string>📊 Status Distribution</string>
                           </property>
                          </widget>
                         </item>
                         <item>
-                         <widget class="QTableWidget" name="costStatsTable">
-                          <property name="alternatingRowColors">
-                           <bool>true</bool>
+                         <widget class="QLabel" name="employeeStatusChartPlaceholder">
+                          <property name="styleSheet">
+                           <string notr="true">color:#95a5a6; font-size:14px; padding:30px; border:2px dashed #bdc3c7; border-radius:12px; text-align:center;</string>
                           </property>
-                          <column>
-                           <property name="text">
-                            <string>Category</string>
-                           </property>
-                          </column>
-                          <column>
-                           <property name="text">
-                            <string>Amount</string>
-                           </property>
-                          </column>
-                          <column>
-                           <property name="text">
-                            <string>Notes</string>
-                           </property>
-                          </column>
+                          <property name="text">
+                           <string>Histogram Placeholder</string>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item row="0" column="2">
+                      <widget class="QFrame" name="employeeSalaryChartFrame">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="styleSheet">
+                        <string notr="true">background:#ffffff; border:1px solid #e0e4e7; border-radius:16px; padding:12px;</string>
+                       </property>
+                       <layout class="QVBoxLayout" name="employeeSalaryChartLayout">
+                        <item>
+                         <widget class="QLabel" name="employeeSalaryChartTitle">
+                          <property name="styleSheet">
+                           <string notr="true">font-size:16px; font-weight:600; color:#2c3e50;</string>
+                          </property>
+                          <property name="text">
+                           <string>💰 Salary Distribution (Cumulative Curve)</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLabel" name="employeeSalaryChartPlaceholder">
+                          <property name="styleSheet">
+                           <string notr="true">color:#95a5a6; font-size:14px; padding:30px; border:2px dashed #bdc3c7; border-radius:12px; text-align:center;</string>
+                          </property>
+                          <property name="text">
+                           <string>ECC Curve Placeholder</string>
+                          </property>
                          </widget>
                         </item>
                        </layout>
@@ -1449,8 +1539,8 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>562</width>
-                       <height>586</height>
+                       <width>495</width>
+                       <height>571</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="memberFormMainLayout">
@@ -1541,11 +1631,6 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                            <item>
                             <property name="text">
                              <string>Female</string>
-                            </property>
-                           </item>
-                           <item>
-                            <property name="text">
-                             <string>Other</string>
                             </property>
                            </item>
                           </widget>
@@ -1784,7 +1869,7 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                            <string notr="true">font-size: 36px; font-weight: bold; color: #16a5b3;</string>
                           </property>
                           <property name="text">
-                           <string>47</string>
+                           <string>—</string>
                           </property>
                          </widget>
                         </item>
@@ -1813,7 +1898,7 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                            <string notr="true">font-size: 36px; font-weight: bold; color: #3498db;</string>
                           </property>
                           <property name="text">
-                           <string>42</string>
+                           <string>—</string>
                           </property>
                          </widget>
                         </item>
@@ -1842,7 +1927,7 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                            <string notr="true">font-size: 36px; font-weight: bold; color: #e67e22;</string>
                           </property>
                           <property name="text">
-                           <string>8</string>
+                           <string>—</string>
                           </property>
                          </widget>
                         </item>
@@ -1850,41 +1935,96 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                       </widget>
                      </item>
                      <item row="1" column="0" colspan="3">
-                      <widget class="QFrame" name="membershipStatsFrame">
+                      <widget class="QFrame" name="memberChartsContainer">
                        <property name="styleSheet">
-                        <string notr="true">background-color: white; border: 1px solid #e0e4e7; border-radius: 12px;</string>
+                        <string notr="true">background:transparent;</string>
                        </property>
-                       <layout class="QVBoxLayout" name="membershipStatsLayout">
-                        <item>
-                         <widget class="QLabel" name="membershipStatsTitle">
+                       <layout class="QGridLayout" name="memberChartsGrid">
+                        <item row="0" column="0">
+                         <widget class="QFrame" name="memberGenderChartFrame">
                           <property name="styleSheet">
-                           <string notr="true">font-size: 18px; font-weight: bold; color: #2c3e50; margin: 10px;</string>
+                           <string notr="true">background:#ffffff; border:1px solid #e0e4e7; border-radius:16px; padding:12px;</string>
                           </property>
-                          <property name="text">
-                           <string>📈 Membership Distribution</string>
-                          </property>
+                          <layout class="QVBoxLayout" name="memberGenderChartLayout">
+                           <item>
+                            <widget class="QLabel" name="memberGenderChartTitle">
+                             <property name="styleSheet">
+                              <string notr="true">font-size:16px; font-weight:600; color:#2c3e50;</string>
+                             </property>
+                             <property name="text">
+                              <string>🧬 Gender Distribution</string>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="QLabel" name="memberGenderChartPlaceholder">
+                             <property name="styleSheet">
+                              <string notr="true">color:#95a5a6; font-size:14px; padding:28px; border:2px dashed #bdc3c7; border-radius:12px; text-align:center;</string>
+                             </property>
+                             <property name="text">
+                              <string>Pie Chart Placeholder</string>
+                             </property>
+                            </widget>
+                           </item>
+                          </layout>
                          </widget>
                         </item>
-                        <item>
-                         <widget class="QTableWidget" name="membershipStatsTable">
-                          <property name="alternatingRowColors">
-                           <bool>true</bool>
+                        <item row="0" column="1">
+                         <widget class="QFrame" name="memberAgeChartFrame">
+                          <property name="styleSheet">
+                           <string notr="true">background:#ffffff; border:1px solid #e0e4e7; border-radius:16px; padding:12px;</string>
                           </property>
-                          <column>
-                           <property name="text">
-                            <string>Membership Type</string>
-                           </property>
-                          </column>
-                          <column>
-                           <property name="text">
-                            <string>Member Count</string>
-                           </property>
-                          </column>
-                          <column>
-                           <property name="text">
-                            <string>Percentage</string>
-                           </property>
-                          </column>
+                          <layout class="QVBoxLayout" name="memberAgeChartLayout">
+                           <item>
+                            <widget class="QLabel" name="memberAgeChartTitle">
+                             <property name="styleSheet">
+                              <string notr="true">font-size:16px; font-weight:600; color:#2c3e50;</string>
+                             </property>
+                             <property name="text">
+                              <string>📊 Age Distribution (Groups)</string>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="QLabel" name="memberAgeChartPlaceholder">
+                             <property name="styleSheet">
+                              <string notr="true">color:#95a5a6; font-size:14px; padding:28px; border:2px dashed #bdc3c7; border-radius:12px; text-align:center;</string>
+                             </property>
+                             <property name="text">
+                              <string>Bar Chart Placeholder</string>
+                             </property>
+                            </widget>
+                           </item>
+                          </layout>
+                         </widget>
+                        </item>
+                        <item row="0" column="2">
+                         <widget class="QFrame" name="memberSubscriptionChartFrame">
+                          <property name="styleSheet">
+                           <string notr="true">background:#ffffff; border:1px solid #e0e4e7; border-radius:16px; padding:12px;</string>
+                          </property>
+                          <layout class="QVBoxLayout" name="memberSubscriptionChartLayout">
+                           <item>
+                            <widget class="QLabel" name="memberSubscriptionChartTitle">
+                             <property name="styleSheet">
+                              <string notr="true">font-size:16px; font-weight:600; color:#2c3e50;</string>
+                             </property>
+                             <property name="text">
+                              <string>📦 Subscription Plan Histogram</string>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="QLabel" name="memberSubscriptionChartPlaceholder">
+                             <property name="styleSheet">
+                              <string notr="true">color:#95a5a6; font-size:14px; padding:28px; border:2px dashed #bdc3c7; border-radius:12px; text-align:center;</string>
+                             </property>
+                             <property name="text">
+                              <string>Histogram Placeholder</string>
+                             </property>
+                            </widget>
+                           </item>
+                          </layout>
                          </widget>
                         </item>
                        </layout>
@@ -2060,8 +2200,8 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>924</width>
-                       <height>584</height>
+                       <width>612</width>
+                       <height>371</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="equipmentFormMainLayout">
@@ -2694,8 +2834,8 @@ QComboBox QAbstractItemView {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>754</width>
-                       <height>519</height>
+                       <width>739</width>
+                       <height>493</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="activityFormMainLayout">
@@ -3019,32 +3159,37 @@ QComboBox QAbstractItemView {
                           <widget class="QComboBox" name="activityTypeComboBox">
                            <item>
                             <property name="text">
-                             <string>Group Class</string>
+                             <string>Mini Hackathon Kids</string>
                             </property>
                            </item>
                            <item>
                             <property name="text">
-                             <string>Personal Training</string>
+                             <string>Aeronautics Workshop</string>
                             </property>
                            </item>
                            <item>
                             <property name="text">
-                             <string>Workshop</string>
+                             <string>Cinéma &amp; Acting Lab</string>
                             </property>
                            </item>
                            <item>
                             <property name="text">
-                             <string>Competition</string>
+                             <string>Musique</string>
                             </property>
                            </item>
                            <item>
                             <property name="text">
-                             <string>Event</string>
+                             <string>Sports &amp; Fitness Program</string>
                             </property>
                            </item>
                            <item>
                             <property name="text">
-                             <string>Maintenance</string>
+                             <string>Art</string>
+                            </property>
+                           </item>
+                           <item>
+                            <property name="text">
+                             <string>Special Events</string>
                             </property>
                            </item>
                           </widget>
@@ -3158,46 +3303,67 @@ QComboBox QAbstractItemView {
                       </widget>
                      </item>
                      <item row="1" column="0" colspan="3">
-                      <widget class="QFrame" name="activityTypeStatsFrame">
+                      <widget class="QFrame" name="activityChartsContainer">
                        <property name="styleSheet">
-                        <string notr="true">background-color: white; border: 1px solid #e0e4e7; border-radius: 12px;</string>
+                        <string notr="true">background:transparent;</string>
                        </property>
-                       <layout class="QVBoxLayout" name="activityTypeStatsLayout">
-                        <item>
-                         <widget class="QLabel" name="activityTypeStatsTitle">
+                       <layout class="QGridLayout" name="activityChartsGrid">
+                        <item row="0" column="0">
+                         <widget class="QFrame" name="activityTypeChartFrame">
                           <property name="styleSheet">
-                           <string notr="true">font-size: 18px; font-weight: bold; color: #2c3e50; margin: 10px;</string>
+                           <string notr="true">background:#ffffff; border:1px solid #e0e4e7; border-radius:16px; padding:12px;</string>
                           </property>
-                          <property name="text">
-                           <string>📈 Activity Type Distribution</string>
-                          </property>
+                          <layout class="QVBoxLayout" name="activityTypeChartLayout">
+                           <item>
+                            <widget class="QLabel" name="activityTypeChartTitle">
+                             <property name="styleSheet">
+                              <string notr="true">font-size:16px; font-weight:600; color:#2c3e50;</string>
+                             </property>
+                             <property name="text">
+                              <string>🏷 Activity Type Distribution</string>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="QLabel" name="activityTypeChartPlaceholder">
+                             <property name="styleSheet">
+                              <string notr="true">color:#95a5a6; font-size:14px; padding:28px; border:2px dashed #bdc3c7; border-radius:12px; text-align:center;</string>
+                             </property>
+                             <property name="text">
+                              <string>Pie Chart Placeholder</string>
+                             </property>
+                            </widget>
+                           </item>
+                          </layout>
                          </widget>
                         </item>
-                        <item>
-                         <widget class="QTableWidget" name="activityTypeStatsTable">
-                          <property name="alternatingRowColors">
-                           <bool>true</bool>
+                        <item row="0" column="1">
+                         <widget class="QFrame" name="activityAgeChartFrame">
+                          <property name="styleSheet">
+                           <string notr="true">background:#ffffff; border:1px solid #e0e4e7; border-radius:16px; padding:12px;</string>
                           </property>
-                          <column>
-                           <property name="text">
-                            <string>Activity Type</string>
-                           </property>
-                          </column>
-                          <column>
-                           <property name="text">
-                            <string>Count</string>
-                           </property>
-                          </column>
-                          <column>
-                           <property name="text">
-                            <string>Percentage</string>
-                           </property>
-                          </column>
-                          <column>
-                           <property name="text">
-                            <string>This Month</string>
-                           </property>
-                          </column>
+                          <layout class="QVBoxLayout" name="activityAgeChartLayout">
+                           <item>
+                            <widget class="QLabel" name="activityAgeChartTitle">
+                             <property name="styleSheet">
+                              <string notr="true">font-size:16px; font-weight:600; color:#2c3e50;</string>
+                             </property>
+                             <property name="text">
+                              <string>📊 Age Requirement Distribution</string>
+                             </property>
+                            </widget>
+                           </item>
+                           <item>
+                            <widget class="QLabel" name="activityAgeChartPlaceholder">
+                             <property name="styleSheet">
+                              <string notr="true">color:#95a5a6; font-size:14px; padding:28px; border:2px dashed #bdc3c7; border-radius:12px; text-align:center;</string>
+                             </property>
+                             <property name="text">
+                              <string>Bar Chart Placeholder</string>
+                             </property>
+                            </widget>
+                           </item>
+                          </layout>
                          </widget>
                         </item>
                        </layout>
@@ -3355,8 +3521,8 @@ QComboBox QAbstractItemView {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>636</width>
-                       <height>442</height>
+                       <width>573</width>
+                       <height>422</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="paymentFormMainLayout">
@@ -3693,8 +3859,8 @@ QComboBox QAbstractItemView {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>645</width>
-                       <height>575</height>
+                       <width>629</width>
+                       <height>536</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="paymentStatsContentLayout">

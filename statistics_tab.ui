@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>StatisticsTab</class>
+ <widget class="QWidget" name="StatisticsTab">
+  <property name="geometry">
+   <rect>
+    <x>0</x><y>0</y><width>1280</width><height>820</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Statistics Dashboard</string>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>18</number>
+   </property>
+   <property name="contentsMargins">
+    <rect><left>20</left><top>20</top><right>20</right><bottom>20</bottom></rect>
+   </property>
+
+   <!-- Header Area -->
+   <item>
+    <widget class="QFrame" name="headerFrame">
+     <property name="frameShape"><enum>QFrame::NoFrame</enum></property>
+     <property name="objectName"><string>headerFrame</string></property>
+     <layout class="QVBoxLayout" name="headerLayout">
+      <property name="spacing"><number>6</number></property>
+      <property name="contentsMargins">
+       <rect><left>0</left><top>0</top><right>0</right><bottom>0</bottom></rect>
+      </property>
+      <item>
+       <widget class="QLabel" name="titleLabel">
+        <property name="text"><string>Statistics Dashboard</string></property>
+        <property name="objectName"><string>titleLabel</string></property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="subtitleLabel">
+        <property name="text"><string>Overview of system activity</string></property>
+        <property name="objectName"><string>subtitleLabel</string></property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QFrame" name="headerDivider">
+        <property name="frameShape"><enum>QFrame::HLine</enum></property>
+        <property name="frameShadow"><enum>QFrame::Plain</enum></property>
+        <property name="objectName"><string>headerDivider</string></property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+
+   <!-- KPI Cards Row -->
+   <item>
+    <widget class="QFrame" name="cardsContainer">
+     <property name="objectName"><string>cardsContainer</string></property>
+     <property name="frameShape"><enum>QFrame::NoFrame</enum></property>
+     <layout class="QGridLayout" name="cardsLayout">
+      <property name="horizontalSpacing"><number>14</number></property>
+      <property name="verticalSpacing"><number>14</number></property>
+      <property name="contentsMargins">
+       <rect><left>0</left><top>0</top><right>0</right><bottom>0</bottom></rect>
+      </property>
+      <!-- Card 1 -->
+      <item row="0" column="0">
+       <widget class="QFrame" name="cardUsers">
+        <property name="minimumSize"><size><width>0</width><height>130</height></size></property>
+        <property name="maximumSize"><size><width>16777215</width><height>150</height></size></property>
+        <property name="objectName"><string>card</string></property>
+        <layout class="QVBoxLayout" name="cardUsersLayout">
+         <property name="contentsMargins"><rect><left>16</left><top>14</top><right>16</right><bottom>14</bottom></rect></property>
+         <property name="spacing"><number>6</number></property>
+         <item>
+          <widget class="QLabel" name="iconUsers">
+           <property name="text"><string>👥</string></property>
+           <property name="objectName"><string>iconLabel</string></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="titleUsers">
+           <property name="text"><string>Total Users</string></property>
+           <property name="objectName"><string>cardTitle</string></property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="valueUsers">
+           <property name="text"><string>0</string></property>
+           <property name="objectName"><string>cardValue</string></property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <!-- Card 2 -->
+      <item row="0" column="1">
+       <widget class="QFrame" name="cardServers">
+        <property name="minimumSize"><size><width>0</width><height>130</height></size></property>
+        <property name="maximumSize"><size><width>16777215</width><height>150</height></size></property>
+        <property name="objectName"><string>card</string></property>
+        <layout class="QVBoxLayout" name="cardServersLayout">
+         <property name="contentsMargins"><rect><left>16</left><top>14</top><right>16</right><bottom>14</bottom></rect></property>
+         <property name="spacing"><number>6</number></property>
+         <item><widget class="QLabel" name="iconServers"><property name="text"><string>🖥️</string></property><property name="objectName"><string>iconLabel</string></property></widget></item>
+         <item><widget class="QLabel" name="titleServers"><property name="text"><string>Total Servers</string></property><property name="objectName"><string>cardTitle</string></property></widget></item>
+         <item><widget class="QLabel" name="valueServers"><property name="text"><string>0</string></property><property name="objectName"><string>cardValue</string></property></widget></item>
+        </layout>
+       </widget>
+      </item>
+      <!-- Card 3 -->
+      <item row="0" column="2">
+       <widget class="QFrame" name="cardCommands">
+        <property name="minimumSize"><size><width>0</width><height>130</height></size></property>
+        <property name="maximumSize"><size><width>16777215</width><height>150</height></size></property>
+        <property name="objectName"><string>card</string></property>
+        <layout class="QVBoxLayout" name="cardCommandsLayout">
+         <property name="contentsMargins"><rect><left>16</left><top>14</top><right>16</right><bottom>14</bottom></rect></property>
+         <property name="spacing"><number>6</number></property>
+         <item><widget class="QLabel" name="iconCommands"><property name="text"><string>⚙️</string></property><property name="objectName"><string>iconLabel</string></property></widget></item>
+         <item><widget class="QLabel" name="titleCommands"><property name="text"><string>Commands Today</string></property><property name="objectName"><string>cardTitle</string></property></widget></item>
+         <item><widget class="QLabel" name="valueCommands"><property name="text"><string>0</string></property><property name="objectName"><string>cardValue</string></property></widget></item>
+        </layout>
+       </widget>
+      </item>
+      <!-- Card 4 -->
+      <item row="0" column="3">
+       <widget class="QFrame" name="cardGiveaways">
+        <property name="minimumSize"><size><width>0</width><height>130</height></size></property>
+        <property name="maximumSize"><size><width>16777215</width><height>150</height></size></property>
+        <property name="objectName"><string>card</string></property>
+        <layout class="QVBoxLayout" name="cardGiveawaysLayout">
+         <property name="contentsMargins"><rect><left>16</left><top>14</top><right>16</right><bottom>14</bottom></rect></property>
+         <property name="spacing"><number>6</number></property>
+         <item><widget class="QLabel" name="iconGiveaways"><property name="text"><string>🎁</string></property><property name="objectName"><string>iconLabel</string></property></widget></item>
+         <item><widget class="QLabel" name="titleGiveaways"><property name="text"><string>Active Giveaways</string></property><property name="objectName"><string>cardTitle</string></property></widget></item>
+         <item><widget class="QLabel" name="valueGiveaways"><property name="text"><string>0</string></property><property name="objectName"><string>cardValue</string></property></widget></item>
+        </layout>
+       </widget>
+      </item>
+      <!-- Card 5 -->
+      <item row="0" column="4">
+       <widget class="QFrame" name="cardTournaments">
+        <property name="minimumSize"><size><width>0</width><height>130</height></size></property>
+        <property name="maximumSize"><size><width>16777215</width><height>150</height></size></property>
+        <property name="objectName"><string>card</string></property>
+        <layout class="QVBoxLayout" name="cardTournamentsLayout">
+         <property name="contentsMargins"><rect><left>16</left><top>14</top><right>16</right><bottom>14</bottom></rect></property>
+         <property name="spacing"><number>6</number></property>
+         <item><widget class="QLabel" name="iconTournaments"><property name="text"><string>🏆</string></property><property name="objectName"><string>iconLabel</string></property></widget></item>
+         <item><widget class="QLabel" name="titleTournaments"><property name="text"><string>Tournaments</string></property><property name="objectName"><string>cardTitle</string></property></widget></item>
+         <item><widget class="QLabel" name="valueTournaments"><property name="text"><string>0</string></property><property name="objectName"><string>cardValue</string></property></widget></item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+
+   <!-- Charts Section -->
+   <item>
+    <widget class="QFrame" name="chartsContainer">
+     <property name="objectName"><string>chartsContainer</string></property>
+     <layout class="QGridLayout" name="chartsLayout">
+      <property name="horizontalSpacing"><number>16</number></property>
+      <property name="verticalSpacing"><number>16</number></property>
+      <property name="contentsMargins">
+       <rect><left>0</left><top>0</top><right>0</right><bottom>0</bottom></rect>
+      </property>
+      <!-- Chart 1 -->
+      <item row="0" column="0">
+       <widget class="QFrame" name="chartActivity">
+        <property name="minimumSize"><size><width>0</width><height>300</height></size></property>
+        <property name="objectName"><string>chartFrame</string></property>
+        <layout class="QVBoxLayout" name="chartActivityLayout">
+         <property name="contentsMargins"><rect><left>16</left><top>14</top><right>16</right><bottom>14</bottom></rect></property>
+         <property name="spacing"><number>8</number></property>
+         <item><widget class="QLabel" name="chartActivityTitle"><property name="text"><string>Monthly Activity</string></property><property name="objectName"><string>chartTitle</string></property></widget></item>
+         <item><widget class="QFrame" name="chartActivityPlaceholder"><property name="minimumSize"><size><width>0</width><height>240</height></size></property><property name="objectName"><string>chartPlaceholder</string></property><property name="frameShape"><enum>QFrame::StyledPanel</enum></property></widget></item>
+        </layout>
+       </widget>
+      </item>
+      <!-- Chart 2 -->
+      <item row="0" column="1">
+       <widget class="QFrame" name="chartDistribution">
+        <property name="minimumSize"><size><width>0</width><height>300</height></size></property>
+        <property name="objectName"><string>chartFrame</string></property>
+        <layout class="QVBoxLayout" name="chartDistributionLayout">
+         <property name="contentsMargins"><rect><left>16</left><top>14</top><right>16</right><bottom>14</bottom></rect></property>
+         <property name="spacing"><number>8</number></property>
+         <item><widget class="QLabel" name="chartDistributionTitle"><property name="text"><string>Usage Distribution</string></property><property name="objectName"><string>chartTitle</string></property></widget></item>
+         <item><widget class="QFrame" name="chartDistributionPlaceholder"><property name="minimumSize"><size><width>0</width><height>240</height></size></property><property name="objectName"><string>chartPlaceholder</string></property><property name="frameShape"><enum>QFrame::StyledPanel</enum></property></widget></item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+
+   <!-- Details Table Section -->
+   <item>
+    <widget class="QFrame" name="detailsContainer">
+     <property name="objectName"><string>detailsContainer</string></property>
+     <layout class="QVBoxLayout" name="detailsLayout">
+      <property name="spacing"><number>10</number></property>
+      <property name="contentsMargins"><rect><left>0</left><top>10</top><right>0</right><bottom>0</bottom></rect></property>
+      <item><widget class="QLabel" name="detailsTitle"><property name="text"><string>More Details</string></property><property name="objectName"><string>sectionTitle</string></property></widget></item>
+      <item>
+       <widget class="QTableWidget" name="detailsTable">
+        <property name="columnCount"><number>4</number></property>
+        <property name="rowCount"><number>0</number></property>
+        <column><property name="text"><string>ID</string></property></column>
+        <column><property name="text"><string>Name</string></property></column>
+        <column><property name="text"><string>Status</string></property></column>
+        <column><property name="text"><string>Value</string></property></column>
+        <property name="objectName"><string>detailsTable</string></property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
