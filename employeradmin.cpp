@@ -22,6 +22,11 @@
 #include <QSqlError>
 #include <QTimer>
 #include <QDebug>
+#include <QMessageBox>
+#include <QFileDialog>
+#include <QPainter>
+#include "login.h"
+#include "totpsetupdialog.h"
 
 EmployerAdmin::EmployerAdmin(QWidget *parent)
     : QMainWindow(parent)
@@ -44,6 +49,7 @@ EmployerAdmin::EmployerAdmin(QWidget *parent)
     navigationButtonGroup->addButton(ui->equipmentButton, 2); // Equipment
     navigationButtonGroup->addButton(ui->activitiesButton, 3); // Activities
     navigationButtonGroup->addButton(ui->paymentsButton, 4);   // Payments
+    navigationButtonGroup->addButton(ui->settingsButton, 5);   // Settings
 
     // Initialize management classes
     employeeManager = new Employee(ui, this);
@@ -51,13 +57,17 @@ EmployerAdmin::EmployerAdmin(QWidget *parent)
     activityManager = new Activity(ui, this);
     equipmentManager = new Equipment(ui, this);
     paymentManager  = new Payment(ui, this);
+    emailPanel     = new EmailPanel(this);
 
     // Setup connections
     setupConnections();
 
     // Setup input field validators
     setupInputValidators();
-
+    
+    // Setup settings page
+    setupSettingsPage();
+    
     // Setup tables through management classes
     employeeManager->setupEmployeeTable();
     memberManager->setupMemberTable();
@@ -65,12 +75,33 @@ EmployerAdmin::EmployerAdmin(QWidget *parent)
     equipmentManager->setupEquipmentTable();
     // equipmentManager->setupEquipmentDetailsTable();  <-- REMOVED: Already called in Equipment constructor
     paymentManager->setupPaymentTable();
+    
+    // Setup SMS Panel
+    setupEmailPanel();
+    
+    // Replace the SMS Panel placeholder with actual instance
+    ui->memberSMSTabLayout->replaceWidget(ui->emailPanel, emailPanel);
+    delete ui->emailPanel;  // Remove the placeholder
 
     // Update payment statistics
     paymentManager->populatePaymentStatistics();
 
     // Set initial state
-    ui->stackedWidget->setCurrentIndex(0); // Show employee page first
+    int defaultTab = 0;
+    QString dept = Login::currentUser.department.trimmed().toLower();
+    if (dept == "general administration" || Login::currentUser.isAdmin) {
+        defaultTab = 0; // Employees
+    } else if (dept == "activity management" || dept == "activity") {
+        defaultTab = 3; // Activities
+    } else if (dept == "member management" || dept == "member") {
+        defaultTab = 1; // Members
+    } else if (dept == "equipment") {
+        defaultTab = 2; // Equipment
+    } else if (dept == "transaction") {
+        defaultTab = 4; // Payments
+    }
+    ui->stackedWidget->setCurrentIndex(defaultTab);
+    // Optionally set tab widget index for each section if needed
     ui->employeeTabWidget->setCurrentIndex(0); // Show list tab first
 
     // Set current date for hire date
@@ -109,6 +140,17 @@ EmployerAdmin::EmployerAdmin(QWidget *parent)
 
     // Enable auto refresh (can be disabled later)
     setStatisticsAutoRefreshEnabled(true, 15000); // 15s default
+
+    // Show user info
+    showUserInfo();
+
+    // Update tab visibility based on user role
+    updateTabVisibility();
+
+    // Auto-update user info every 5 seconds
+    QTimer *userInfoTimer = new QTimer(this);
+    connect(userInfoTimer, &QTimer::timeout, this, &EmployerAdmin::refreshUserInfoFromDatabase);
+    userInfoTimer->start(5000);
 }
 
 EmployerAdmin::~EmployerAdmin()
@@ -118,6 +160,7 @@ EmployerAdmin::~EmployerAdmin()
     delete activityManager;
     delete equipmentManager;
     delete paymentManager;
+    delete emailPanel;
     delete ui;
 }
 
@@ -126,8 +169,11 @@ void EmployerAdmin::setupConnections()
     // Navigation buttons
     connect(navigationButtonGroup, &QButtonGroup::idClicked,
             this, [this](int id) {
-                ui->stackedWidget->setCurrentIndex(id);
-                updateNavigationStyle();
+                // Don't switch if settings button is clicked (handled separately)
+                if (id < 5) {
+                    ui->stackedWidget->setCurrentIndex(id);
+                    updateNavigationStyle();
+                }
             });
 
     // Employee management buttons
@@ -169,6 +215,40 @@ void EmployerAdmin::setupConnections()
     connect(ui->addPaymentButton, &QPushButton::clicked, paymentManager, &Payment::onAddPayment);
     connect(ui->clearPaymentFormButton, &QPushButton::clicked, paymentManager, &Payment::onClearPaymentForm);
     connect(ui->paymentSearchLineEdit, &QLineEdit::textChanged, paymentManager, &Payment::onPaymentSearchTextChanged);
+    
+    // Settings page buttons
+    connect(ui->settingsButton, &QPushButton::clicked, this, &EmployerAdmin::onSettingsButtonClicked);
+    connect(ui->setupTwoFactorButton, &QPushButton::clicked, this, &EmployerAdmin::onSetupTwoFactorClicked);
+    connect(ui->disableTwoFactorButton, &QPushButton::clicked, this, &EmployerAdmin::onDisableTwoFactorClicked);
+    
+    // Logout button
+    connect(ui->logoutButton, &QPushButton::clicked, this, &EmployerAdmin::onLogoutClicked);
+    
+    // Setup logout button red hover effect
+    ui->logoutButton->setStyleSheet(
+        "QPushButton#logoutButton {"
+        "    background-color: transparent;"
+        "    border: none;"
+        "    padding: 18px 24px;"
+        "    text-align: left;"
+        "    font-size: 15px;"
+        "    font-weight: 500;"
+        "    color: #34495e;"
+        "    border-radius: 12px;"
+        "    margin: 4px 16px;"
+        "    transition: all 0.3s ease;"
+        "    min-height: 20px;"
+        "}"
+        "QPushButton#logoutButton:hover {"
+        "    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgba(231, 76, 60, 0.12), stop:1 rgba(231, 76, 60, 0.08));"
+        "    color: #e74c3c;"
+        "    transform: translateX(4px);"
+        "    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.15);"
+        "}"
+    );
+    connect(ui->changeProfilePictureButton, &QPushButton::clicked, this, &EmployerAdmin::onChangeProfilePictureClicked);
+    connect(ui->changePasswordButton, &QPushButton::clicked, this, &EmployerAdmin::onChangePasswordClicked);
+    connect(ui->applyThemeButton, &QPushButton::clicked, this, &EmployerAdmin::onApplyThemeClicked);
 }
 
 void EmployerAdmin::onNavigationButtonClicked()
@@ -693,6 +773,8 @@ void EmployerAdmin::setupTabIcons()
 
     ui->memberTabWidget->setTabIcon(0, QIcon(":/icons/icons/list.png"));
     ui->memberTabWidget->setTabIcon(1, QIcon(":/icons/icons/add.png"));
+    ui->memberTabWidget->setTabIcon(2, QIcon(":/icons/icons/statistic.png"));
+    ui->memberTabWidget->setTabIcon(3, QIcon(":/icons/icons/members.png"));
 
     ui->activityTabWidget->setTabIcon(0, QIcon(":/icons/icons/list.png"));
     ui->activityTabWidget->setTabIcon(1, QIcon(":/icons/icons/add.png"));
@@ -837,7 +919,430 @@ void EmployerAdmin::setupInputValidators()
     ui->paymentMemberEdit->setPlaceholderText("12345678 (optional)");
 }
 
+void EmployerAdmin::showUserInfo()
+{
+    // Set user name
+    ui->userNameLabel->setText(Login::currentUser.firstName + " " + Login::currentUser.lastName);
+    // Set user role
+    ui->userRoleLabel->setText(Login::currentUser.department);
+    // Set avatar
+    if (!Login::currentUser.photo.isEmpty()) {
+        QPixmap pixmap;
+        pixmap.loadFromData(Login::currentUser.photo);
+        QPixmap scaled = pixmap.scaled(40, 40, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+        QPixmap circular(40, 40);
+        circular.fill(Qt::transparent);
+        QPainter painter(&circular);
+        painter.setRenderHint(QPainter::Antialiasing);
+        QPainterPath path;
+        path.addEllipse(0, 0, 40, 40);
+        painter.setClipPath(path);
+        painter.drawPixmap(0, 0, scaled);
+        painter.end();
+        ui->userAvatarLabel->setPixmap(circular);
+        ui->userAvatarLabel->setText("");
+    } else {
+        QString initials = Login::currentUser.firstName.left(1).toUpper() + Login::currentUser.lastName.left(1).toUpper();
+        ui->userAvatarLabel->setPixmap(QPixmap());
+        ui->userAvatarLabel->setText(initials);
+    }
+}
+
+void EmployerAdmin::refreshUserInfoFromDatabase() {
+    QSqlQuery query;
+    query.prepare("SELECT FIRST_NAME, LAST_NAME, DEPARTMENT, PHOTO FROM EMPLOYEES WHERE CIN = :cin");
+    query.bindValue(":cin", Login::currentUser.cin);
+    if (query.exec() && query.next()) {
+        Login::currentUser.firstName = query.value(0).toString();
+        Login::currentUser.lastName = query.value(1).toString();
+        Login::currentUser.department = query.value(2).toString();
+        Login::currentUser.photo = query.value(3).toByteArray();
+        showUserInfo();
+    }
+}
+
+void EmployerAdmin::updateTabVisibility()
+{
+    // Always show all navigation buttons
+    ui->employeesButton->setVisible(true);
+    ui->membersButton->setVisible(true);
+    ui->equipmentButton->setVisible(true);
+    ui->activitiesButton->setVisible(true);
+    ui->paymentsButton->setVisible(true);
+
+    QString dept = Login::currentUser.department.trimmed().toLower();
+    if (dept == "general administration" || Login::currentUser.isAdmin) {
+        // General Administration and Admin: all buttons enabled
+        ui->employeesButton->setEnabled(true);
+        ui->membersButton->setEnabled(true);
+        ui->equipmentButton->setEnabled(true);
+        ui->activitiesButton->setEnabled(true);
+        ui->paymentsButton->setEnabled(true);
+    } else if (dept == "activity management") {
+        ui->employeesButton->setEnabled(false);
+        ui->membersButton->setEnabled(false);
+        ui->equipmentButton->setEnabled(false);
+        ui->activitiesButton->setEnabled(true);
+        ui->paymentsButton->setEnabled(false);
+    } else if (dept == "member management") {
+        ui->employeesButton->setEnabled(false);
+        ui->membersButton->setEnabled(true);
+        ui->equipmentButton->setEnabled(false);
+        ui->activitiesButton->setEnabled(false);
+        ui->paymentsButton->setEnabled(false);
+    } else if (dept == "employee") {
+        ui->employeesButton->setEnabled(true);
+        ui->membersButton->setEnabled(false);
+        ui->equipmentButton->setEnabled(false);
+        ui->activitiesButton->setEnabled(false);
+        ui->paymentsButton->setEnabled(false);
+    } else if (dept == "member") {
+        ui->employeesButton->setEnabled(false);
+        ui->membersButton->setEnabled(true);
+        ui->equipmentButton->setEnabled(false);
+        ui->activitiesButton->setEnabled(false);
+        ui->paymentsButton->setEnabled(false);
+    } else if (dept == "equipment") {
+        ui->employeesButton->setEnabled(false);
+        ui->membersButton->setEnabled(false);
+        ui->equipmentButton->setEnabled(true);
+        ui->activitiesButton->setEnabled(false);
+        ui->paymentsButton->setEnabled(false);
+    } else if (dept == "activity") {
+        ui->employeesButton->setEnabled(false);
+        ui->membersButton->setEnabled(false);
+        ui->equipmentButton->setEnabled(false);
+        ui->activitiesButton->setEnabled(true);
+        ui->paymentsButton->setEnabled(false);
+    } else if (dept == "transaction") {
+        ui->employeesButton->setEnabled(false);
+        ui->membersButton->setEnabled(false);
+        ui->equipmentButton->setEnabled(false);
+        ui->activitiesButton->setEnabled(false);
+        ui->paymentsButton->setEnabled(true);
+    } else {
+        // Unknown department: disable all
+        ui->employeesButton->setEnabled(false);
+        ui->membersButton->setEnabled(false);
+        ui->equipmentButton->setEnabled(false);
+        ui->activitiesButton->setEnabled(false);
+        ui->paymentsButton->setEnabled(false);
+    }
+}
+
 void EmployerAdmin::updateNavigationStyle()
 {
-    // Placeholder for future styling
+    // Get current page index
+    int currentIndex = ui->stackedWidget->currentIndex();
+    
+    // Set settings button active style when on settings page
+    if (currentIndex == 5) { // Settings page
+        ui->settingsButton->setStyleSheet(
+            "QPushButton#settingsButton {"
+            "    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #16a5b3, stop:1 #139aa6);"
+            "    color: white;"
+            "    border: none;"
+            "    padding: 18px 24px;"
+            "    text-align: left;"
+            "    font-size: 15px;"
+            "    font-weight: 600;"
+            "    border-radius: 12px;"
+            "    margin: 4px 16px;"
+            "    min-height: 20px;"
+            "    box-shadow: 0 4px 12px rgba(22, 165, 179, 0.25);"
+            "    transform: translateX(6px);"
+            "}"
+            "QPushButton#settingsButton:hover {"
+            "    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #139aa6, stop:1 #0f858f);"
+            "    box-shadow: 0 6px 16px rgba(22, 165, 179, 0.35);"
+            "}"
+        );
+    } else {
+        // Reset settings button to normal style
+        ui->settingsButton->setStyleSheet(
+            "QPushButton#settingsButton {"
+            "    background-color: transparent;"
+            "    border: none;"
+            "    padding: 18px 24px;"
+            "    text-align: left;"
+            "    font-size: 15px;"
+            "    font-weight: 500;"
+            "    color: #34495e;"
+            "    border-radius: 12px;"
+            "    margin: 4px 16px;"
+            "    transition: all 0.3s ease;"
+            "    min-height: 20px;"
+            "}"
+            "QPushButton#settingsButton:hover {"
+            "    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgba(22, 165, 179, 0.12), stop:1 rgba(22, 165, 179, 0.08));"
+            "    color: #16a5b3;"
+            "    transform: translateX(4px);"
+            "    box-shadow: 0 2px 8px rgba(22, 165, 179, 0.15);"
+            "}"
+        );
+    }
+}
+
+void EmployerAdmin::setupSettingsPage()
+{
+    // Load user profile information
+    loadUserProfileInfo();
+    
+    // Update 2FA status
+    updateTwoFactorStatus();
+    
+    // Set up theme combo box
+    ui->themeComboBox->setCurrentIndex(0); // Default to Light Theme
+    
+    // Set up default preferences
+    ui->autoRefreshCheckBox->setChecked(true);
+    ui->notificationsCheckBox->setChecked(true);
+    ui->soundCheckBox->setChecked(false);
+}
+
+void EmployerAdmin::loadUserProfileInfo()
+{
+    // Update the settings page with current user info
+    if (ui->currentUserNameLabel && ui->currentUserRoleLabel) {
+        ui->currentUserNameLabel->setText(ui->userNameLabel->text());
+        ui->currentUserRoleLabel->setText(ui->userRoleLabel->text());
+    }
+    
+    // Set profile picture placeholder
+    if (ui->profilePictureLabel) {
+        QPixmap defaultAvatar(100, 100);
+        defaultAvatar.fill(QColor("#16a5b3"));
+        
+        QPainter painter(&defaultAvatar);
+        painter.setRenderHint(QPainter::Antialiasing);
+        painter.setPen(QPen(Qt::white, 2));
+        painter.setFont(QFont("Arial", 24, QFont::Bold));
+        painter.drawText(defaultAvatar.rect(), Qt::AlignCenter, ui->userAvatarLabel->text());
+        
+        ui->profilePictureLabel->setPixmap(defaultAvatar);
+    }
+}
+
+void EmployerAdmin::updateTwoFactorStatus()
+{
+    // Check if 2FA is enabled for current user
+    QSqlQuery query;
+    query.prepare("SELECT is_enabled FROM employee_totp WHERE employee_cin = ?");
+    query.addBindValue(Login::currentUser.cin);
+    
+    bool is2FAEnabled = false;
+    if (query.exec() && query.next()) {
+        is2FAEnabled = query.value(0).toBool();
+    }
+    
+    // Update UI based on 2FA status
+    if (is2FAEnabled) {
+        ui->twoFactorStatusLabel->setText("✅ Enabled");
+        ui->twoFactorStatusLabel->setStyleSheet("font-size: 14px; font-weight: 600; color: #27ae60;");
+        ui->setupTwoFactorButton->setVisible(false);
+        ui->disableTwoFactorButton->setVisible(true);
+    } else {
+        ui->twoFactorStatusLabel->setText("❌ Disabled");
+        ui->twoFactorStatusLabel->setStyleSheet("font-size: 14px; font-weight: 600; color: #dc3545;");
+        ui->setupTwoFactorButton->setVisible(true);
+        ui->disableTwoFactorButton->setVisible(false);
+    }
+}
+
+void EmployerAdmin::onSettingsButtonClicked()
+{
+    // Switch to settings page
+    ui->stackedWidget->setCurrentIndex(5); // Settings page index
+    
+    // Update navigation button style - uncheck all main navigation buttons
+    for (int i = 0; i < navigationButtonGroup->buttons().size() - 1; ++i) { // -1 to exclude settings button
+        navigationButtonGroup->buttons()[i]->setChecked(false);
+    }
+    
+    // Update navigation styling to show settings as active
+    updateNavigationStyle();
+    
+    // Refresh settings page data
+    loadUserProfileInfo();
+    updateTwoFactorStatus();
+}
+
+void EmployerAdmin::onSetupTwoFactorClicked()
+{
+    // Create and show TOTP setup dialog
+    QString fullName = QString("%1 %2").arg(Login::currentUser.firstName).arg(Login::currentUser.lastName);
+    TOTPSetupDialog *dialog = new TOTPSetupDialog(Login::currentUser.cin, fullName, this);
+    
+    if (dialog->exec() == QDialog::Accepted) {
+        // 2FA was successfully enabled
+        updateTwoFactorStatus();
+        
+        QMessageBox::information(this, "2FA Enabled", 
+            "🎉 Two-Factor Authentication has been successfully enabled for your account!\n\n"
+            "Your account is now more secure. You'll need your authenticator app to log in from now on.\n\n"
+            "Remember to keep your backup codes in a safe place!");
+        
+        qDebug() << "2FA enabled for user:" << Login::currentUser.cin;
+    } else {
+        qDebug() << "2FA setup cancelled by user";
+    }
+    
+    dialog->deleteLater();
+}
+
+void EmployerAdmin::onDisableTwoFactorClicked()
+{
+    QMessageBox::StandardButton reply = QMessageBox::question(this, 
+        "Disable 2FA", 
+        "Are you sure you want to disable Two-Factor Authentication?\n\n"
+        "This will make your account less secure.",
+        QMessageBox::Yes | QMessageBox::No);
+    
+    if (reply == QMessageBox::Yes) {
+        // Remove 2FA from database
+        QSqlQuery query;
+        query.prepare("DELETE FROM employee_totp WHERE employee_cin = ?");
+        query.addBindValue(Login::currentUser.cin);
+        
+        if (query.exec()) {
+            QMessageBox::information(this, "Success", "Two-Factor Authentication has been disabled.");
+            updateTwoFactorStatus();
+        } else {
+            QMessageBox::warning(this, "Error", "Failed to disable 2FA: " + query.lastError().text());
+        }
+    }
+}
+
+void EmployerAdmin::onLogoutClicked()
+{
+    QMessageBox::StandardButton reply = QMessageBox::question(this,
+        "Logout",
+        "Are you sure you want to logout?",
+        QMessageBox::Yes | QMessageBox::No);
+    
+    if (reply == QMessageBox::Yes) {
+        // Close the main window and return to login
+        this->close();
+    }
+}
+
+void EmployerAdmin::onChangeProfilePictureClicked()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+        tr("Select Profile Picture"), "", tr("Image Files (*.png *.jpg *.jpeg *.bmp *.gif)"));
+    
+    if (!fileName.isEmpty()) {
+        QPixmap pixmap(fileName);
+        if (!pixmap.isNull()) {
+            // Scale and crop to circular profile picture
+            QPixmap scaledPixmap = pixmap.scaled(100, 100, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+            
+            QPixmap circularPixmap(100, 100);
+            circularPixmap.fill(Qt::transparent);
+            
+            QPainter painter(&circularPixmap);
+            painter.setRenderHint(QPainter::Antialiasing);
+            painter.setBrush(QBrush(scaledPixmap));
+            painter.setPen(Qt::NoPen);
+            painter.drawEllipse(0, 0, 100, 100);
+            
+            ui->profilePictureLabel->setPixmap(circularPixmap);
+            
+            // TODO: Save profile picture to database
+            QMessageBox::information(this, "Success", "Profile picture updated successfully!");
+        } else {
+            QMessageBox::warning(this, "Error", "Invalid image file selected.");
+        }
+    }
+}
+
+void EmployerAdmin::onChangePasswordClicked()
+{
+    QString currentPassword = ui->currentPasswordLineEdit->text();
+    QString newPassword = ui->newPasswordLineEdit->text();
+    QString confirmPassword = ui->confirmPasswordLineEdit->text();
+    
+    // Validate inputs
+    if (currentPassword.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty()) {
+        QMessageBox::warning(this, "Error", "Please fill in all password fields.");
+        return;
+    }
+    
+    if (newPassword != confirmPassword) {
+        QMessageBox::warning(this, "Error", "New password and confirmation do not match.");
+        return;
+    }
+    
+    if (newPassword.length() < 6) {
+        QMessageBox::warning(this, "Error", "New password must be at least 6 characters long.");
+        return;
+    }
+    
+    // Verify current password
+    QSqlQuery query;
+    query.prepare("SELECT password FROM EMPLOYEES WHERE CIN = ?");
+    query.addBindValue(Login::currentUser.cin);
+    
+    if (query.exec() && query.next()) {
+        QString storedPassword = query.value(0).toString();
+        
+        if (storedPassword != currentPassword) {
+            QMessageBox::warning(this, "Error", "Current password is incorrect.");
+            return;
+        }
+        
+        // Update password
+        QSqlQuery updateQuery;
+        updateQuery.prepare("UPDATE EMPLOYEES SET password = ? WHERE CIN = ?");
+        updateQuery.addBindValue(newPassword);
+        updateQuery.addBindValue(Login::currentUser.cin);
+        
+        if (updateQuery.exec()) {
+            QMessageBox::information(this, "Success", "Password updated successfully!");
+            
+            // Clear password fields
+            ui->currentPasswordLineEdit->clear();
+            ui->newPasswordLineEdit->clear();
+            ui->confirmPasswordLineEdit->clear();
+        } else {
+            QMessageBox::warning(this, "Error", "Failed to update password: " + updateQuery.lastError().text());
+        }
+    } else {
+        QMessageBox::warning(this, "Error", "Failed to verify current password.");
+    }
+}
+
+void EmployerAdmin::onApplyThemeClicked()
+{
+    QString selectedTheme = ui->themeComboBox->currentText();
+    
+    // TODO: Implement theme switching logic
+    QMessageBox::information(this, "Theme Applied", 
+        QString("Theme switched to: %1\n\n"
+                "Theme switching functionality will be implemented in the future.").arg(selectedTheme));
+    
+    // For now, just show a placeholder message
+    // In the future, this would apply different stylesheets based on selection
+}
+
+void EmployerAdmin::setupEmailPanel()
+{
+    // Replace the placeholder widget in the UI with our SMS Panel
+    QWidget* smsTabWidget = ui->memberSMSTab;
+    QVBoxLayout* smsLayout = qobject_cast<QVBoxLayout*>(smsTabWidget->layout());
+    
+    if (smsLayout) {
+        // Remove the placeholder widget
+        QLayoutItem* item = smsLayout->takeAt(0);
+        if (item && item->widget()) {
+            item->widget()->deleteLater();
+            delete item;
+        }
+        
+        // Add our SMS Panel
+        smsLayout->addWidget(emailPanel);
+        
+        // Load member data from database
+        emailPanel->loadMembersFromDatabase();
+    }
 }

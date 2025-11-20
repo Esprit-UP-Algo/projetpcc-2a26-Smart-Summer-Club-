@@ -1,4 +1,4 @@
-QT       += core gui printsupport charts sql
+QT       += core gui printsupport charts sql network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -18,7 +18,12 @@ SOURCES += \
     activity.cpp \
     equipment.cpp \
     payment.cpp \
-    paymentmodel.cpp
+    paymentmodel.cpp \
+    totp.cpp \
+    qrcodegenerator.cpp \
+    totpsetupdialog.cpp \
+    totpinputdialog.cpp \
+    emailpanel.cpp
 
 HEADERS += \
     employeradmin.h \
@@ -29,7 +34,12 @@ HEADERS += \
     activity.h \
     equipment.h \
     payment.h \
-    paymentmodel.h
+    paymentmodel.h \
+    totp.h \
+    qrcodegenerator.h \
+    totpsetupdialog.h \
+    totpinputdialog.h \
+    emailpanel.h
 
 FORMS += \
     employeradmin.ui \

@@ -24,6 +24,7 @@
 #include "activity.h"
 #include "equipment.h"
 #include "payment.h"
+#include "emailpanel.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -38,9 +39,17 @@ class EmployerAdmin : public QMainWindow
 public:
     EmployerAdmin(QWidget *parent = nullptr);
     ~EmployerAdmin();
+    void refreshUserInfoFromDatabase();
 
 private slots:
     void onNavigationButtonClicked();
+    void onSettingsButtonClicked();
+    void onSetupTwoFactorClicked();
+    void onDisableTwoFactorClicked();
+    void onLogoutClicked();
+    void onChangeProfilePictureClicked();
+    void onChangePasswordClicked();
+    void onApplyThemeClicked();
 
 private:
     Ui::EmployerAdmin *ui;
@@ -52,6 +61,7 @@ private:
     Activity *activityManager;
     Equipment *equipmentManager;
     Payment *paymentManager;
+    EmailPanel *emailPanel;
     
     void setupEmployeeStatisticsCharts();
     void buildEmployeeDepartmentChart();
@@ -75,6 +85,13 @@ private:
     void setupTabIcons(); // Set icons for tab widgets
     void setupButtonStyling();  // Apply consistent button styling
     void updateNavigationStyle();
+    void showUserInfo();
+    void updateTabVisibility();
+    void setupSettingsPage();
+    void updateTwoFactorStatus();
+    void setupEmailPanel();
+    void loadUserProfileInfo();
+    
     QChartView *employeeDepartmentChartView = nullptr;
     QChartView *employeeStatusChartView = nullptr;
     QChartView *employeeSalaryChartView = nullptr;

@@ -3,6 +3,20 @@
 #include <QPixmap>
 #include <QPropertyAnimation>
 #include <QTimer>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QVariant>
+#include <QCryptographicHash>
+#include "totp.h"
+#include "totpinputdialog.h"
+#include <QInputDialog>
+#include <QMessageBox>
+#include "totp.h"
+#include <QInputDialog>
+#include <QMessageBox>
+
+
+LoggedInUser Login::currentUser;
 
 Login::Login(QWidget *parent)
     : QDialog(parent)
@@ -26,7 +40,7 @@ Login::Login(QWidget *parent)
     // Start with email page and set focus to email field
     ui->loginStackedWidget->setCurrentIndex(0);
     ui->emailLineEdit->setFocus();
-    ui->emailLineEdit->setText("adembg91@gmail.com");
+    ui->emailLineEdit->setText("k@c.com");
     
     // Clear any error message initially
     clearError();
@@ -80,8 +94,35 @@ void Login::onLoginClicked()
     
     // Validate credentials
     if (validateCredentials(username, password)) {
-        // Login successful - trigger success animation
-        successAnimationLogin();
+        // Check if 2FA is enabled
+        if (checkTwoFactorEnabled(currentUser.cin)) {
+            // Show modern TOTP input dialog
+            TOTPInputDialog *totpDialog = new TOTPInputDialog(this);
+            totpDialog->setTitle("Two-Factor Authentication");
+            totpDialog->setMessage("Enter your 6-digit authentication code from your authenticator app");
+            
+            if (totpDialog->exec() == QDialog::Accepted) {
+                QString totpCode = totpDialog->getCode();
+                
+                if (totpCode.length() == 6 && validateTOTPCode(currentUser.cin, totpCode)) {
+                    // 2FA successful - complete login
+                    successAnimationLogin();
+                } else {
+                    // Invalid TOTP code
+                    totpDialog->showError("Invalid authentication code. Please try again.");
+                    totpDialog->exec();
+                    ui->passwordLineEdit->setFocus();
+                }
+            } else {
+                // User cancelled 2FA
+                ui->passwordLineEdit->setFocus();
+            }
+            
+            totpDialog->deleteLater();
+        } else {
+            // No 2FA required - login successful
+            successAnimationLogin();
+        }
     } else {
         // Login failed - trigger shake animation and error styling
         ui->passwordErrorLabel->setText("Invalid username or password");
@@ -100,10 +141,27 @@ void Login::onBackClicked()
     ui->passwordErrorLabel->clear();
 }
 
-bool Login::validateCredentials(const QString &username, const QString &password)
+bool Login::validateCredentials(const QString &email, const QString &password)
 {
-    // Simple hardcoded validation
-    return (username == ADMIN_USERNAME && password == ADMIN_PASSWORD);
+    QSqlQuery query;
+    query.prepare("SELECT CIN, FIRST_NAME, LAST_NAME, DEPARTMENT, PASSWORD, PHOTO FROM EMPLOYEES WHERE EMAIL = :email");
+    query.bindValue(":email", email);
+    if (!query.exec() || !query.next()) {
+        return false;
+    }
+    QString dbPassword = query.value(4).toString();
+    // If you use hashed passwords, compare hashes here
+    if (dbPassword != password) {
+        return false;
+    }
+    currentUser.cin = query.value(0).toString();
+    currentUser.firstName = query.value(1).toString();
+    currentUser.lastName = query.value(2).toString();
+    currentUser.department = query.value(3).toString();
+    currentUser.photo = query.value(5).toByteArray();
+    // Admin logic: you can use a special email or department
+    currentUser.isAdmin = (email == ADMIN_USERNAME || currentUser.department.toLower() == "admin");
+    return true;
 }
 
 void Login::showError(const QString &message)
@@ -318,5 +376,46 @@ void Login::successAnimationLogin()
     QTimer::singleShot(400, [this]() {
         accept(); // This closes the dialog with QDialog::Accepted result
     });
+}
+
+bool Login::checkTwoFactorEnabled(const QString &cin)
+{
+    QSqlQuery query;
+    query.prepare("SELECT is_enabled FROM employee_totp WHERE employee_cin = ? AND is_enabled = 1");
+    query.bindValue(0, cin);
+    
+    if (query.exec() && query.next()) {
+        return query.value(0).toInt() == 1;
+    }
+    
+    return false; // 2FA not enabled or not found
+}
+
+bool Login::validateTOTPCode(const QString &cin, const QString &code)
+{
+    QSqlQuery query;
+    query.prepare("SELECT secret_key FROM employee_totp WHERE employee_cin = ? AND is_enabled = 1");
+    query.bindValue(0, cin);
+    
+    if (!query.exec() || !query.next()) {
+        return false;
+    }
+    
+    QString base32Secret = query.value(0).toString();
+    QByteArray secret = TOTP::decodeBase32(base32Secret);
+    
+    TOTP totp(secret);
+    bool isValid = totp.validateCode(code);
+    
+    if (isValid) {
+        // Update last_used timestamp
+        QSqlQuery updateQuery;
+        updateQuery.prepare("UPDATE employee_totp SET last_used = ? WHERE employee_cin = ?");
+        updateQuery.bindValue(0, QDateTime::currentDateTime());
+        updateQuery.bindValue(1, cin);
+        updateQuery.exec();
+    }
+    
+    return isValid;
 }
 
