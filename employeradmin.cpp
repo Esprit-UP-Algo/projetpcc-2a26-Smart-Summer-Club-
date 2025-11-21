@@ -31,6 +31,7 @@
 EmployerAdmin::EmployerAdmin(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::EmployerAdmin)
+    , arduino(nullptr)
     , employeeManager(nullptr)
     , memberManager(nullptr)
     , activityManager(nullptr)
@@ -61,6 +62,9 @@ EmployerAdmin::EmployerAdmin(QWidget *parent)
 
     // Setup connections
     setupConnections();
+
+    // Setup Arduino connections
+    setupArduinoConnections();
 
     // Setup input field validators
     setupInputValidators();
@@ -1345,4 +1349,49 @@ void EmployerAdmin::setupEmailPanel()
         // Load member data from database
         emailPanel->loadMembersFromDatabase();
     }
+}
+
+void EmployerAdmin::setArduino(Arduino *ard)
+{
+    arduino = ard;
+    setupArduinoConnections();
+}
+
+void EmployerAdmin::setupArduinoConnections()
+{
+    if (!arduino) return;
+    
+    // Connect Arduino signals
+    connect(arduino, &Arduino::dataReceived,
+            this, &EmployerAdmin::onArduinoDataReceived);
+    connect(arduino, &Arduino::connectionStatusChanged,
+            this, &EmployerAdmin::onArduinoConnectionStatusChanged);
+    connect(arduino, &Arduino::errorOccurred,
+            this, &EmployerAdmin::onArduinoErrorOccurred);
+    
+    qDebug() << "Arduino signals connected to EmployerAdmin";
+}
+
+void EmployerAdmin::onArduinoDataReceived(QByteArray data)
+{
+    qDebug() << "EmployerAdmin received Arduino data:" << data;
+    // Process Arduino data here
+    // Example: if (data.contains("RFID")) { ... }
+}
+
+void EmployerAdmin::onArduinoConnectionStatusChanged(bool connected)
+{
+    if (connected) {
+        qDebug() << "Arduino connected";
+        // Update UI to show Arduino is connected
+    } else {
+        qDebug() << "Arduino disconnected";
+        // Update UI to show Arduino is disconnected
+    }
+}
+
+void EmployerAdmin::onArduinoErrorOccurred(QString errorMessage)
+{
+    qDebug() << "Arduino error:" << errorMessage;
+    // Display error to user or log it
 }

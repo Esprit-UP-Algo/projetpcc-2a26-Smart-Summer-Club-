@@ -25,6 +25,7 @@
 #include "equipment.h"
 #include "payment.h"
 #include "emailpanel.h"
+#include "connexion_ard.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -40,6 +41,7 @@ public:
     EmployerAdmin(QWidget *parent = nullptr);
     ~EmployerAdmin();
     void refreshUserInfoFromDatabase();
+    void setArduino(Arduino *ard);
 
 private slots:
     void onNavigationButtonClicked();
@@ -50,10 +52,14 @@ private slots:
     void onChangeProfilePictureClicked();
     void onChangePasswordClicked();
     void onApplyThemeClicked();
+    void onArduinoDataReceived(QByteArray data);
+    void onArduinoConnectionStatusChanged(bool connected);
+    void onArduinoErrorOccurred(QString errorMessage);
 
 private:
     Ui::EmployerAdmin *ui;
     QButtonGroup *navigationButtonGroup;
+    Arduino *arduino;
     
     // Management class instances
     Employee *employeeManager;
@@ -91,6 +97,7 @@ private:
     void updateTwoFactorStatus();
     void setupEmailPanel();
     void loadUserProfileInfo();
+    void setupArduinoConnections();
     
     QChartView *employeeDepartmentChartView = nullptr;
     QChartView *employeeStatusChartView = nullptr;
