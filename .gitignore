@@ -1,0 +1,11 @@
+# Ignore sensitive files with API keys
+passwords.txt
+
+# Ignore environment files
+.env
+*.env
+config.ini
+
+# Ignore any credentials files
+*credentials*
+*secrets*

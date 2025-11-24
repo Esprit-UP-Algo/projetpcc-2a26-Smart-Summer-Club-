@@ -1,4 +1,5 @@
 #include "emailpanel.h"
+#include "Connection.h"
 #include <QApplication>
 #include <QMessageBox>
 #include <QDateTime>
@@ -9,8 +10,14 @@
 #include <QUrlQuery>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonArray>
 #include <QTimer>
 #include <QRegularExpression>
+#include <QTcpSocket>
+#include <QSslSocket>
+#include <QEventLoop>
+#include <QFile>
+#include <QFileInfo>
 
 EmailPanel::EmailPanel(QWidget *parent)
     : QWidget(parent)
@@ -18,11 +25,31 @@ EmailPanel::EmailPanel(QWidget *parent)
     , m_selectedMemberCount(0)
     , m_characterCount(0)
     , m_estimatedCost(0.0)
+    , m_smtpSocket(nullptr)
+    , m_smtpState(0)
+    , m_lastMemberCount(0)
 {
     setupUI();
     applyStyles();
     loadMembers();
     loadTemplates();
+    
+    // Setup auto-refresh timer for database changes
+    m_refreshTimer = new QTimer(this);
+    m_refreshTimer->setInterval(30000); // Check every 30 seconds
+    connect(m_refreshTimer, &QTimer::timeout, this, &EmailPanel::checkForDatabaseUpdates);
+    m_refreshTimer->start();
+    
+    // Setup statistics refresh timer
+    m_statsTimer = new QTimer(this);
+    m_statsTimer->setInterval(60000); // Update every minute
+    connect(m_statsTimer, &QTimer::timeout, this, &EmailPanel::updateEmailStatistics);
+    m_statsTimer->start();
+    
+    // Load initial statistics
+    updateEmailStatistics();
+    
+    qDebug() << "📊 Email Panel initialized with auto-refresh enabled";
 }
 
 void EmailPanel::setupUI()
@@ -115,8 +142,33 @@ void EmailPanel::setupMemberList()
         "}"
     );
     
+    // Refresh button
+    m_refreshButton = new QPushButton("🔄 Refresh");
+    m_refreshButton->setStyleSheet(
+        "QPushButton {"
+        "   padding: 8px 12px;"
+        "   border: 2px solid #27ae60;"
+        "   border-radius: 6px;"
+        "   font-size: 14px;"
+        "   font-weight: bold;"
+        "   background: #27ae60;"
+        "   color: white;"
+        "   min-width: 80px;"
+        "}"
+        "QPushButton:hover {"
+        "   background: #229954;"
+        "   border-color: #229954;"
+        "}"
+        "QPushButton:pressed {"
+        "   background: #1e8449;"
+        "   border-color: #1e8449;"
+        "}"
+    );
+    m_refreshButton->setToolTip("Refresh member list from database");
+    
     searchLayout->addWidget(m_searchEdit, 2);
     searchLayout->addWidget(m_filterComboBox, 1);
+    searchLayout->addWidget(m_refreshButton, 0);
     
     // Select all checkbox
     m_selectAllCheckBox = new QCheckBox("Select All");
@@ -189,6 +241,7 @@ void EmailPanel::setupMemberList()
     connect(m_searchEdit, &QLineEdit::textChanged, this, &EmailPanel::onSearchTextChanged);
     connect(m_filterComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), 
             this, &EmailPanel::onFilterChanged);
+    connect(m_refreshButton, &QPushButton::clicked, this, &EmailPanel::onRefreshMembersClicked);
     connect(m_selectAllCheckBox, &QCheckBox::toggled, this, &EmailPanel::onSelectAllMembers);
     connect(m_memberListWidget, &QListWidget::itemChanged, this, &EmailPanel::onMemberSelectionChanged);
 }
@@ -251,7 +304,7 @@ void EmailPanel::setupRightPanel()
     m_rightLayout->setSpacing(15);
     
     setupMessageComposer();
-    setupTemplatesSection();
+    setupAttachmentSection();
 }
 
 void EmailPanel::setupMessageComposer()
@@ -269,7 +322,7 @@ void EmailPanel::setupMessageComposer()
     m_templateComboBox = new QComboBox();
     m_templateComboBox->addItems({"Select Template...", "Welcome Message", 
                                  "Payment Reminder", "Activity Alert", 
-                                 "Membership Expiry", "Custom Message"});
+                                 "Membership Expiry", "Summer Activities", "Custom Message"});
     m_templateComboBox->setStyleSheet(
         "QComboBox {"
         "   padding: 8px 12px;"
@@ -390,18 +443,39 @@ void EmailPanel::setupMessageComposer()
             [this](bool checked) { m_scheduleDateTimeEdit->setEnabled(checked); });
 }
 
-void EmailPanel::setupTemplatesSection()
+void EmailPanel::setupAttachmentSection()
 {
-    // Templates group
-    m_templatesGroup = new QGroupBox("📝 Quick Templates");
-    m_templatesLayout = new QVBoxLayout(m_templatesGroup);
+    // Attachment group
+    m_attachmentGroup = new QGroupBox("📎 Attachments (Optional)");
+    m_attachmentLayout = new QVBoxLayout(m_attachmentGroup);
     
-    m_templatesListWidget = new QListWidget();
-    m_templatesListWidget->setStyleSheet(
+    // Add attachment button
+    m_addAttachmentButton = new QPushButton("+ Add File");
+    m_addAttachmentButton->setStyleSheet(
+        "QPushButton {"
+        "   background: rgba(52, 152, 219, 0.1);"
+        "   color: #3498db;"
+        "   border: 2px solid rgba(52, 152, 219, 0.3);"
+        "   padding: 10px 20px;"
+        "   border-radius: 6px;"
+        "   font-weight: bold;"
+        "   font-size: 14px;"
+        "}"
+        "QPushButton:hover {"
+        "   background: rgba(52, 152, 219, 0.2);"
+        "   border-color: #3498db;"
+        "}"
+    );
+    
+    // Attachments list
+    m_attachmentListWidget = new QListWidget();
+    m_attachmentListWidget->setStyleSheet(
         "QListWidget {"
         "   border: 2px solid #e1e5e9;"
         "   border-radius: 8px;"
         "   background: white;"
+        "   min-height: 80px;"
+        "   max-height: 120px;"
         "}"
         "QListWidget::item {"
         "   padding: 6px 10px;"
@@ -409,18 +483,58 @@ void EmailPanel::setupTemplatesSection()
         "   font-size: 13px;"
         "}"
         "QListWidget::item:hover {"
-        "   background: rgba(22, 165, 179, 0.05);"
+        "   background: rgba(231, 76, 60, 0.05);"
         "}"
         "QListWidget::item:selected {"
-        "   background: rgba(22, 165, 179, 0.1);"
-        "   color: #16a5b3;"
-        "   font-weight: bold;"
+        "   background: rgba(231, 76, 60, 0.1);"
+        "   color: #e74c3c;"
         "}"
     );
-    m_templatesListWidget->setMaximumHeight(150);
     
-    m_templatesLayout->addWidget(m_templatesListWidget);
-    m_rightLayout->addWidget(m_templatesGroup);
+    // Clear attachments button
+    m_clearAttachmentsButton = new QPushButton("🗑️ Clear All");
+    m_clearAttachmentsButton->setStyleSheet(
+        "QPushButton {"
+        "   background: rgba(231, 76, 60, 0.1);"
+        "   color: #e74c3c;"
+        "   border: 2px solid rgba(231, 76, 60, 0.3);"
+        "   padding: 8px 16px;"
+        "   border-radius: 6px;"
+        "   font-weight: bold;"
+        "}"
+        "QPushButton:hover {"
+        "   background: rgba(231, 76, 60, 0.2);"
+        "   border-color: #e74c3c;"
+        "}"
+    );
+    m_clearAttachmentsButton->setEnabled(false);
+    
+    // Attachment info label
+    m_attachmentInfoLabel = new QLabel("No attachments selected");
+    m_attachmentInfoLabel->setStyleSheet(
+        "color: #6c757d;"
+        "font-size: 12px;"
+        "padding: 5px;"
+        "background: rgba(108, 117, 125, 0.1);"
+        "border-radius: 4px;"
+    );
+    m_attachmentInfoLabel->setAlignment(Qt::AlignCenter);
+    
+    // Layout
+    QHBoxLayout *buttonLayout = new QHBoxLayout();
+    buttonLayout->addWidget(m_addAttachmentButton);
+    buttonLayout->addWidget(m_clearAttachmentsButton);
+    
+    m_attachmentLayout->addLayout(buttonLayout);
+    m_attachmentLayout->addWidget(m_attachmentListWidget);
+    m_attachmentLayout->addWidget(m_attachmentInfoLabel);
+    
+    m_rightLayout->addWidget(m_attachmentGroup);
+    
+    // Connect signals
+    connect(m_addAttachmentButton, &QPushButton::clicked, this, &EmailPanel::onAddAttachmentClicked);
+    connect(m_clearAttachmentsButton, &QPushButton::clicked, this, &EmailPanel::onClearAttachmentsClicked);
+    connect(m_attachmentListWidget, &QListWidget::itemDoubleClicked, this, &EmailPanel::onRemoveAttachmentClicked);
 }
 
 void EmailPanel::setupStatusBar()
@@ -553,7 +667,7 @@ void EmailPanel::applyStyles()
     m_memberGroup->setStyleSheet(groupBoxStyle);
     m_historyGroup->setStyleSheet(groupBoxStyle);
     m_composerGroup->setStyleSheet(groupBoxStyle);
-    m_templatesGroup->setStyleSheet(groupBoxStyle);
+    m_attachmentGroup->setStyleSheet(groupBoxStyle);
     m_scheduleGroup->setStyleSheet(groupBoxStyle);
     
     // Splitter styling
@@ -577,28 +691,29 @@ void EmailPanel::loadMembers()
 
 void EmailPanel::loadTemplates()
 {
-    // Initialize template contents
+    // Initialize HTML template contents with dynamic placeholders
     m_templateContents["Welcome Message"] = 
-        "Hi {name}! Welcome to Summer Club! Your {membership_type} membership is now active. "
-        "We're excited to have you join our community!";
+        "We're thrilled to welcome you to our **Summer Club 2025**! Your {membership_type} membership is now active. "
+        "Join us for a season full of exciting activities, learning opportunities, and unforgettable memories.";
     
     m_templateContents["Payment Reminder"] = 
-        "Hi {name}, your Summer Club payment of ${balance} is due soon. "
-        "Please visit our office or pay online to avoid service interruption.";
+        "Your Summer Club payment reminder! Your {membership_type} payment of ${balance} is due soon. "
+        "Please visit our office or pay online to ensure uninterrupted access to all club activities and services.";
     
     m_templateContents["Activity Alert"] = 
-        "Hi {name}! There's an update about our Summer Club activities. "
-        "Check our app or visit us for more details.";
+        "Exciting news about our Summer Club activities! We have new programs and events designed just for our members. "
+        "Don't miss out on swimming lessons, sports tournaments, arts & crafts, and outdoor adventures.";
     
     m_templateContents["Membership Expiry"] = 
-        "Hi {name}, your Summer Club membership expires on {expiry_date}. "
-        "Renew now to continue enjoying our services!";
+        "Important notice about your Summer Club membership! Your {membership_type} membership expires on {expiry_date}. "
+        "Renew now to continue enjoying our summer activities, facilities, and exclusive member benefits.";
+        
+    m_templateContents["Summer Activities"] = 
+        "Get ready for an amazing summer at Summer Club 2025! We have incredible activities planned including swimming, "
+        "sports, arts & crafts, outdoor adventures, and special events. Your membership gives you access to all facilities.";
     
-    // Populate templates list
-    m_templatesListWidget->clear();
-    for (auto it = m_templateContents.begin(); it != m_templateContents.end(); ++it) {
-        m_templatesListWidget->addItem("📄 " + it.key());
-    }
+    // Templates are now loaded only for the dropdown combo box
+    // Attachment section replaces the template list widget
 }
 
 // Slot implementations
@@ -712,33 +827,193 @@ void EmailPanel::onCreateTemplateClicked()
 
 void EmailPanel::onTestAPIClicked()
 {
-    // Test textbelt API with a simple request
-    QString testMessage = "Test Email from Summer Club Management System";
-    QString testEmail = "test@example.com"; // Test email address
+    // Test Infobip API with a simple request
+    QString testMessage = "🧪 Test Email from Summer Club Management System\n\nThis is a test email sent via Infobip API to verify the email system is working correctly.\n\nTimestamp: " + QDateTime::currentDateTime().toString();
+    QString testEmail = "khalil27805@gmail.com"; // Your test email address
     
-    QMessageBox::information(this, "API Test", 
-        "Testing textbelt connection...\nThis will validate email system configuration.");
+    QMessageBox::information(this, "Infobip API Test", 
+        "Testing Infobip email API...\nThis will validate your email system configuration.");
     
-    qDebug() << "=== Starting API Test ===";
+    qDebug() << "=== Starting Infobip API Test ===";
     
-    bool result = sendSingleEmail(testEmail, "Test Email", testMessage);
+    bool result = sendEmailInfobip(testEmail, "🧪 Summer Club - Infobip API Test", testMessage);
     
     if (result) {
-        QMessageBox::information(this, "API Test Success", 
-            "✅ textbelt API is working!\n\n"
-            "The Email system is functioning correctly.\n"
-            "Check the console output for detailed logs.");
+        QMessageBox::information(this, "Infobip API Test Success", 
+            "✅ Infobip API is working perfectly!\n\n"
+            "Your email system is configured correctly.\n"
+            "Check your email inbox for the test message!");
     } else {
-        QMessageBox::warning(this, "API Test Failed", 
-            "❌ textbelt API test failed.\n\n"
+        QMessageBox::warning(this, "Infobip API Test Failed", 
+            "❌ Infobip API test failed!\n\n"
             "Check the console output for detailed error information.\n\n"
             "Common issues:\n"
-            "• Already used today's free Email\n"
+            "• API key expired or invalid\n"
             "• Network/firewall blocking\n"
-            "• API temporarily unavailable");
+            "• Insufficient account credits\n"
+            "• Sender email not verified");
     }
     
     qDebug() << "=== API Test Complete ===";
+}
+
+void EmailPanel::onAddAttachmentClicked()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+        "Select File to Attach",
+        "",
+        "All Files (*.*);;"
+        "Documents (*.pdf *.doc *.docx *.txt);;"
+        "Images (*.png *.jpg *.jpeg *.gif *.bmp);;"
+        "Spreadsheets (*.xls *.xlsx *.csv)");
+    
+    if (!fileName.isEmpty()) {
+        // Check if file already exists in attachments
+        if (m_attachmentPaths.contains(fileName)) {
+            QMessageBox::information(this, "File Already Attached", 
+                "This file is already attached to the email.");
+            return;
+        }
+        
+        // Check file size (limit to 10MB)
+        QFileInfo fileInfo(fileName);
+        qint64 fileSize = fileInfo.size();
+        const qint64 maxSize = 10 * 1024 * 1024; // 10MB
+        
+        if (fileSize > maxSize) {
+            QMessageBox::warning(this, "File Too Large", 
+                QString("File size (%1 MB) exceeds the 10MB limit.\nPlease select a smaller file.")
+                .arg(fileSize / (1024.0 * 1024.0), 0, 'f', 1));
+            return;
+        }
+        
+        // Add to attachments
+        m_attachmentPaths.append(fileName);
+        
+        // Update UI
+        QString displayName = fileInfo.fileName();
+        QString sizeStr = QString("(%1 KB)").arg(fileSize / 1024.0, 0, 'f', 1);
+        
+        QListWidgetItem *item = new QListWidgetItem(QString("📎 %1 %2").arg(displayName, sizeStr));
+        item->setData(Qt::UserRole, fileName); // Store full path
+        item->setToolTip(QString("Full path: %1\nDouble-click to remove").arg(fileName));
+        m_attachmentListWidget->addItem(item);
+        
+        updateAttachmentInfo();
+        
+        qDebug() << "📎 Attachment added:" << displayName << "(" << sizeStr << ")";
+    }
+}
+
+void EmailPanel::onClearAttachmentsClicked()
+{
+    if (m_attachmentPaths.isEmpty()) {
+        return;
+    }
+    
+    QMessageBox::StandardButton reply = QMessageBox::question(this,
+        "Clear Attachments",
+        QString("Remove all %1 attachments?").arg(m_attachmentPaths.size()),
+        QMessageBox::Yes | QMessageBox::No);
+    
+    if (reply == QMessageBox::Yes) {
+        m_attachmentPaths.clear();
+        m_attachmentListWidget->clear();
+        updateAttachmentInfo();
+        qDebug() << "📎 All attachments cleared";
+    }
+}
+
+void EmailPanel::onRemoveAttachmentClicked(QListWidgetItem* item)
+{
+    if (!item) return;
+    
+    QString filePath = item->data(Qt::UserRole).toString();
+    QString fileName = QFileInfo(filePath).fileName();
+    
+    QMessageBox::StandardButton reply = QMessageBox::question(this,
+        "Remove Attachment",
+        QString("Remove \"%1\" from attachments?").arg(fileName),
+        QMessageBox::Yes | QMessageBox::No);
+    
+    if (reply == QMessageBox::Yes) {
+        m_attachmentPaths.removeAll(filePath);
+        delete item;
+        updateAttachmentInfo();
+        qDebug() << "📎 Attachment removed:" << fileName;
+    }
+}
+
+void EmailPanel::updateAttachmentInfo()
+{
+    if (m_attachmentPaths.isEmpty()) {
+        m_attachmentInfoLabel->setText("No attachments selected");
+        m_attachmentInfoLabel->setStyleSheet(
+            "color: #6c757d;"
+            "font-size: 12px;"
+            "padding: 5px;"
+            "background: rgba(108, 117, 125, 0.1);"
+            "border-radius: 4px;"
+        );
+        m_clearAttachmentsButton->setEnabled(false);
+    } else {
+        // Calculate total size
+        qint64 totalSize = 0;
+        for (const QString& path : m_attachmentPaths) {
+            totalSize += QFileInfo(path).size();
+        }
+        
+        QString sizeStr;
+        if (totalSize < 1024 * 1024) {
+            sizeStr = QString("%1 KB").arg(totalSize / 1024.0, 0, 'f', 1);
+        } else {
+            sizeStr = QString("%1 MB").arg(totalSize / (1024.0 * 1024.0), 0, 'f', 1);
+        }
+        
+        m_attachmentInfoLabel->setText(QString("%1 file(s) attached • %2")
+            .arg(m_attachmentPaths.size()).arg(sizeStr));
+        m_attachmentInfoLabel->setStyleSheet(
+            "color: #27ae60;"
+            "font-size: 12px;"
+            "padding: 5px;"
+            "background: rgba(39, 174, 96, 0.1);"
+            "border-radius: 4px;"
+        );
+        m_clearAttachmentsButton->setEnabled(true);
+    }
+}
+
+void EmailPanel::onRefreshMembersClicked()
+{
+    // Show loading feedback
+    m_refreshButton->setText("🔄 Refreshing...");
+    m_refreshButton->setEnabled(false);
+    
+    // Force refresh from database
+    qDebug() << "🔄 Manual refresh requested - reloading members from database";
+    
+    // Clear current selections
+    m_selectAllCheckBox->setChecked(false);
+    
+    // Reload members from database
+    loadMembers();
+    
+    // Update member count for auto-refresh tracking
+    if (!m_allMembers.isEmpty()) {
+        m_lastMemberCount = m_allMembers.size();
+        qDebug() << "✅ Manual refresh complete - loaded" << m_lastMemberCount << "members";
+        
+        // Show success feedback briefly
+        m_refreshButton->setText("✅ Updated!");
+        QTimer::singleShot(1500, [this]() {
+            m_refreshButton->setText("🔄 Refresh");
+            m_refreshButton->setEnabled(true);
+        });
+    } else {
+        qDebug() << "⚠️ No members loaded during refresh";
+        m_refreshButton->setText("🔄 Refresh");
+        m_refreshButton->setEnabled(true);
+    }
 }
 
 void EmailPanel::updateMemberCount()
@@ -988,6 +1263,92 @@ QString EmailPanel::formatEmailAddress(const QString& email)
     return cleanEmail;
 }
 
+QString EmailPanel::generateHTMLEmail(const QString& content, const QString& memberName, const QString& membershipType, const QStringList& attachments)
+{
+    // Base HTML template with Summer Club 2025 styling
+    QString htmlTemplate = R"(
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Summer Club 2025</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; padding:0; background-color:#f4f4f4; }
+    .container { max-width:600px; margin:20px auto; background-color:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 4px 8px rgba(0,0,0,0.1); }
+    .header {
+      background: linear-gradient(135deg, #a069b0, #ffb347);
+      color:white;
+      text-align:center;
+      padding:30px 20px;
+      position: relative;
+    }
+    .header img { width:100%; border-bottom:2px solid white; border-radius:10px 10px 0 0; }
+    .header h1 { margin:20px 0 5px 0; font-size:28px; }
+    .header p { margin:0; font-size:16px; }
+    .content { padding:20px; color:#333333; line-height:1.6; }
+    .content h2 { color:#a069b0; }
+    .button { display:inline-block; padding:12px 20px; margin:20px 0; background-color:#a069b0; color:white; text-decoration:none; border-radius:5px; }
+    .footer { text-align:center; font-size:12px; color:#888888; padding:15px; background-color:#f4f4f4; }
+    ul { padding-left:20px; }
+    .highlight { background-color: #fff3cd; padding: 10px; border-left: 4px solid #a069b0; margin: 15px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="https://cdn.discordapp.com/attachments/1355329351566102581/1442219551805931611/ABS2GSmxSmsPinmZXsfQnFcOUR1PV1wzq7sndtQ8ieGVZdwxO1M74WAPiUIfWZuDM-45AKUm4M1DYXqR-CQ8cqNiwyzMgYtuDF4VbkNJE3tTuF-n81NSXXtUGuicfQGeTWpdPXRfJS5zGe5ZIC8qO9c9nG24WYC8TEtGFQ8MgX29Aqm_iCZTIws1024-rj.png?ex=6924a320&is=692351a0&hm=3081103ca2272fecd3a1b071e23142c36a25445da5405791ca0570f7b3fe575a&" alt="Summer Fun Banner">
+      <h1>Summer Club 2025</h1>
+      <p>Adventure, Fun & Learning Await!</p>
+    </div>
+    <div class="content">
+      <h2>Hello {MEMBER_NAME},</h2>
+      <div class="highlight">
+        {MAIN_CONTENT}
+      </div>
+      <h3>Your Membership Details:</h3>
+      <ul>
+        <li><strong>Plan:</strong> {MEMBERSHIP_TYPE}</li>
+        <li><strong>Status:</strong> Active</li>
+        <li><strong>Expires:</strong> {EXPIRY_DATE}</li>
+      </ul>
+      <p><strong>Club Location:</strong> Summer Club Center<br>
+      <strong>Contact:</strong> SummerClub@selfserve.worlds-connected.co</p>
+      {ATTACHMENTS_SECTION}
+      <a href="mailto:SummerClub@selfserve.worlds-connected.co" class="button">Contact Us for More Info</a>
+      <p>Thank you for being part of our Summer Club family!</p>
+    </div>
+    <div class="footer">
+      <p>Summer Club 2025 | SummerClub@selfserve.worlds-connected.co | +216 72 797 221</p>
+      <p>This email was sent to {EMAIL_ADDRESS}. If you received this by mistake, please ignore it.</p>
+    </div>
+  </div>
+</body>
+</html>
+)";
+    
+    // Replace placeholders with actual data
+    htmlTemplate.replace("{MEMBER_NAME}", memberName);
+    htmlTemplate.replace("{MAIN_CONTENT}", content);
+    htmlTemplate.replace("{MEMBERSHIP_TYPE}", membershipType);
+    
+    // Add attachments section if attachments exist
+    QString attachmentsSection = "";
+    if (!attachments.isEmpty()) {
+        attachmentsSection = "<div class='highlight'><h3>📎 Attached Files:</h3><ul>";
+        for (const QString& filePath : attachments) {
+            QFileInfo fileInfo(filePath);
+            QString fileName = fileInfo.fileName();
+            QString fileSize = QString::number(fileInfo.size() / 1024.0, 'f', 1) + " KB";
+            attachmentsSection += QString("<li><strong>%1</strong> (%2)</li>").arg(fileName, fileSize);
+        }
+        attachmentsSection += "</ul><p><em>Please find the attached files with this email.</em></p></div>";
+    }
+    htmlTemplate.replace("{ATTACHMENTS_SECTION}", attachmentsSection);
+    
+    return htmlTemplate;
+}
+
 void EmailPanel::sendEmailToSelectedMembers()
 {
     QString message = m_messageTextEdit->toPlainText();
@@ -1035,14 +1396,44 @@ void EmailPanel::sendEmailToSelectedMembers()
             break;
         }
         
-        // Personalize message with member data
-        QString personalizedMessage = message;
-        personalizedMessage.replace("{name}", member.firstName + " " + member.lastName);
-        personalizedMessage.replace("{first_name}", member.firstName);
-        personalizedMessage.replace("{membership_type}", member.subscriptionPlan);
-        personalizedMessage.replace("{email}", member.email);
-        personalizedMessage.replace("{balance}", "0.00"); // Placeholder
-        personalizedMessage.replace("{expiry_date}", "Dec 31, 2025"); // Placeholder
+        // Calculate dynamic expiry date based on subscription plan
+        QDate currentDate = QDate::currentDate();
+        QDate expiryDate;
+        
+        QString planLower = member.subscriptionPlan.toLower();
+        if (planLower.contains("daily")) {
+            expiryDate = currentDate.addDays(1);
+        } else if (planLower.contains("weekly")) {
+            expiryDate = currentDate.addDays(7);
+        } else if (planLower.contains("monthly") || planLower.contains("month")) {
+            expiryDate = currentDate.addDays(30);
+        } else if (planLower.contains("annual") || planLower.contains("yearly") || planLower.contains("year")) {
+            expiryDate = currentDate.addDays(365);
+        } else {
+            // Default to monthly for unknown plans
+            expiryDate = currentDate.addDays(30);
+        }
+        
+        QString formattedExpiryDate = expiryDate.toString("MMM dd, yyyy");
+        
+        // Personalize message content with member data
+        QString personalizedContent = message;
+        personalizedContent.replace("{name}", member.firstName + " " + member.lastName);
+        personalizedContent.replace("{first_name}", member.firstName);
+        personalizedContent.replace("{membership_type}", member.subscriptionPlan);
+        personalizedContent.replace("{email}", member.email);
+        personalizedContent.replace("{balance}", "0.00"); // Placeholder
+        personalizedContent.replace("{expiry_date}", formattedExpiryDate);
+        
+        // Generate full HTML email using template
+        QString htmlEmail = generateHTMLEmail(personalizedContent, 
+                                              member.firstName + " " + member.lastName,
+                                              member.subscriptionPlan,
+                                              m_attachmentPaths);
+        
+        // Replace remaining placeholders in HTML template
+        htmlEmail.replace("{EXPIRY_DATE}", formattedExpiryDate);
+        htmlEmail.replace("{EMAIL_ADDRESS}", member.email);
         
         // Format and validate email address
         QString formattedEmail = formatEmailAddress(member.email);
@@ -1051,8 +1442,8 @@ void EmailPanel::sendEmailToSelectedMembers()
             continue; // Skip this member
         }
         
-        // Send email via SMTP
-        if (sendSingleEmail(formattedEmail, "Summer Club Update", personalizedMessage)) {
+        // Send HTML email via API with attachments
+        if (sendSingleEmail(formattedEmail, "Summer Club 2025 - Update", htmlEmail, m_attachmentPaths)) {
             successCount++;
         }
         
@@ -1079,55 +1470,533 @@ void EmailPanel::sendEmailToSelectedMembers()
 
 bool EmailPanel::sendSingleEmail(const QString& emailAddress, const QString& subject, const QString& htmlContent, const QStringList& attachments)
 {
-    Q_UNUSED(attachments); // Not implemented yet
-    // Try multiple Email services in order of preference
-    QStringList smtpServices = {
-        "smtp.gmail.com:587",  // API endpoint (may have less protection)
-        "smtp-mail.outlook.com:587",      // Original endpoint (Cloudflare protected)
-        "smtp.office365.com:587"        // HTTP fallback (less likely to be protected)
-    };
+    qDebug() << "📧 Sending email via Infobip API to:" << emailAddress;
+    qDebug() << "📎 Attachments count:" << attachments.size();
     
-    for (const QString& serviceUrl : smtpServices) {
-        if (tryEmailSMTP(serviceUrl, emailAddress, subject + "\n\n" + htmlContent)) {
-            return true;
-        }
-        // Small delay before trying next service
-        QThread::msleep(500);
-    }
-    
-    // If all services fail, provide detailed information and simulation option
-    QMessageBox msgBox(this);
-    msgBox.setWindowTitle("Email Service Issues Detected");
-    msgBox.setIcon(QMessageBox::Warning);
-    msgBox.setText("🚫 All Email services are currently blocked");
-    msgBox.setInformativeText(
-        QString("Diagnostic Information:\n"
-               "• HTTP 403 errors indicate Cloudflare protection\n"
-               "• Binary/compressed responses detected\n"
-               "• All endpoints (%1 services) failed\n\n"
-               "📱 Target: %2\n"
-               "💬 Message: %3\n\n"
-               "Would you like to simulate this Email?\n"
-               "(Tracks the action without real delivery)")
-        .arg(smtpServices.size())
-        .arg(emailAddress)
-        .arg((subject + " " + htmlContent).left(50) + ((subject + " " + htmlContent).length() > 50 ? "..." : "")));
-    
-    QPushButton *simulateButton = msgBox.addButton("Simulate Email", QMessageBox::YesRole);
-    msgBox.addButton("Cancel", QMessageBox::NoRole);
-    
-    msgBox.exec();
-    
-    if (msgBox.clickedButton() == simulateButton) {
-        // Simulate Email sending with realistic delay
-        QThread::msleep(800); // Simulate API response time
-        qDebug() << "✅ SIMULATED Email to" << emailAddress << ":" << (subject + " " + htmlContent);
-        return true;
-    }
-    
-    return false;
+    // Use Infobip API with attachments support
+    return sendEmailInfobip(emailAddress, subject, htmlContent, attachments);
 }
 
+// Infobip API Implementation Methods
+bool EmailPanel::sendEmailInfobip(const QString& emailAddress, const QString& subject, const QString& htmlContent, const QStringList& attachments)
+{
+    qDebug() << "📧 Sending email via Infobip API to:" << emailAddress;
+    qDebug() << "📝 Subject:" << subject;
+    
+    // Prepare Infobip API request
+    QUrl url("https://jjk2wk.api.infobip.com/email/4/messages");
+    QNetworkRequest request(url);
+    
+    // Set headers exactly like your Node.js test
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setRawHeader("Authorization", "App API_KEY_HERE"); // Replace with your actual API key
+    request.setRawHeader("Accept", "application/json");
+    
+    // Create JSON payload matching your Node.js structure
+    QJsonObject message;
+    
+    // Destinations array
+    QJsonArray destinations;
+    QJsonObject destination;
+    QJsonArray toArray;
+    QJsonObject toRecipient;
+    toRecipient["destination"] = emailAddress;
+    toArray.append(toRecipient);
+    destination["to"] = toArray;
+    destinations.append(destination);
+    
+    message["destinations"] = destinations;
+    message["sender"] = "SummerClub@selfserve.worlds-connected.co";
+    
+    // Content
+    QJsonObject content;
+    content["subject"] = subject;
+    
+    // Convert HTML to plain text if needed
+    QString plainText = htmlContent;
+    plainText.remove(QRegularExpression("<[^>]*>"));  // Remove HTML tags
+    
+    // Use HTML if available, otherwise plain text
+    if (htmlContent.contains("<html>") || htmlContent.contains("<p>") || htmlContent.contains("<br>")) {
+        content["html"] = htmlContent;
+        content["text"] = plainText;
+    } else {
+        content["text"] = htmlContent;
+    }
+    
+    message["content"] = content;
+    
+    // Add attachments if any
+    if (!attachments.isEmpty()) {
+        QJsonArray attachmentsArray;
+        for (const QString& filePath : attachments) {
+            QFile file(filePath);
+            if (file.open(QIODevice::ReadOnly)) {
+                QByteArray fileData = file.readAll();
+                QString base64Data = fileData.toBase64();
+                
+                QJsonObject attachment;
+                QFileInfo fileInfo(filePath);
+                attachment["filename"] = fileInfo.fileName();
+                attachment["content"] = base64Data;
+                
+                // Set content type based on file extension
+                QString suffix = fileInfo.suffix().toLower();
+                if (suffix == "pdf") {
+                    attachment["contentType"] = "application/pdf";
+                } else if (suffix == "jpg" || suffix == "jpeg") {
+                    attachment["contentType"] = "image/jpeg";
+                } else if (suffix == "png") {
+                    attachment["contentType"] = "image/png";
+                } else if (suffix == "txt") {
+                    attachment["contentType"] = "text/plain";
+                } else if (suffix == "doc" || suffix == "docx") {
+                    attachment["contentType"] = "application/msword";
+                } else {
+                    attachment["contentType"] = "application/octet-stream";
+                }
+                
+                attachmentsArray.append(attachment);
+                qDebug() << "📎 Added attachment:" << fileInfo.fileName() << "(" << fileData.size() << "bytes)";
+            } else {
+                qDebug() << "❌ Failed to read attachment:" << filePath;
+            }
+        }
+        
+        if (!attachmentsArray.isEmpty()) {
+            message["attachments"] = attachmentsArray;
+            qDebug() << "📎 Total attachments added:" << attachmentsArray.size();
+        }
+    }
+    
+    // Wrap in messages array (like your Node.js example)
+    QJsonObject payload;
+    QJsonArray messages;
+    messages.append(message);
+    payload["messages"] = messages;
+    
+    // Convert to JSON
+    QJsonDocument jsonDoc(payload);
+    QByteArray jsonData = jsonDoc.toJson(QJsonDocument::Compact);
+    
+    qDebug() << "📤 Infobip API Request:" << QString::fromUtf8(jsonData);
+    
+    // Send POST request
+    QNetworkReply *reply = m_networkManager->post(request, jsonData);
+    
+    // Wait for response
+    QEventLoop loop;
+    QTimer timeoutTimer;
+    timeoutTimer.setSingleShot(true);
+    timeoutTimer.setInterval(15000); // 15 second timeout
+    
+    connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    connect(&timeoutTimer, &QTimer::timeout, &loop, &QEventLoop::quit);
+    
+    timeoutTimer.start();
+    loop.exec();
+    
+    bool success = false;
+    
+    if (timeoutTimer.isActive()) {
+        timeoutTimer.stop();
+        
+        int httpStatus = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        QByteArray responseData = reply->readAll();
+        
+        qDebug() << "📥 Infobip Response Status:" << httpStatus;
+        qDebug() << "📥 Infobip Response:" << QString::fromUtf8(responseData);
+        
+        if (httpStatus == 200 || httpStatus == 201 || httpStatus == 202) {
+            // Parse response JSON
+            QJsonDocument responseDoc = QJsonDocument::fromJson(responseData);
+            if (!responseDoc.isNull()) {
+                QJsonObject responseObj = responseDoc.object();
+                QJsonArray messages = responseObj["messages"].toArray();
+                
+                if (!messages.isEmpty()) {
+                    QJsonObject firstMessage = messages[0].toObject();
+                    QJsonObject status = firstMessage["status"].toObject();
+                    
+                    int statusId = status["id"].toInt();
+                    QString statusName = status["name"].toString();
+                    QString statusDescription = status["description"].toString();
+                    QString messageId = firstMessage["messageId"].toString();
+                    
+                    qDebug() << "📬 Message Status ID:" << statusId;
+                    qDebug() << "📬 Message Status:" << statusName;
+                    qDebug() << "📬 Message ID:" << messageId;
+                    qDebug() << "📬 Description:" << statusDescription;
+                    
+                    // Status ID 1 means PENDING_ACCEPTED (success)
+                    if (statusId == 1 || statusName.contains("PENDING") || statusName.contains("ACCEPTED")) {
+                        success = true;
+                        qDebug() << "✅ Email successfully sent via Infobip!";
+                        
+                        // Show success message to user
+                        QMessageBox::information(this, "Email Sent Successfully", 
+                            QString("Email sent successfully to %1!\n\n"
+                                   "Message ID: %2\n"
+                                   "Status: %3")
+                            .arg(emailAddress, messageId, statusDescription));
+                    } else {
+                        qDebug() << "❌ Infobip rejected email:" << statusDescription;
+                        
+                        QMessageBox::warning(this, "Email Delivery Issue", 
+                            QString("Email was submitted but may have delivery issues:\n\n"
+                                   "Status: %1\n"
+                                   "Description: %2\n"
+                                   "Message ID: %3")
+                            .arg(statusName, statusDescription, messageId));
+                    }
+                } else {
+                    qDebug() << "❌ Empty messages array in Infobip response";
+                }
+            } else {
+                qDebug() << "❌ Invalid JSON in Infobip response";
+            }
+        } else {
+            // Handle API errors
+            QString errorMsg = QString("HTTP %1").arg(httpStatus);
+            
+            QJsonDocument errorDoc = QJsonDocument::fromJson(responseData);
+            if (!errorDoc.isNull()) {
+                QJsonObject errorObj = errorDoc.object();
+                QJsonObject requestError = errorObj["requestError"].toObject();
+                
+                if (!requestError.isEmpty()) {
+                    errorMsg = QString("%1: %2")
+                        .arg(requestError["text"].toString())
+                        .arg(requestError["description"].toString());
+                }
+            }
+            
+            qDebug() << "❌ Infobip API Error:" << errorMsg;
+            
+            QMessageBox::warning(this, "Infobip API Error", 
+                QString("Failed to send email via Infobip:\n\n%1\n\n"
+                       "Please check:\n"
+                       "• API key is valid and active\n"
+                       "• Sender email is verified\n"
+                       "• Account has sufficient credits\n"
+                       "• Recipient email is valid")
+                .arg(errorMsg));
+        }
+    } else {
+        // Timeout
+        reply->abort();
+        qDebug() << "❌ Infobip API request timeout";
+        
+        QMessageBox::warning(this, "Request Timeout", 
+            "Infobip API request timed out. Please check your connection and try again.");
+    }
+    
+    // Log the email attempt to the database for statistics
+    logEmailSent(emailAddress, subject, success);
+    
+    reply->deleteLater();
+    return success;
+}
+
+// SMTP Implementation Methods
+bool EmailPanel::sendEmailSMTP(const QString& emailAddress, const QString& subject, const QString& htmlContent)
+{
+    // Store email details for the SMTP session
+    m_currentEmailAddress = emailAddress;
+    m_currentSubject = subject;
+    m_currentMessage = htmlContent;
+    m_smtpState = 0;
+    
+    // Create SSL socket for secure SMTP connection
+    if (m_smtpSocket) {
+        m_smtpSocket->deleteLater();
+    }
+    
+    m_smtpSocket = new QSslSocket(this);
+    
+    // Connect SMTP signals
+    connect(m_smtpSocket, &QSslSocket::connected, this, &EmailPanel::onSMTPConnected);
+    connect(m_smtpSocket, &QSslSocket::readyRead, this, &EmailPanel::onSMTPReadyRead);
+    connect(m_smtpSocket, &QAbstractSocket::errorOccurred, this, &EmailPanel::onSMTPError);
+    
+    qDebug() << "🌐 Connecting to Brevo SMTP: smtp-relay.brevo.com:587";
+    qDebug() << "📧 Email to:" << emailAddress;
+    qDebug() << "📝 Subject:" << subject;
+    
+    // Connect to SMTP server
+    m_smtpSocket->connectToHost("smtp-relay.brevo.com", 587);
+    
+    // Wait for connection with timeout
+    QEventLoop loop;
+    QTimer timeoutTimer;
+    timeoutTimer.setSingleShot(true);
+    timeoutTimer.setInterval(15000); // 15 second timeout
+    
+    bool emailSent = false;
+    bool connectionFinished = false;
+    
+    connect(m_smtpSocket, &QSslSocket::disconnected, [&loop, &connectionFinished]() {
+        connectionFinished = true;
+        loop.quit();
+    });
+    
+    connect(&timeoutTimer, &QTimer::timeout, [&loop, &emailSent, &connectionFinished]() {
+        emailSent = false;
+        connectionFinished = true;
+        loop.quit();
+    });
+    
+    // Wait for SMTP process to complete
+    connect(this, &EmailPanel::emailSentSuccessfully, [&loop, &emailSent, &connectionFinished](bool success) {
+        emailSent = success;
+        connectionFinished = true;
+        loop.quit();
+    });
+    
+    timeoutTimer.start();
+    loop.exec();
+    
+    // Note: Socket cleanup is handled by the SMTP state machine in cleanupSMTPConnection()
+    return emailSent;
+}
+
+void EmailPanel::onSMTPConnected()
+{
+    qDebug() << "✅ Connected to Brevo SMTP server";
+}
+
+void EmailPanel::onSMTPReadyRead()
+{
+    if (!m_smtpSocket) {
+        qDebug() << "❌ SMTP ReadyRead called but socket is null";
+        return;
+    }
+    
+    QByteArray response = m_smtpSocket->readAll();
+    QString responseStr = QString::fromUtf8(response).trimmed();
+    qDebug() << "SMTP Response:" << responseStr;
+    
+    // Parse SMTP response code
+    int responseCode = responseStr.left(3).toInt();
+    
+    switch (m_smtpState) {
+    case 0: // Initial connection
+        if (responseCode == 220) {
+            // Start TLS encryption
+            sendSMTPCommand("STARTTLS");
+            m_smtpState = 1;
+        }
+        break;
+        
+    case 1: // STARTTLS response
+        if (responseCode == 220) {
+            qDebug() << "🔒 Starting TLS encryption";
+            m_smtpSocket->startClientEncryption();
+            // Send EHLO after TLS
+            sendSMTPCommand("EHLO summerclub.local");
+            m_smtpState = 2;
+        }
+        break;
+        
+    case 2: // EHLO response
+        if (responseCode == 250) {
+            // Authenticate with Brevo credentials
+            sendSMTPCommand("AUTH LOGIN");
+            m_smtpState = 3;
+        }
+        break;
+        
+    case 3: // AUTH LOGIN response
+        if (responseCode == 334) {
+            // Send base64 encoded username
+            QString encodedUsername = encodeBase64("9bd853001@smtp-brevo.com");
+            sendSMTPCommand(encodedUsername);
+            m_smtpState = 4;
+        }
+        break;
+        
+    case 4: // Username sent
+        if (responseCode == 334) {
+            // Send base64 encoded password
+            QString encodedPassword = encodeBase64("");
+            sendSMTPCommand(encodedPassword);
+            m_smtpState = 5;
+        }
+        break;
+        
+        case 5: // Authentication response
+        if (responseCode == 235) {
+            qDebug() << "🔑 SMTP Authentication successful";
+            // Set sender (MAIL FROM) - use the authenticated email address
+            sendSMTPCommand(QString("MAIL FROM:<%1>").arg("9bd853001@smtp-brevo.com"));
+            m_smtpState = 6;
+        } else {
+            qDebug() << "❌ SMTP Authentication failed:" << responseStr;
+            emit emailSentSuccessfully(false);
+            cleanupSMTPConnection();
+        }
+        break;    case 6: // MAIL FROM response
+        if (responseCode == 250) {
+            // Set recipient (RCPT TO)
+            sendSMTPCommand(QString("RCPT TO:<%1>").arg(m_currentEmailAddress));
+            m_smtpState = 7;
+        } else {
+            qDebug() << "❌ MAIL FROM failed:" << responseStr;
+            emit emailSentSuccessfully(false);
+            cleanupSMTPConnection();
+        }
+        break;
+        
+    case 7: // RCPT TO response
+        if (responseCode == 250) {
+            // Start message data
+            sendSMTPCommand("DATA");
+            m_smtpState = 8;
+        } else {
+            qDebug() << "❌ RCPT TO failed:" << responseStr;
+            emit emailSentSuccessfully(false);
+            cleanupSMTPConnection();
+        }
+        break;
+        
+    case 8: // DATA response
+        if (responseCode == 354) {
+            // Send email message
+            QString emailMessage = createEmailMessage(m_currentEmailAddress, m_currentSubject, m_currentMessage);
+            m_smtpSocket->write(emailMessage.toUtf8());
+            m_smtpSocket->write("\r\n.\r\n"); // End of message
+            m_smtpState = 9;
+        } else {
+            qDebug() << "❌ DATA command failed:" << responseStr;
+            emit emailSentSuccessfully(false);
+            cleanupSMTPConnection();
+        }
+        break;
+        
+    case 9: // Message sent response
+        if (responseCode == 250) {
+            qDebug() << "✅ Email sent successfully to:" << m_currentEmailAddress;
+            sendSMTPCommand("QUIT");
+            m_smtpState = 10;
+        } else {
+            qDebug() << "❌ Email sending failed:" << responseStr;
+            emit emailSentSuccessfully(false);
+            cleanupSMTPConnection();
+        }
+        break;
+        
+    case 10: // QUIT response
+        qDebug() << "📤 SMTP session ended";
+        qDebug() << "📬 Email queued for delivery to:" << m_currentEmailAddress;
+        qDebug() << "🔍 Check your email inbox and spam folder";
+        emit emailSentSuccessfully(true);
+        cleanupSMTPConnection();
+        break;
+    }
+}
+
+void EmailPanel::onSMTPError(QAbstractSocket::SocketError error)
+{
+    QString errorString = m_smtpSocket ? m_smtpSocket->errorString() : "Socket is null";
+    qDebug() << "❌ SMTP Error:" << error << errorString;
+    
+    QString errorMsg;
+    switch (error) {
+    case QAbstractSocket::ConnectionRefusedError:
+        errorMsg = "Connection refused. Check SMTP server and port.";
+        break;
+    case QAbstractSocket::HostNotFoundError:
+        errorMsg = "SMTP server not found. Check server address.";
+        break;
+    case QAbstractSocket::SocketTimeoutError:
+        errorMsg = "Connection timeout. Check internet connection.";
+        break;
+    default:
+        errorMsg = QString("Network error: %1").arg(m_smtpSocket->errorString());
+    }
+    
+    QMessageBox::warning(this, "SMTP Error", 
+        QString("Failed to connect to email server:\n\n%1\n\n"
+               "Server: smtp-relay.brevo.com:587\n"
+               "Please check your internet connection and try again.")
+        .arg(errorMsg));
+    
+    emit emailSentSuccessfully(false);
+    cleanupSMTPConnection();
+}
+
+void EmailPanel::cleanupSMTPConnection()
+{
+    if (m_smtpSocket) {
+        // Disconnect all signals to prevent crashes
+        m_smtpSocket->disconnect();
+        
+        // Close connection gracefully
+        if (m_smtpSocket->state() == QAbstractSocket::ConnectedState) {
+            m_smtpSocket->disconnectFromHost();
+            if (m_smtpSocket->state() != QAbstractSocket::UnconnectedState) {
+                m_smtpSocket->waitForDisconnected(1000); // Wait up to 1 second
+            }
+        }
+        
+        // Schedule for deletion
+        m_smtpSocket->deleteLater();
+        m_smtpSocket = nullptr;
+    }
+    m_smtpState = 0;
+}
+
+void EmailPanel::sendSMTPCommand(const QString& command)
+{
+    if (!m_smtpSocket) {
+        qDebug() << "❌ Cannot send SMTP command: socket is null";
+        return;
+    }
+    
+    qDebug() << "SMTP CMD:" << command;
+    m_smtpSocket->write((command + "\r\n").toUtf8());
+}
+
+QString EmailPanel::encodeBase64(const QString& text)
+{
+    return QString::fromUtf8(text.toUtf8().toBase64());
+}
+
+QString EmailPanel::createEmailMessage(const QString& to, const QString& subject, const QString& body)
+{
+    QString message = QString(
+        "From: Test Message <9bd853001@smtp-brevo.com>\r\n"
+        "To: %1\r\n"
+        "Subject: %2\r\n"
+        "Date: %4\r\n"
+        "Message-ID: <%5@smtp-brevo.com>\r\n"
+        "Reply-To: 9bd853001@smtp-brevo.com\r\n"
+        "Return-Path: 9bd853001@smtp-brevo.com\r\n"
+        "X-Mailer: Summer Club Management System\r\n"
+        "X-Priority: 3\r\n"
+        "MIME-Version: 1.0\r\n"
+        "Content-Type: text/plain; charset=UTF-8\r\n"
+        "Content-Transfer-Encoding: 8bit\r\n"
+        "\r\n"
+        "Summer Club Management System\r\n"
+        "=============================\r\n\r\n"
+        "%3\r\n\r\n"
+        "---\r\n"
+        "This email was sent from Summer Club Management System.\r\n"
+        "If you received this email by mistake, please ignore it.\r\n"
+    );
+    
+    QString formattedBody = body;
+    formattedBody.replace("\n", "<br>\n");
+    
+    // Add proper date and message ID
+    QString currentDate = QDateTime::currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss +0000");
+    QString messageId = QString::number(QDateTime::currentMSecsSinceEpoch());
+    
+    return message.arg(to, subject, formattedBody, currentDate, messageId);
+}
+
+// Legacy method - now unused
 bool EmailPanel::tryEmailSMTP(const QString& apiUrl, const QString& emailAddress, const QString& message)
 {
     QUrl url(apiUrl);
@@ -1295,6 +2164,122 @@ bool EmailPanel::tryEmailSMTP(const QString& apiUrl, const QString& emailAddress
     
     reply->deleteLater();
     return success;
+}
+
+void EmailPanel::checkForDatabaseUpdates()
+{
+    try {
+        // Check current member count using default database connection
+        QSqlQuery countQuery;
+        countQuery.prepare("SELECT COUNT(*) FROM SUMMERCLUB.MEMBERS WHERE EMAIL IS NOT NULL AND TRIM(EMAIL) != ''");
+        
+        if (countQuery.exec() && countQuery.next()) {
+            int currentCount = countQuery.value(0).toInt();
+            
+            if (currentCount != m_lastMemberCount) {
+                qDebug() << "📊 Database change detected - Members:" << m_lastMemberCount << "→" << currentCount;
+                
+                // Refresh the member list
+                loadMembers();
+                m_lastMemberCount = currentCount;
+                
+                // Show notification to user
+                if (currentCount > m_lastMemberCount) {
+                    qDebug() << "✅ New members detected - refreshing recipient list";
+                } else if (currentCount < m_lastMemberCount) {
+                    qDebug() << "⚠️ Members removed - refreshing recipient list";
+                }
+            }
+        }
+        
+    } catch (const std::exception& e) {
+        qDebug() << "❌ Error checking database updates:" << e.what();
+    }
+}
+
+void EmailPanel::updateEmailStatistics()
+{
+    try {
+        // Create email_logs table if it doesn't exist
+        QSqlQuery createTableQuery;
+        createTableQuery.exec(
+            "CREATE TABLE IF NOT EXISTS SUMMERCLUB.EMAIL_LOGS ("
+            "ID NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY, "
+            "RECIPIENT_EMAIL VARCHAR2(255), "
+            "SUBJECT VARCHAR2(500), "
+            "SENT_DATE DATE DEFAULT SYSDATE, "
+            "SUCCESS NUMBER(1) DEFAULT 1"
+            ")"
+        );
+        
+        QDateTime now = QDateTime::currentDateTime();
+        QDateTime startOfDay = QDateTime(now.date(), QTime(0, 0, 0));
+        QDateTime startOfWeek = startOfDay.addDays(-now.date().dayOfWeek() + 1);
+        QDateTime startOfMonth = QDateTime(QDate(now.date().year(), now.date().month(), 1), QTime(0, 0, 0));
+        
+        // Today's count
+        QSqlQuery todayQuery;
+        todayQuery.prepare("SELECT COUNT(*) FROM SUMMERCLUB.EMAIL_LOGS WHERE SENT_DATE >= ? AND SUCCESS = 1");
+        todayQuery.addBindValue(startOfDay);
+        
+        int todayCount = 0;
+        if (todayQuery.exec() && todayQuery.next()) {
+            todayCount = todayQuery.value(0).toInt();
+        }
+        
+        // This week's count
+        QSqlQuery weekQuery;
+        weekQuery.prepare("SELECT COUNT(*) FROM SUMMERCLUB.EMAIL_LOGS WHERE SENT_DATE >= ? AND SUCCESS = 1");
+        weekQuery.addBindValue(startOfWeek);
+        
+        int weekCount = 0;
+        if (weekQuery.exec() && weekQuery.next()) {
+            weekCount = weekQuery.value(0).toInt();
+        }
+        
+        // This month's count
+        QSqlQuery monthQuery;
+        monthQuery.prepare("SELECT COUNT(*) FROM SUMMERCLUB.EMAIL_LOGS WHERE SENT_DATE >= ? AND SUCCESS = 1");
+        monthQuery.addBindValue(startOfMonth);
+        
+        int monthCount = 0;
+        if (monthQuery.exec() && monthQuery.next()) {
+            monthCount = monthQuery.value(0).toInt();
+        }
+        
+        // Update the statistics labels
+        m_todayCountLabel->setText(QString("Today: %1 sent").arg(todayCount));
+        m_weekCountLabel->setText(QString("This Week: %1 sent").arg(weekCount));
+        m_monthCountLabel->setText(QString("This Month: %1 sent").arg(monthCount));
+        
+        qDebug() << "📊 Statistics updated - Today:" << todayCount << "Week:" << weekCount << "Month:" << monthCount;
+        
+    } catch (const std::exception& e) {
+        qDebug() << "❌ Error updating email statistics:" << e.what();
+    }
+}
+
+void EmailPanel::logEmailSent(const QString& recipientEmail, const QString& subject, bool success)
+{
+    try {
+        QSqlQuery logQuery;
+        logQuery.prepare(
+            "INSERT INTO SUMMERCLUB.EMAIL_LOGS (RECIPIENT_EMAIL, SUBJECT, SUCCESS) "
+            "VALUES (?, ?, ?)"
+        );
+        logQuery.addBindValue(recipientEmail);
+        logQuery.addBindValue(subject);
+        logQuery.addBindValue(success ? 1 : 0);
+        
+        if (logQuery.exec()) {
+            qDebug() << "✅ Email logged successfully:" << recipientEmail << (success ? "SUCCESS" : "FAILED");
+        } else {
+            qDebug() << "❌ Failed to log email:" << logQuery.lastError().text();
+        }
+        
+    } catch (const std::exception& e) {
+        qDebug() << "❌ Error logging email:" << e.what();
+    }
 }
 
 

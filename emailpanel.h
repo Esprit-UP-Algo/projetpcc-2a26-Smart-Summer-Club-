@@ -19,6 +19,7 @@
 #include <QMessageBox>
 #include <QNetworkAccessManager>
 #include <QProgressDialog>
+#include <QSslSocket>
 #include <QThread>
 #include <QRegularExpression>
 #include <QDateTimeEdit>
@@ -41,6 +42,9 @@
 #include <QNetworkReply>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QJsonArray>
+#include <QListWidgetItem>
+#include <QAbstractSocket>
 
 class EmailPanel : public QWidget
 {
@@ -52,6 +56,9 @@ public:
     // Public methods for database integration
     void loadMembersFromDatabase();
     void refreshMemberData();
+
+signals:
+    void emailSentSuccessfully(bool success);
 
 private slots:
     void onMemberSelectionChanged();
@@ -65,6 +72,10 @@ private slots:
     void onSearchTextChanged();
     void onCreateTemplateClicked();
     void onTestAPIClicked();
+    void onRefreshMembersClicked();
+    void onAddAttachmentClicked();
+    void onClearAttachmentsClicked();
+    void onRemoveAttachmentClicked(QListWidgetItem* item);
 
 private:
     void setupUI();
@@ -73,9 +84,11 @@ private:
     void setupMemberList();
     void setupMessageComposer();
     void setupTemplatesSection();
+    void setupAttachmentSection();
     void setupHistorySection();
     void setupStatusBar();
     void applyStyles();
+    void updateAttachmentInfo();
     
     void loadMembers();
     void loadTemplates();
@@ -102,10 +115,33 @@ private:
     void trackEmailDelivery(const QString& emailId, const QString& recipient);
     QString formatEmailAddress(const QString& email);
     
+    // Infobip API methods
+    bool sendEmailInfobip(const QString& emailAddress, const QString& subject, const QString& htmlContent, const QStringList& attachments = QStringList());
+    
+    // SMTP Methods (legacy - can be removed)
+    bool sendEmailSMTP(const QString& emailAddress, const QString& subject, const QString& htmlContent);
+    void sendSMTPCommand(const QString& command);
+    QString encodeBase64(const QString& text);
+    QString createEmailMessage(const QString& to, const QString& subject, const QString& body);
+    
+    // SMTP Slots
+    void onSMTPConnected();
+    void onSMTPReadyRead();
+    void onSMTPError(QAbstractSocket::SocketError error);
+    void cleanupSMTPConnection();
+    
     // Missing method declarations for compilation
     void onSubjectChanged();
     void onAttachFileClicked();
     bool tryEmailSMTP(const QString& apiUrl, const QString& emailAddress, const QString& message);
+    
+    // HTML email generation
+    QString generateHTMLEmail(const QString& content, const QString& memberName, const QString& membershipType, const QStringList& attachments = QStringList());
+    
+    // Auto-refresh and statistics methods
+    void checkForDatabaseUpdates();
+    void updateEmailStatistics();
+    void logEmailSent(const QString& recipientEmail, const QString& subject, bool success);
     
     // Main layout
     QSplitter *m_mainSplitter;
@@ -119,6 +155,7 @@ private:
     QVBoxLayout *m_memberLayout;
     QLineEdit *m_searchEdit;
     QComboBox *m_filterComboBox;
+    QPushButton *m_refreshButton;
     QCheckBox *m_selectAllCheckBox;
     QListWidget *m_memberListWidget;
     QLabel *m_selectedCountLabel;
@@ -150,10 +187,13 @@ private:
     QRadioButton *m_scheduleRadio;
     QDateTimeEdit *m_scheduleDateTimeEdit;
     
-    // Templates section
-    QGroupBox *m_templatesGroup;
-    QVBoxLayout *m_templatesLayout;
-    QListWidget *m_templatesListWidget;
+    // Attachment section
+    QGroupBox *m_attachmentGroup;
+    QVBoxLayout *m_attachmentLayout;
+    QPushButton *m_clearAttachmentsButton;
+    QListWidget *m_attachmentListWidget;
+    QLabel *m_attachmentInfoLabel;
+    QStringList m_attachmentPaths;
     
     // Status bar
     QFrame *m_statusFrame;
@@ -167,9 +207,7 @@ private:
     
     // Email-specific UI components
     QLineEdit *m_subjectLineEdit;
-    QListWidget *m_attachmentsListWidget;
     QPushButton *m_addAttachmentButton;
-    QPushButton *m_removeAttachmentButton;
     QGroupBox *m_attachmentsGroup;
     
     // SMTP configuration
@@ -182,7 +220,6 @@ private:
     // Email tracking
     QTimer *m_deliveryTimer;
     QStringList m_pendingEmails;
-    QStringList m_attachmentPaths;
     
     // Member data structure
     struct MemberData {
@@ -219,7 +256,18 @@ private:
     bool m_useSSL;
     int m_emailsSentToday;
     int m_emailsSentThisWeek;
+    
+    // SMTP runtime variables
+    QSslSocket *m_smtpSocket;
+    QString m_currentEmailAddress;
+    QString m_currentMessage;
+    int m_smtpState;
     int m_emailsSentThisMonth;
+    
+    // Auto-refresh functionality
+    QTimer *m_refreshTimer;
+    QTimer *m_statsTimer;
+    int m_lastMemberCount;
 };
 
 #endif // EMAILPANEL_H
