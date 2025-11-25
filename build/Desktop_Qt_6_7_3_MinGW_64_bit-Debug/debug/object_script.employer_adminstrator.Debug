@@ -14,6 +14,7 @@ debug/qrcodegenerator.o
 debug/totpsetupdialog.o
 debug/totpinputdialog.o
 debug/emailpanel.o
+debug/activitypanel.o
 debug/qrc_resources.o
 debug/moc_connexion_ard.o
 debug/moc_employeradmin.o
@@ -27,3 +28,4 @@ debug/moc_paymentmodel.o
 debug/moc_totpsetupdialog.o
 debug/moc_totpinputdialog.o
 debug/moc_emailpanel.o
+debug/moc_activitypanel.o

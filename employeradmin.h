@@ -25,6 +25,7 @@
 #include "equipment.h"
 #include "payment.h"
 #include "emailpanel.h"
+#include "activitypanel.h"
 #include "connexion_ard.h"
 
 QT_BEGIN_NAMESPACE
@@ -68,6 +69,7 @@ private:
     Equipment *equipmentManager;
     Payment *paymentManager;
     EmailPanel *emailPanel;
+    ActivityPanel *activityPanel;
     
     void setupEmployeeStatisticsCharts();
     void buildEmployeeDepartmentChart();
@@ -90,6 +92,7 @@ private:
     void setupIcons();  // Optional icon setup
     void setupTabIcons(); // Set icons for tab widgets
     void setupButtonStyling();  // Apply consistent button styling
+    void setupActivityAnalyticsTab(); // Setup Activity Analytics tab
     void updateNavigationStyle();
     void showUserInfo();
     void updateTabVisibility();

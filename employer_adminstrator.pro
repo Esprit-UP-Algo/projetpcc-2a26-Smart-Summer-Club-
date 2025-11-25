@@ -24,7 +24,8 @@ SOURCES += \
     qrcodegenerator.cpp \
     totpsetupdialog.cpp \
     totpinputdialog.cpp \
-    emailpanel.cpp
+    emailpanel.cpp \
+    activitypanel.cpp
 
 HEADERS += \
     connexion_ard.h \
@@ -41,7 +42,8 @@ HEADERS += \
     qrcodegenerator.h \
     totpsetupdialog.h \
     totpinputdialog.h \
-    emailpanel.h
+    emailpanel.h \
+    activitypanel.h
 
 FORMS += \
     employeradmin.ui \

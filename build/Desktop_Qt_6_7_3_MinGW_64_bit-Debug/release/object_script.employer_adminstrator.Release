@@ -14,6 +14,7 @@ release/qrcodegenerator.o
 release/totpsetupdialog.o
 release/totpinputdialog.o
 release/emailpanel.o
+release/activitypanel.o
 release/qrc_resources.o
 release/moc_connexion_ard.o
 release/moc_employeradmin.o
@@ -27,3 +28,4 @@ release/moc_paymentmodel.o
 release/moc_totpsetupdialog.o
 release/moc_totpinputdialog.o
 release/moc_emailpanel.o
+release/moc_activitypanel.o

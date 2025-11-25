@@ -59,6 +59,7 @@ EmployerAdmin::EmployerAdmin(QWidget *parent)
     equipmentManager = new Equipment(ui, this);
     paymentManager  = new Payment(ui, this);
     emailPanel     = new EmailPanel(this);
+    activityPanel  = new ActivityPanel(this);
 
     // Setup connections
     setupConnections();
@@ -86,6 +87,9 @@ EmployerAdmin::EmployerAdmin(QWidget *parent)
     // Replace the SMS Panel placeholder with actual instance
     ui->memberSMSTabLayout->replaceWidget(ui->emailPanel, emailPanel);
     delete ui->emailPanel;  // Remove the placeholder
+    
+    // Setup Activity Analytics Panel
+    setupActivityAnalyticsTab();
 
     // Update payment statistics
     paymentManager->populatePaymentStatistics();
@@ -782,6 +786,7 @@ void EmployerAdmin::setupTabIcons()
 
     ui->activityTabWidget->setTabIcon(0, QIcon(":/icons/icons/list.png"));
     ui->activityTabWidget->setTabIcon(1, QIcon(":/icons/icons/add.png"));
+    ui->activityTabWidget->setTabIcon(2, QIcon(":/icons/icons/statistic.png"));
 
     ui->equipmentTabWidget->setTabIcon(0, QIcon(":/icons/icons/list.png"));
     ui->equipmentTabWidget->setTabIcon(1, QIcon(":/icons/icons/add.png"));
@@ -789,6 +794,15 @@ void EmployerAdmin::setupTabIcons()
     ui->paymentTabWidget->setTabIcon(0, QIcon(":/icons/icons/list.png"));
     ui->paymentTabWidget->setTabIcon(1, QIcon(":/icons/icons/add.png"));
     ui->paymentTabWidget->setTabIcon(2, QIcon(":/icons/icons/statistic.png"));
+}
+
+void EmployerAdmin::setupActivityAnalyticsTab()
+{
+    // Create ActivityPanel and add it as a new tab
+    activityPanel = new ActivityPanel(this);
+    ui->activityTabWidget->addTab(activityPanel, "Analytics");
+    
+    // The tab icon will be set by setupTabIcons() method
 }
 
 void EmployerAdmin::setupButtonStyling()

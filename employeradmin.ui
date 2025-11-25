@@ -369,7 +369,7 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>1</number>
+             <number>3</number>
             </property>
             <widget class="QWidget" name="employeePage">
              <layout class="QVBoxLayout" name="employeePageLayout">
@@ -514,8 +514,8 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>1030</width>
-                       <height>857</height>
+                       <width>536</width>
+                       <height>631</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="formMainLayout">
@@ -1539,8 +1539,8 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>1030</width>
-                       <height>857</height>
+                       <width>495</width>
+                       <height>571</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="memberFormMainLayout">
@@ -2214,8 +2214,8 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>612</width>
-                       <height>371</height>
+                       <width>1030</width>
+                       <height>857</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="equipmentFormMainLayout">
@@ -2661,7 +2661,7 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
               <item>
                <widget class="QTabWidget" name="activityTabWidget">
                 <property name="currentIndex">
-                 <number>1</number>
+                 <number>0</number>
                 </property>
                 <widget class="QWidget" name="activityListTab">
                  <attribute name="icon">
@@ -2848,8 +2848,8 @@ QComboBox QAbstractItemView {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>739</width>
-                       <height>493</height>
+                       <width>1030</width>
+                       <height>857</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="activityFormMainLayout">
