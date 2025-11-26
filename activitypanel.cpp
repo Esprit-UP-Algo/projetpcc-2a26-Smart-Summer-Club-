@@ -273,49 +273,87 @@ void ActivityPanel::onSyncData()
     m_syncProgressBar->setVisible(true);
     m_syncProgressBar->setRange(0, 0); // Indeterminate progress
     
-    // Run Node.js script to extract registration data
-    // Define the source directory path (where the project files are located)
-    QString sourceDir = "C:/Users/Khalil/Desktop/SummerClub_Advanced";
-    QString scriptPath = sourceDir + "/forms_data_extractor.js";
+    // First, ensure we have the nodeJsScripts folder in the workspace
+    if (!ensureNodeJsScriptsExists()) {
+        qDebug() << "❌ Failed to setup nodeJsScripts folder";
+        showSyncStatus("Failed to setup required files", false);
+        m_syncButton->setEnabled(true);
+        m_syncButton->setText("🔄 Sync Data");
+        m_syncProgressBar->setVisible(false);
+        return;
+    }
+    
+    // Check if Node.js is available
+    QProcess nodeCheck;
+    nodeCheck.start("node", QStringList() << "--version");
+    if (nodeCheck.waitForFinished(3000)) {
+        QString nodeVersion = nodeCheck.readAllStandardOutput().trimmed();
+        qDebug() << "🔍 Node.js version:" << nodeVersion;
+    } else {
+        qDebug() << "⚠️ Warning: Could not detect Node.js version";
+    }
+    
+    // Use Qt workspace location (where files were copied)
+    QString buildDir = QCoreApplication::applicationDirPath();
+    QDir dir(buildDir);
+    
+    // Navigate to Qt workspace root
+    dir.cdUp();  // Go up from Debug to build directory
+    dir.cdUp();  // Go up from build to project root directory
+    
+    QString qtWorkspaceRoot = dir.absolutePath();
+    QString nodeScriptsDir = qtWorkspaceRoot + "/nodeJsScripts";
+    QString scriptPath = nodeScriptsDir + "/forms_data_extractor.js";
+    
     QFileInfo scriptInfo(scriptPath);
     
+    qDebug() << "📂 Build dir:" << buildDir;
+    qDebug() << "📂 Qt workspace root:" << qtWorkspaceRoot;
+    qDebug() << "📂 NodeJS scripts dir:" << nodeScriptsDir;
     qDebug() << "🔍 Looking for script at:" << scriptPath;
     qDebug() << "📁 Script exists:" << scriptInfo.exists();
     
-    // If not found in source directory, try current directory
     if (!scriptInfo.exists()) {
-        scriptPath = QDir::currentPath() + "/forms_data_extractor.js";
-        scriptInfo.setFile(scriptPath);
-        qDebug() << "🔍 Trying current directory:" << scriptPath;
-        qDebug() << "📁 Script exists:" << scriptInfo.exists();
-    }
-    
-    // If still not found, try relative path from build directory
-    if (!scriptInfo.exists()) {
-        scriptPath = QDir::currentPath() + "/../../../forms_data_extractor.js";
-        scriptInfo.setFile(scriptPath);
-        qDebug() << "🔍 Trying relative path:" << scriptPath;
-        qDebug() << "📁 Script exists:" << scriptInfo.exists();
-    }
-    
-    if (!scriptInfo.exists()) {
-        qDebug() << "❌ Could not find forms_data_extractor.js script in any location";
-        qDebug() << "📁 Current working directory:" << QDir::currentPath();
+        qDebug() << "❌ Could not find forms_data_extractor.js script";
         showSyncStatus("Script not found: forms_data_extractor.js", false);
+        m_syncButton->setEnabled(true);
+        m_syncButton->setText("🔄 Sync Data");
         m_syncProgressBar->setVisible(false);
         return;
+    }
+    
+    // Check if package.json exists (for dependencies)
+    QString packageJsonPath = nodeScriptsDir + "/package.json";
+    QFileInfo packageJsonInfo(packageJsonPath);
+    qDebug() << "📄 package.json exists:" << packageJsonInfo.exists();
+    
+    // Check if node_modules exists
+    QString nodeModulesPath = nodeScriptsDir + "/node_modules";
+    QDir nodeModulesDir(nodeModulesPath);
+    qDebug() << "📁 node_modules exists:" << nodeModulesDir.exists();
+    
+    if (packageJsonInfo.exists() && !nodeModulesDir.exists()) {
+        qDebug() << "⚠️ Warning: package.json exists but node_modules missing. Run 'npm install' in" << nodeScriptsDir;
     }
     
     QStringList arguments;
     arguments << scriptInfo.absoluteFilePath();
     
     qDebug() << "📋 Running Node.js script:" << scriptInfo.absoluteFilePath();
-    qDebug() << "📁 Current working directory:" << QDir::currentPath();
-    qDebug() << "📁 Script working directory:" << scriptInfo.absolutePath();
+    qDebug() << "📝 Full command: node" << arguments.join(" ");
     
-    // Set working directory to the source directory (where credentials.json is located)
-    m_nodeProcess->setWorkingDirectory(sourceDir);
-    qDebug() << "📁 Node.js working directory set to:" << sourceDir;
+    // Verify credentials.json exists
+    QString credentialsPath = nodeScriptsDir + "/credentials.json";
+    QFileInfo credentialsInfo(credentialsPath);
+    qDebug() << "🔑 credentials.json exists:" << credentialsInfo.exists();
+    
+    // Set working directory to nodeJsScripts folder (where credentials.json is located)
+    m_nodeProcess->setWorkingDirectory(nodeScriptsDir);
+    qDebug() << "📁 Node.js working directory set to:" << nodeScriptsDir;
+    qDebug() << "📁 Working directory exists:" << QDir(nodeScriptsDir).exists();
+    
+    // Capture both stdout and stderr
+    m_nodeProcess->setProcessChannelMode(QProcess::MergedChannels);
     
     m_nodeProcess->start("node", arguments);
     
@@ -388,25 +426,19 @@ void ActivityPanel::onNodeJSError(QProcess::ProcessError error)
 
 void ActivityPanel::loadDataFromJSON()
 {
-    // Try to load from the registration data JSON file created by Node.js script
-    // Look for JSON file in the source directory first
-    QString sourceDir = "C:/Users/Khalil/Desktop/SummerClub_Advanced";
-    QString jsonPath = sourceDir + "/forms_registration_data.json";
-    QFileInfo jsonInfo(jsonPath);
+    // Use Qt workspace location where files were copied
+    QString buildDir = QCoreApplication::applicationDirPath();
+    QDir dir(buildDir);
+    
+    // Navigate to Qt workspace root
+    dir.cdUp();  // Debug -> build
+    dir.cdUp();  // build -> Qt workspace root
+    
+    QString qtWorkspaceRoot = dir.absolutePath();
+    QString jsonPath = qtWorkspaceRoot + "/nodeJsScripts/forms_registration_data.json";
     
     qDebug() << "🔍 Looking for JSON at:" << jsonPath;
-    qDebug() << "📄 JSON exists:" << jsonInfo.exists();
     
-    // If not found in source directory, try current directory
-    if (!jsonInfo.exists()) {
-        jsonPath = QDir::currentPath() + "/forms_registration_data.json";
-        jsonInfo.setFile(jsonPath);
-        qDebug() << "🔍 Trying current directory for JSON:" << jsonPath;
-        qDebug() << "📄 JSON exists:" << jsonInfo.exists();
-    }
-    
-    // Use the path we found
-    jsonPath = jsonInfo.exists() ? jsonInfo.absoluteFilePath() : jsonPath;
     QFile file(jsonPath);
     
     if (!file.open(QIODevice::ReadOnly)) {
@@ -737,24 +769,178 @@ void ActivityPanel::showSyncStatus(const QString &message, bool success)
 
 bool ActivityPanel::formsDataExists()
 {
-    QString sourceDir = "C:/Users/Khalil/Desktop/SummerClub_Advanced";
-    QString jsonPath = sourceDir + "/forms_registration_data.json";
-    QFileInfo jsonInfo(jsonPath);
-    if (!jsonInfo.exists()) {
-        jsonPath = QDir::currentPath() + "/forms_registration_data.json";
-    } else {
-        jsonPath = jsonInfo.absoluteFilePath();
-    }
-    return QFileInfo::exists(jsonPath);
+    QString buildDir = QCoreApplication::applicationDirPath();
+    QDir dir(buildDir);
+    dir.cdUp(); dir.cdUp(); // Navigate to Qt workspace root
+    
+    QString jsonPath = dir.absolutePath() + "/nodeJsScripts/forms_registration_data.json";
+    QFileInfo fileInfo(jsonPath);
+    
+    qDebug() << "📁 Checking if forms data exists at:" << jsonPath;
+    qDebug() << "📁 File exists:" << fileInfo.exists();
+    
+    return fileInfo.exists();
 }
 
 QString ActivityPanel::getFormsDataPath()
 {
-    QString sourceDir = "C:/Users/Khalil/Desktop/SummerClub_Advanced";
-    QString jsonPath = sourceDir + "/forms_registration_data.json";
-    QFileInfo jsonInfo(jsonPath);
-    if (jsonInfo.exists()) {
-        return jsonInfo.absoluteFilePath();
+    QString buildDir = QCoreApplication::applicationDirPath();
+    QDir dir(buildDir);
+    dir.cdUp(); // Go up from debug
+    dir.cdUp(); // Go up from build to Qt workspace root
+    
+    return dir.absolutePath() + "/nodeJsScripts/forms_registration_data.json";
+}
+
+bool ActivityPanel::ensureNodeJsScriptsExists()
+{
+    // Get Qt workspace location
+    QString buildDir = QCoreApplication::applicationDirPath();
+    QDir dir(buildDir);
+    dir.cdUp(); dir.cdUp(); // Navigate to Qt workspace root
+    QString qtWorkspaceRoot = dir.absolutePath();
+    QString destNodeScriptsDir = qtWorkspaceRoot + "/nodeJsScripts";
+    
+    // Check if nodeJsScripts already exists in Qt workspace
+    QDir destDir(destNodeScriptsDir);
+    if (destDir.exists() && QFileInfo::exists(destNodeScriptsDir + "/forms_data_extractor.js")) {
+        qDebug() << "✅ nodeJsScripts folder already exists in Qt workspace:" << destNodeScriptsDir;
+        return true;
     }
-    return QDir::currentPath() + "/forms_registration_data.json";
+    
+    // Find the actual project location
+    QString actualProjectPath = findActualProjectLocation();
+    if (actualProjectPath.isEmpty()) {
+        qDebug() << "❌ Could not find actual SummerClub_Advanced project location";
+        return false;
+    }
+    
+    QString sourceNodeScriptsDir = actualProjectPath + "/nodeJsScripts";
+    QDir sourceDir(sourceNodeScriptsDir);
+    
+    if (!sourceDir.exists()) {
+        qDebug() << "❌ Source nodeJsScripts folder does not exist:" << sourceNodeScriptsDir;
+        return false;
+    }
+    
+    qDebug() << "📋 Copying nodeJsScripts from:" << sourceNodeScriptsDir;
+    qDebug() << "📋 Copying nodeJsScripts to:" << destNodeScriptsDir;
+    
+    // List files that will be copied
+    QStringList filesToCopy = sourceDir.entryList(QDir::Files);
+    qDebug() << "📄 Files to copy:" << filesToCopy;
+    
+    // Copy the entire nodeJsScripts directory
+    if (copyDirectoryRecursively(sourceNodeScriptsDir, destNodeScriptsDir)) {
+        // Verify the copy was successful
+        QDir destDirVerify(destNodeScriptsDir);
+        QStringList copiedFiles = destDirVerify.entryList(QDir::Files);
+        qDebug() << "✅ Successfully copied nodeJsScripts to Qt workspace";
+        qDebug() << "📄 Copied files:" << copiedFiles;
+        return true;
+    } else {
+        qDebug() << "❌ Failed to copy nodeJsScripts to Qt workspace";
+        return false;
+    }
+}
+
+QString ActivityPanel::findActualProjectLocation()
+{
+    // List of possible project locations to search
+    QStringList searchPaths = {
+        "C:/Users/Khalil/Desktop/SummerClub_Advanced",
+        QDir::homePath() + "/Desktop/SummerClub_Advanced",
+        QDir::homePath() + "/Documents/SummerClub_Advanced",
+        "D:/SummerClub_Advanced",
+        "E:/SummerClub_Advanced"
+    };
+    
+    // Also try to find it by looking for common project indicators
+    QStringList commonLocations = {
+        QDir::homePath() + "/Desktop",
+        QDir::homePath() + "/Documents",
+        "C:/", "D:/", "E:/"
+    };
+    
+    // Search in common locations for SummerClub_Advanced folder
+    for (const QString &basePath : commonLocations) {
+        QDir baseDir(basePath);
+        QStringList subdirs = baseDir.entryList(QStringList() << "*SummerClub*", QDir::Dirs);
+        for (const QString &subdir : subdirs) {
+            QString fullPath = basePath + "/" + subdir;
+            searchPaths.append(fullPath);
+        }
+    }
+    
+    // Check each potential path
+    for (const QString &path : searchPaths) {
+        QDir projectDir(path);
+        if (projectDir.exists()) {
+            // Verify it's our project by checking for key files
+            QString nodeScriptsPath = path + "/nodeJsScripts";
+            QString scriptPath = nodeScriptsPath + "/forms_data_extractor.js";
+            QString credentialsPath = nodeScriptsPath + "/credentials.json";
+            QString packageJsonPath = nodeScriptsPath + "/package.json";
+            
+            if (QFileInfo::exists(scriptPath) && QFileInfo::exists(credentialsPath)) {
+                qDebug() << "✅ Found actual project at:" << path;
+                qDebug() << "  ✅ Script exists:" << QFileInfo::exists(scriptPath);
+                qDebug() << "  ✅ Credentials exist:" << QFileInfo::exists(credentialsPath);
+                qDebug() << "  📄 Package.json exists:" << QFileInfo::exists(packageJsonPath);
+                return path;
+            }
+        }
+    }
+    
+    qDebug() << "❌ Could not find SummerClub_Advanced project in any of these locations:";
+    for (const QString &path : searchPaths) {
+        qDebug() << "  - " << path;
+    }
+    
+    return QString();
+}
+
+bool ActivityPanel::copyDirectoryRecursively(const QString &sourceDir, const QString &destDir)
+{
+    QDir sourceDirectory(sourceDir);
+    if (!sourceDirectory.exists()) {
+        return false;
+    }
+    
+    QDir destDirectory(destDir);
+    if (!destDirectory.exists()) {
+        destDirectory.mkpath(".");
+    }
+    
+    // Copy all files
+    QStringList files = sourceDirectory.entryList(QDir::Files);
+    for (const QString &fileName : files) {
+        QString sourceFilePath = sourceDir + "/" + fileName;
+        QString destFilePath = destDir + "/" + fileName;
+        
+        // Remove existing file if it exists
+        if (QFileInfo::exists(destFilePath)) {
+            QFile::remove(destFilePath);
+        }
+        
+        if (!QFile::copy(sourceFilePath, destFilePath)) {
+            qDebug() << "❌ Failed to copy file:" << sourceFilePath << "to" << destFilePath;
+            return false;
+        } else {
+            qDebug() << "✅ Copied:" << fileName;
+        }
+    }
+    
+    // Copy subdirectories recursively
+    QStringList subdirs = sourceDirectory.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+    for (const QString &subdirName : subdirs) {
+        QString sourceSubdir = sourceDir + "/" + subdirName;
+        QString destSubdir = destDir + "/" + subdirName;
+        
+        if (!copyDirectoryRecursively(sourceSubdir, destSubdir)) {
+            return false;
+        }
+    }
+    
+    return true;
 }

@@ -1,5 +1,8 @@
 #include "paymentmodel.h"
+#include "employeelogspanel.h"
 #include <QDebug>
+#include <QJsonObject>
+#include <QJsonDocument>
 
 PaymentModel::PaymentModel(QObject *parent)
     : QObject(parent)
@@ -61,8 +64,26 @@ bool PaymentModel::addPayment(const QString &transactionId,
 
     bool success = query.exec();
 
-    if (!success)
+    if (!success) {
         qDebug() << "Add payment error:" << query.lastError().text();
+    } else {
+        // Log the CREATE action
+        QJsonObject paymentData;
+        paymentData["transaction_id"] = transactionId;
+        paymentData["payment_date"] = date.toString("yyyy-MM-dd");
+        paymentData["description"] = description;
+        paymentData["payment_type"] = type;
+        paymentData["amount"] = QString::number(amount, 'f', 2);
+        paymentData["payment_method"] = method;
+        paymentData["status"] = status;
+        paymentData["member_id"] = memberId.isEmpty() ? "NULL" : memberId;
+        
+        QJsonDocument doc(paymentData);
+        EmployeeLogsPanel::logAction("CREATE", "Payment", transactionId, "", 
+                                   doc.toJson(QJsonDocument::Compact), 
+                                   QString("New payment added: %1 (%2)")
+                                   .arg(transactionId, QString::number(amount, 'f', 2)));
+    }
 
     return success;
 }
@@ -95,22 +116,65 @@ bool PaymentModel::updatePayment(const QString &transactionId,
 
     bool success = query.exec();
 
-    if (!success)
+    if (!success) {
         qDebug() << "Update payment error:" << query.lastError().text();
+    } else {
+        // Log the UPDATE action
+        QJsonObject afterData;
+        afterData["transaction_id"] = transactionId;
+        afterData["payment_date"] = date.toString("yyyy-MM-dd");
+        afterData["description"] = description;
+        afterData["payment_type"] = type;
+        afterData["amount"] = QString::number(amount, 'f', 2);
+        afterData["payment_method"] = method;
+        afterData["status"] = status;
+        afterData["member_id"] = memberId.isEmpty() ? "NULL" : memberId;
+        
+        QJsonDocument doc(afterData);
+        EmployeeLogsPanel::logAction("UPDATE", "Payment", transactionId, "", 
+                                   doc.toJson(QJsonDocument::Compact), 
+                                   QString("Payment modified: %1 (%2)")
+                                   .arg(transactionId, QString::number(amount, 'f', 2)));
+    }
 
     return success;
 }
 
 bool PaymentModel::deletePayment(const QString &transactionId)
 {
+    // Get payment data before deletion for logging
+    QJsonObject beforeData;
+    QSqlQuery selectQuery;
+    selectQuery.prepare("SELECT * FROM transactions WHERE transaction_id = :transaction_id");
+    selectQuery.bindValue(":transaction_id", transactionId);
+    
+    if (selectQuery.exec() && selectQuery.next()) {
+        beforeData["transaction_id"] = selectQuery.value("transaction_id").toString();
+        beforeData["payment_date"] = selectQuery.value("payment_date").toString();
+        beforeData["description"] = selectQuery.value("description").toString();
+        beforeData["payment_type"] = selectQuery.value("payment_type").toString();
+        beforeData["amount"] = selectQuery.value("amount").toString();
+        beforeData["payment_method"] = selectQuery.value("payment_method").toString();
+        beforeData["status"] = selectQuery.value("status").toString();
+        beforeData["member_id"] = selectQuery.value("member_id").toString();
+    }
+    
     QSqlQuery query;
     query.prepare("DELETE FROM transactions WHERE transaction_id = :transaction_id");
     query.bindValue(":transaction_id", transactionId);
 
     bool success = query.exec();
 
-    if (!success)
+    if (!success) {
         qDebug() << "Delete payment error:" << query.lastError().text();
+    } else {
+        // Log the DELETE action
+        QJsonDocument doc(beforeData);
+        EmployeeLogsPanel::logAction("DELETE", "Payment", transactionId, 
+                                   doc.toJson(QJsonDocument::Compact), "", 
+                                   QString("Payment deleted: %1 (%2)")
+                                   .arg(transactionId, beforeData["amount"].toString()));
+    }
 
     return success;
 }

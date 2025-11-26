@@ -9,6 +9,7 @@ config.ini
 # Ignore any credentials files
 *credentials*
 *secrets*
+*token*
 
 # Ignore build directories and compiled files
 build/

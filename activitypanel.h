@@ -135,6 +135,9 @@ private:
     // File operations
     bool formsDataExists();
     QString getFormsDataPath();
+    bool ensureNodeJsScriptsExists();
+    QString findActualProjectLocation();
+    bool copyDirectoryRecursively(const QString &sourceDir, const QString &destDir);
 };
 
 #endif // ACTIVITYPANEL_H

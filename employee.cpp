@@ -1,5 +1,6 @@
 #include "employee.h"
 #include "ui_employeradmin.h"
+#include "employeelogspanel.h"
 #include <QRegularExpression>
 #include <QDateTime>
 #include <QTextDocument>
@@ -9,6 +10,8 @@
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QWidget>
+#include <QJsonObject>
+#include <QJsonDocument>
 
 // ============================================================================
 // CONSTRUCTORS
@@ -362,8 +365,35 @@ bool Employee::ajouter()
     // Execute query
     if (!query.exec()) {
         qDebug() << "Employee::ajouter() - Insert failed:" << query.lastError().text();
+        
+        // Log failed creation attempt
+        EmployeeLogsPanel::logAction("CREATE", "Employee", cin, "", "", 
+            QString("Failed to create employee %1 %2 - Database error: %3")
+            .arg(firstName, lastName, query.lastError().text()));
+        
         return false;
     }
+    
+    // Log successful employee creation
+    QJsonObject employeeData;
+    employeeData["cin"] = cin;
+    employeeData["firstName"] = firstName;
+    employeeData["lastName"] = lastName;
+    employeeData["position"] = position;
+    employeeData["department"] = department;
+    employeeData["hireDate"] = hireDate.toString("yyyy-MM-dd");
+    employeeData["status"] = status;
+    employeeData["age"] = age;
+    employeeData["gender"] = gender;
+    employeeData["email"] = email;
+    employeeData["phone"] = phone;
+    employeeData["salary"] = salary;
+    
+    QJsonDocument doc(employeeData);
+    EmployeeLogsPanel::logAction("CREATE", "Employee", cin, "", 
+        doc.toJson(QJsonDocument::Compact), 
+        QString("Successfully created new employee: %1 %2 (%3)")
+        .arg(firstName, lastName, position));
     
     qDebug() << "Employee::ajouter() - Successfully added employee:" << cin;
     return true;
@@ -420,7 +450,35 @@ bool Employee::supprimer(const QString &cin)
     // Check if employee exists
     if (!cinExiste(cin)) {
         qDebug() << "Employee::supprimer() - Employee not found:" << cin;
+        
+        // Log failed delete attempt
+        EmployeeLogsPanel::logAction("DELETE", "Employee", cin, "", "", 
+            QString("Failed to delete employee %1 - Employee not found").arg(cin));
+        
         return false;
+    }
+    
+    // Get employee data before deletion for logging
+    Employee* empToDelete = Employee::rechercherParCin(cin);
+    QJsonObject employeeData;
+    QString employeeName = "Unknown";
+    
+    if (empToDelete) {
+        employeeData["cin"] = empToDelete->getCin();
+        employeeData["firstName"] = empToDelete->getFirstName();
+        employeeData["lastName"] = empToDelete->getLastName();
+        employeeData["position"] = empToDelete->getPosition();
+        employeeData["department"] = empToDelete->getDepartment();
+        employeeData["hireDate"] = empToDelete->getHireDate().toString("yyyy-MM-dd");
+        employeeData["status"] = empToDelete->getStatus();
+        employeeData["age"] = empToDelete->getAge();
+        employeeData["gender"] = empToDelete->getGender();
+        employeeData["email"] = empToDelete->getEmail();
+        employeeData["phone"] = empToDelete->getPhone();
+        employeeData["salary"] = empToDelete->getSalary();
+        
+        employeeName = empToDelete->getFirstName() + " " + empToDelete->getLastName();
+        delete empToDelete;
     }
     
     // Prepare DELETE query with prepared statement
@@ -430,8 +488,21 @@ bool Employee::supprimer(const QString &cin)
     
     if (!query.exec()) {
         qDebug() << "Employee::supprimer() - Delete failed:" << query.lastError().text();
+        
+        // Log failed delete attempt
+        EmployeeLogsPanel::logAction("DELETE", "Employee", cin, "", "", 
+            QString("Failed to delete employee %1 - Database error: %2")
+            .arg(employeeName, query.lastError().text()));
+        
         return false;
     }
+    
+    // Log successful employee deletion
+    QJsonDocument doc(employeeData);
+    EmployeeLogsPanel::logAction("DELETE", "Employee", cin, 
+        doc.toJson(QJsonDocument::Compact), "", 
+        QString("Successfully deleted employee: %1 (CIN: %2)")
+        .arg(employeeName, cin));
     
     qDebug() << "Employee::supprimer() - Successfully deleted employee:" << cin;
     return true;
@@ -452,12 +523,41 @@ bool Employee::modifier()
     // Check if employee exists
     if (!cinExiste(cin)) {
         qDebug() << "Employee::modifier() - Employee not found:" << cin;
+        
+        // Log failed update attempt
+        EmployeeLogsPanel::logAction("UPDATE", "Employee", cin, "", "", 
+            QString("Failed to update employee %1 - Employee not found").arg(cin));
+        
         return false;
+    }
+    
+    // Get current employee data for before/after logging
+    Employee* currentEmp = Employee::rechercherParCin(cin);
+    QJsonObject beforeData;
+    if (currentEmp) {
+        beforeData["firstName"] = currentEmp->getFirstName();
+        beforeData["lastName"] = currentEmp->getLastName();
+        beforeData["position"] = currentEmp->getPosition();
+        beforeData["department"] = currentEmp->getDepartment();
+        beforeData["hireDate"] = currentEmp->getHireDate().toString("yyyy-MM-dd");
+        beforeData["status"] = currentEmp->getStatus();
+        beforeData["age"] = currentEmp->getAge();
+        beforeData["gender"] = currentEmp->getGender();
+        beforeData["email"] = currentEmp->getEmail();
+        beforeData["phone"] = currentEmp->getPhone();
+        beforeData["salary"] = currentEmp->getSalary();
+        delete currentEmp;
     }
     
     // Check if email is being changed and if new email already exists
     if (!email.isEmpty() && emailExiste(email, cin)) {
         qDebug() << "Employee::modifier() - Email already exists:" << email;
+        
+        // Log failed update attempt
+        EmployeeLogsPanel::logAction("UPDATE", "Employee", cin, "", "", 
+            QString("Failed to update employee %1 %2 - Email %3 already exists")
+            .arg(firstName, lastName, email));
+        
         return false;
     }
     
@@ -501,8 +601,37 @@ bool Employee::modifier()
     // Execute query
     if (!query.exec()) {
         qDebug() << "Employee::modifier() - Update failed:" << query.lastError().text();
+        
+        // Log failed update attempt
+        EmployeeLogsPanel::logAction("UPDATE", "Employee", cin, "", "", 
+            QString("Failed to update employee %1 %2 - Database error: %3")
+            .arg(firstName, lastName, query.lastError().text()));
+        
         return false;
     }
+    
+    // Log successful employee update
+    QJsonObject afterData;
+    afterData["firstName"] = firstName;
+    afterData["lastName"] = lastName;
+    afterData["position"] = position;
+    afterData["department"] = department;
+    afterData["hireDate"] = hireDate.toString("yyyy-MM-dd");
+    afterData["status"] = status;
+    afterData["age"] = age;
+    afterData["gender"] = gender;
+    afterData["email"] = email;
+    afterData["phone"] = phone;
+    afterData["salary"] = salary;
+    
+    QJsonDocument beforeDoc(beforeData);
+    QJsonDocument afterDoc(afterData);
+    
+    EmployeeLogsPanel::logAction("UPDATE", "Employee", cin, 
+        beforeDoc.toJson(QJsonDocument::Compact),
+        afterDoc.toJson(QJsonDocument::Compact), 
+        QString("Successfully updated employee: %1 %2 (%3)")
+        .arg(firstName, lastName, position));
     
     qDebug() << "Employee::modifier() - Successfully updated employee:" << cin;
     return true;
@@ -863,6 +992,12 @@ void Employee::onConfirmAdd()
     if (emp.ajouter()) {
         QMessageBox::information(parentWidget, "Success", 
             QString("Employee %1 %2 added successfully!").arg(firstName, lastName));
+        
+        // Additional UI-level logging for successful form submission
+        EmployeeLogsPanel::logAction("UI_CREATE", "Employee", cin, "", "", 
+            QString("Employee form successfully submitted and processed for %1 %2")
+            .arg(firstName, lastName));
+        
         clearEmployeeForm();
         refreshEmployeeTable();
     } else {
@@ -898,6 +1033,11 @@ void Employee::onConfirmAdd()
         }
         
         QMessageBox::critical(parentWidget, "Validation Error", errorMsg);
+        
+        // UI-level logging for form validation failure
+        EmployeeLogsPanel::logAction("UI_CREATE_FAILED", "Employee", cin, "", "", 
+            QString("Employee form validation failed for %1 %2: %3")
+            .arg(firstName, lastName, errorMsg.replace('\n', ' ')));
     }
 }
 
@@ -923,11 +1063,22 @@ void Employee::onConfirmUpdate()
     
     if (emp.modifier()) {
         QMessageBox::information(parentWidget, "Success", "Employee updated!");
+        
+        // Additional UI-level logging for successful form update
+        EmployeeLogsPanel::logAction("UI_UPDATE", "Employee", editingCin, "", "", 
+            QString("Employee form successfully updated for %1 %2")
+            .arg(emp.getFirstName(), emp.getLastName()));
+        
         clearEmployeeForm();
         refreshEmployeeTable();
         editingCin = "";
     } else {
         QMessageBox::critical(parentWidget, "Error", "Failed to update employee.");
+        
+        // UI-level logging for form update failure
+        EmployeeLogsPanel::logAction("UI_UPDATE_FAILED", "Employee", editingCin, "", "", 
+            QString("Employee form update failed for %1 %2 (UI Error)")
+            .arg(emp.getFirstName(), emp.getLastName()));
     }
 }
 
@@ -948,9 +1099,18 @@ void Employee::onConfirmDelete()
         Employee emp;
         if (emp.supprimer(cin)) {
             QMessageBox::information(parentWidget, "Success", "Employee deleted!");
+            
+            // Additional UI-level logging for successful delete confirmation
+            EmployeeLogsPanel::logAction("UI_DELETE", "Employee", cin, "", "", 
+                QString("Employee deletion confirmed and processed for %1").arg(name));
+            
             refreshEmployeeTable();
         } else {
             QMessageBox::critical(parentWidget, "Error", "Failed to delete.");
+            
+            // UI-level logging for delete failure
+            EmployeeLogsPanel::logAction("UI_DELETE_FAILED", "Employee", cin, "", "", 
+                QString("Employee deletion failed for %1 (UI Error)").arg(name));
         }
     }
 }

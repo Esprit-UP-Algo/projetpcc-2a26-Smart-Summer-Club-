@@ -1,5 +1,6 @@
 #include "member.h"
 #include "ui_employeradmin.h"
+#include "employeelogspanel.h"
 #include <QRegularExpression>
 #include <QDateTime>
 #include <QTextDocument>
@@ -11,6 +12,8 @@
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QWidget>
+#include <QJsonObject>
+#include <QJsonDocument>
 
 // ============================================================================
 // CONSTRUCTORS
@@ -324,6 +327,26 @@ bool Member::ajouter()
     }
     
     qDebug() << "Member::ajouter() - Successfully added member:" << cin;
+    
+    // Log the CREATE action
+    QJsonObject memberData;
+    memberData["cin"] = cin;
+    memberData["first_name"] = firstName;
+    memberData["last_name"] = lastName;
+    memberData["gender"] = gender;
+    memberData["age"] = age;
+    memberData["email"] = email;
+    memberData["phone"] = phone;
+    memberData["subscription_plan"] = subscriptionPlan;
+    memberData["join_date"] = joinDate.toString("yyyy-MM-dd");
+    memberData["has_photo"] = !photo.isEmpty();
+    
+    QJsonDocument doc(memberData);
+    EmployeeLogsPanel::logAction("CREATE", "Member", cin, "", 
+                               doc.toJson(QJsonDocument::Compact), 
+                               QString("New member created: %1 %2 (%3)")
+                               .arg(firstName, lastName, cin));
+    
     return true;
 }
 
@@ -378,6 +401,24 @@ bool Member::supprimer(const QString &cin)
         return false;
     }
     
+    // Get member data before deletion for logging
+    QJsonObject beforeData;
+    QSqlQuery selectQuery;
+    selectQuery.prepare("SELECT * FROM MEMBERS WHERE CIN = :cin");
+    selectQuery.bindValue(":cin", cin);
+    
+    if (selectQuery.exec() && selectQuery.next()) {
+        beforeData["cin"] = selectQuery.value("CIN").toString();
+        beforeData["first_name"] = selectQuery.value("FIRST_NAME").toString();
+        beforeData["last_name"] = selectQuery.value("LAST_NAME").toString();
+        beforeData["gender"] = selectQuery.value("GENDER").toString();
+        beforeData["age"] = selectQuery.value("AGE").toString();
+        beforeData["email"] = selectQuery.value("EMAIL").toString();
+        beforeData["phone"] = selectQuery.value("PHONE").toString();
+        beforeData["subscription_plan"] = selectQuery.value("SUBSCRIPTION_PLAN").toString();
+        beforeData["join_date"] = selectQuery.value("JOIN_DATE").toString();
+    }
+    
     // Prepare DELETE query with prepared statement
     QSqlQuery query;
     query.prepare("DELETE FROM MEMBERS WHERE CIN = :cin");
@@ -389,6 +430,16 @@ bool Member::supprimer(const QString &cin)
     }
     
     qDebug() << "Member::supprimer() - Successfully deleted member:" << cin;
+    
+    // Log the DELETE action
+    QJsonDocument doc(beforeData);
+    EmployeeLogsPanel::logAction("DELETE", "Member", cin, 
+                               doc.toJson(QJsonDocument::Compact), "", 
+                               QString("Member deleted: %1 %2 (%3)")
+                               .arg(beforeData["first_name"].toString(),
+                                    beforeData["last_name"].toString(),
+                                    cin));
+    
     return true;
 }
 
@@ -450,6 +501,26 @@ bool Member::modifier()
     }
     
     qDebug() << "Member::modifier() - Successfully updated member:" << cin;
+    
+    // Log the UPDATE action
+    QJsonObject afterData;
+    afterData["cin"] = cin;
+    afterData["first_name"] = firstName;
+    afterData["last_name"] = lastName;
+    afterData["gender"] = gender;
+    afterData["age"] = age;
+    afterData["email"] = email;
+    afterData["phone"] = phone;
+    afterData["subscription_plan"] = subscriptionPlan;
+    afterData["join_date"] = joinDate.toString("yyyy-MM-dd");
+    afterData["has_photo"] = !photo.isEmpty();
+    
+    QJsonDocument doc(afterData);
+    EmployeeLogsPanel::logAction("UPDATE", "Member", cin, "", 
+                               doc.toJson(QJsonDocument::Compact), 
+                               QString("Member modified: %1 %2 (%3)")
+                               .arg(firstName, lastName, cin));
+    
     return true;
 }
 

@@ -1,5 +1,6 @@
 #include "equipment.h"
 #include "ui_employeradmin.h"
+#include "employeelogspanel.h"
 #include <QRandomGenerator>
 #include <QMessageBox>
 #include <QFileDialog>
@@ -10,6 +11,8 @@
 #include <QBrush>
 #include <QColor>
 #include <QDebug>
+#include <QJsonObject>
+#include <QJsonDocument>
 
 Equipment::Equipment(Ui::EmployerAdmin *ui, QWidget *parent)
     : QObject(parent)
@@ -298,6 +301,18 @@ void Equipment::loadEquipmentTable()
 
                 if (deleteQuery.exec()) {
                     qDebug() << "Successfully deleted equipment from database";
+                    
+                    // Log the DELETE action
+                    QJsonObject beforeData;
+                    beforeData["id"] = QString::number(id);
+                    beforeData["name"] = name;
+                    
+                    QJsonDocument doc(beforeData);
+                    EmployeeLogsPanel::logAction("DELETE", "Equipment", QString::number(id), 
+                                               doc.toJson(QJsonDocument::Compact), "", 
+                                               QString("Equipment deleted: %1 (ID: %2)")
+                                               .arg(name, QString::number(id)));
+                    
                     QMessageBox::information(parentWidget, "Success",
                                              QString("Equipment '%1' has been deleted successfully.").arg(name));
                     loadEquipmentTable(); // Refresh the table
@@ -384,6 +399,27 @@ void Equipment::onConfirmAdd()
 
     if (q.exec()) {
         qDebug() << "Add successful";
+        
+        // Log the CREATE action
+        QJsonObject equipmentData;
+        equipmentData["equip_code"] = code;
+        equipmentData["name"] = name;
+        equipmentData["category"] = cat;
+        equipmentData["total_quantity"] = qty;
+        equipmentData["available"] = qty;
+        equipmentData["status"] = status;
+        equipmentData["brand"] = brand;
+        equipmentData["model"] = model;
+        equipmentData["purchase_date"] = pDate.toString("yyyy-MM-dd");
+        equipmentData["purchase_price"] = priceValue.isNull() ? "NULL" : priceValue.toString();
+        equipmentData["location"] = "N/A";
+        
+        QJsonDocument doc(equipmentData);
+        EmployeeLogsPanel::logAction("CREATE", "Equipment", code, "", 
+                                   doc.toJson(QJsonDocument::Compact), 
+                                   QString("New equipment added: %1 (%2)")
+                                   .arg(name, code));
+        
         clearForm();
         loadEquipmentTable();  // DISPLAYS IMMEDIATELY
         QMessageBox::information(parentWidget, "Success", "Added!");
@@ -444,6 +480,24 @@ void Equipment::onConfirmUpdate()
 
     if (q.exec()) {
         qDebug() << "Update successful";
+        
+        // Log the UPDATE action
+        QJsonObject afterData;
+        afterData["id"] = QString::number(id);
+        afterData["name"] = name;
+        afterData["category"] = cat;
+        afterData["total_quantity"] = qty;
+        afterData["status"] = status;
+        afterData["brand"] = brand;
+        afterData["model"] = model;
+        afterData["purchase_price"] = priceValue.isNull() ? "NULL" : priceValue.toString();
+        
+        QJsonDocument doc(afterData);
+        EmployeeLogsPanel::logAction("UPDATE", "Equipment", QString::number(id), "", 
+                                   doc.toJson(QJsonDocument::Compact), 
+                                   QString("Equipment modified: %1 (ID: %2)")
+                                   .arg(name, QString::number(id)));
+        
         loadEquipmentTable();
         clearForm();
         QMessageBox::information(parentWidget, "Success", "Updated!");
@@ -650,6 +704,19 @@ void Equipment::onSearchEquipment()
 
                 if (deleteQuery.exec()) {
                     qDebug() << "Successfully deleted equipment from database";
+                    
+                    // Log the DELETE action (from search)
+                    QJsonObject beforeData;
+                    beforeData["id"] = QString::number(id);
+                    beforeData["name"] = name;
+                    beforeData["deleted_from"] = "search_results";
+                    
+                    QJsonDocument doc(beforeData);
+                    EmployeeLogsPanel::logAction("DELETE", "Equipment", QString::number(id), 
+                                               doc.toJson(QJsonDocument::Compact), "", 
+                                               QString("Equipment deleted from search: %1 (ID: %2)")
+                                               .arg(name, QString::number(id)));
+                    
                     QMessageBox::information(parentWidget, "Success",
                                              QString("Equipment '%1' has been deleted successfully.").arg(name));
                     loadEquipmentTable(); // Refresh the table

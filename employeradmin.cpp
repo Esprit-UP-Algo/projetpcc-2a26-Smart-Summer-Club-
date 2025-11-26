@@ -60,6 +60,7 @@ EmployerAdmin::EmployerAdmin(QWidget *parent)
     paymentManager  = new Payment(ui, this);
     emailPanel     = new EmailPanel(this);
     activityPanel  = new ActivityPanel(this);
+    employeeLogsPanel = nullptr; // Will be created in setupEmployeeLogsTab()
 
     // Setup connections
     setupConnections();
@@ -90,6 +91,9 @@ EmployerAdmin::EmployerAdmin(QWidget *parent)
     
     // Setup Activity Analytics Panel
     setupActivityAnalyticsTab();
+    
+    // Setup Employee Logs Panel
+    setupEmployeeLogsTab();
 
     // Update payment statistics
     paymentManager->populatePaymentStatistics();
@@ -169,6 +173,7 @@ EmployerAdmin::~EmployerAdmin()
     delete equipmentManager;
     delete paymentManager;
     delete emailPanel;
+    delete employeeLogsPanel;
     delete ui;
 }
 
@@ -803,6 +808,26 @@ void EmployerAdmin::setupActivityAnalyticsTab()
     ui->activityTabWidget->addTab(activityPanel, "Analytics");
     
     // The tab icon will be set by setupTabIcons() method
+}
+
+void EmployerAdmin::setupEmployeeLogsTab()
+{
+    // Replace the placeholder content with the actual EmployeeLogsPanel
+    employeeLogsPanel = new EmployeeLogsPanel(this);
+    
+    // Remove the placeholder and set the actual panel
+    QVBoxLayout *logsLayout = qobject_cast<QVBoxLayout*>(ui->employeeLogsTab->layout());
+    if (logsLayout) {
+        // Clear existing content (placeholder)
+        QLayoutItem *item;
+        while ((item = logsLayout->takeAt(0)) != nullptr) {
+            delete item->widget();
+            delete item;
+        }
+        
+        // Add the actual employee logs panel
+        logsLayout->addWidget(employeeLogsPanel);
+    }
 }
 
 void EmployerAdmin::setupButtonStyling()

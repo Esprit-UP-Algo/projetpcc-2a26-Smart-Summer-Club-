@@ -18,6 +18,8 @@
 #include <QEventLoop>
 #include <QFile>
 #include <QFileInfo>
+#include <QCoreApplication>
+#include <QDir>
 
 EmailPanel::EmailPanel(QWidget *parent)
     : QWidget(parent)

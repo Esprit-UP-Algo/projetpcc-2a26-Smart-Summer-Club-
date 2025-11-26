@@ -369,7 +369,7 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>3</number>
+             <number>1</number>
             </property>
             <widget class="QWidget" name="employeePage">
              <layout class="QVBoxLayout" name="employeePageLayout">
@@ -514,8 +514,8 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>536</width>
-                       <height>631</height>
+                       <width>1030</width>
+                       <height>857</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="formMainLayout">
@@ -1202,177 +1202,19 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                  </attribute>
                  <layout class="QVBoxLayout" name="employeeLogsLayout">
                   <item>
-                   <widget class="QFrame" name="logsFilterFrame">
+                   <widget class="QLabel" name="employeeLogsPlaceholder">
                     <property name="styleSheet">
-                     <string notr="true">background-color: rgba(22, 165, 179, 0.02); border: 1px solid rgba(22, 165, 179, 0.1); border-radius: 12px; padding: 8px;</string>
+                     <string notr="true">color:#95a5a6; font-size:16px; padding:50px; border:2px dashed #bdc3c7; border-radius:12px; text-align:center;</string>
                     </property>
-                    <layout class="QHBoxLayout" name="logsFilterLayout">
-                     <item>
-                      <widget class="QLabel" name="filterByActionLabel">
-                       <property name="styleSheet">
-                        <string notr="true">font-weight: 600; color: #2c3e50;</string>
-                       </property>
-                       <property name="text">
-                        <string>Filter by Action:</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QComboBox" name="actionFilterComboBox">
-                       <property name="minimumSize">
-                        <size>
-                         <width>120</width>
-                         <height>0</height>
-                        </size>
-                       </property>
-                       <item>
-                        <property name="text">
-                         <string>All Actions</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>Add Employee</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>Edit Employee</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>Delete Employee</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>Login</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>Logout</string>
-                        </property>
-                       </item>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLabel" name="filterByDateLabel">
-                       <property name="styleSheet">
-                        <string notr="true">font-weight: 600; color: #2c3e50;</string>
-                       </property>
-                       <property name="text">
-                        <string>Date Range:</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QDateEdit" name="startDateEdit">
-                       <property name="styleSheet">
-                        <string notr="true">padding: 8px; border: 2px solid #e0e4e7; border-radius: 6px; background-color: white;</string>
-                       </property>
-                       <property name="calendarPopup">
-                        <bool>true</bool>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QLabel" name="toLabel">
-                       <property name="text">
-                        <string>to</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QDateEdit" name="endDateEdit">
-                       <property name="styleSheet">
-                        <string notr="true">padding: 8px; border: 2px solid #e0e4e7; border-radius: 6px; background-color: white;</string>
-                       </property>
-                       <property name="calendarPopup">
-                        <bool>true</bool>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <widget class="QPushButton" name="applyFilterButton">
-                       <property name="text">
-                        <string>Apply Filter</string>
-                       </property>
-                       <property name="icon">
-                        <iconset resource="resources.qrc">
-                         <normaloff>:/icons/icons/search.png</normaloff>:/icons/icons/search.png</iconset>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
-                      <spacer name="logsFilterSpacer">
-                       <property name="orientation">
-                        <enum>Qt::Orientation::Horizontal</enum>
-                       </property>
-                       <property name="sizeHint" stdset="0">
-                        <size>
-                         <width>40</width>
-                         <height>20</height>
-                        </size>
-                       </property>
-                      </spacer>
-                     </item>
-                     <item>
-                      <widget class="QPushButton" name="exportLogsButton">
-                       <property name="text">
-                        <string>Export Logs</string>
-                       </property>
-                       <property name="icon">
-                        <iconset resource="resources.qrc">
-                         <normaloff>:/icons/icons/payment.png</normaloff>:/icons/icons/payment.png</iconset>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QTableWidget" name="employeeLogsTable">
-                    <property name="alternatingRowColors">
-                     <bool>true</bool>
+                    <property name="text">
+                     <string>📋 Employee Logs Panel
+                     
+This panel will be implemented programmatically in C++
+Advanced audit logging system with dashboard, filters, and analytics</string>
                     </property>
-                    <property name="selectionBehavior">
-                     <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+                    <property name="alignment">
+                     <set>Qt::AlignCenter</set>
                     </property>
-                    <property name="sortingEnabled">
-                     <bool>true</bool>
-                    </property>
-                    <column>
-                     <property name="text">
-                      <string>Log ID</string>
-                     </property>
-                    </column>
-                    <column>
-                     <property name="text">
-                      <string>Timestamp</string>
-                     </property>
-                    </column>
-                    <column>
-                     <property name="text">
-                      <string>Action</string>
-                     </property>
-                    </column>
-                    <column>
-                     <property name="text">
-                      <string>Employee ID</string>
-                     </property>
-                    </column>
-                    <column>
-                     <property name="text">
-                      <string>Employee Name</string>
-                     </property>
-                    </column>
-                    <column>
-                     <property name="text">
-                      <string>Performed By</string>
-                     </property>
-                    </column>
                    </widget>
                   </item>
                  </layout>
@@ -1539,8 +1381,8 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>495</width>
-                       <height>571</height>
+                       <width>1030</width>
+                       <height>857</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="memberFormMainLayout">
@@ -3397,7 +3239,7 @@ QComboBox QAbstractItemView {
               <item>
                <widget class="QTabWidget" name="paymentTabWidget">
                 <property name="currentIndex">
-                 <number>1</number>
+                 <number>0</number>
                 </property>
                 <widget class="QWidget" name="listTab_4">
                  <attribute name="icon">
@@ -3535,8 +3377,8 @@ QComboBox QAbstractItemView {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>573</width>
-                       <height>422</height>
+                       <width>1030</width>
+                       <height>920</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="paymentFormMainLayout">
@@ -3873,8 +3715,8 @@ QComboBox QAbstractItemView {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>629</width>
-                       <height>536</height>
+                       <width>1030</width>
+                       <height>920</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="paymentStatsContentLayout">
@@ -4199,7 +4041,7 @@ QComboBox QAbstractItemView {
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>642</width>
+                   <width>1035</width>
                    <height>2011</height>
                   </rect>
                  </property>
