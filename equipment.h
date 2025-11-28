@@ -31,6 +31,7 @@ public:
     void setupEquipmentTable();
     void loadEquipmentTable();
     void clearForm();
+    void populateEquipmentStatistics(); // Populate statistics cards, tables, and charts with real database data
 
 private:
     Ui::EmployerAdmin *ui;

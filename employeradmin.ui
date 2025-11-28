@@ -14,7 +14,7 @@
    <string>VIBRA CLUB - Application Management</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QMainWindow { background-color: #f5f7fa; } /* Top Bar Styling */ #topBarFrame { /* Match sidebar: smooth horizontal gradient from left to right */ background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgba(22, 165, 179, 0.28), stop:1 rgba(22, 165, 179, 0.12)); border-bottom: 1px solid #e0e4e7; } #logoLabel { font-size: 24px; font-weight: bold; color: #2c3e50; } #userInfoFrame { background-color: transparent; } #userNameLabel { font-size: 14px; font-weight: 600; color: #2c3e50; } #userRoleLabel { font-size: 12px; color: #7f8c8d; } #userAvatarLabel { background-color: #3498db; border-radius: 20px; color: white; font-weight: bold; } /* Sidebar Styling */ #sidebarFrame { /* Smooth horizontal gradient from left to right with stronger presence on the left */ background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgba(22, 165, 179, 0.28), stop:1 rgba(22, 165, 179, 0.12)); border-right: 1px solid #e0e4e7; } #navigationFrame { background-color: transparent; } QPushButton#employeesButton, QPushButton#membersButton, QPushButton#equipmentButton, QPushButton#activitiesButton, QPushButton#paymentsButton { background-color: transparent; border: none; padding: 15px 20px; text-align: left; font-size: 14px; color: #2c3e50; border-radius: 8px; margin: 2px 10px; } QPushButton#employeesButton:hover, QPushButton#membersButton:hover, QPushButton#equipmentButton:hover, QPushButton#activitiesButton:hover, QPushButton#paymentsButton:hover { background-color: #e8f4f5; } QPushButton#employeesButton:checked, QPushButton#membersButton:checked, QPushButton#equipmentButton:checked, QPushButton#activitiesButton:checked, QPushButton#paymentsButton:checked { background-color: #16a5b3; color: white; } QPushButton#employeesButton:checked:hover, QPushButton#membersButton:checked:hover, QPushButton#equipmentButton:checked:hover, QPushButton#activitiesButton:checked:hover, QPushButton#paymentsButton:checked:hover { background-color: #139aa6; } /* Main Content Styling */ #mainContentFrame { background-color: transparent; } /* Tab Widget Styling */ QTabWidget::pane { border: 2px solid #16a5b3; background-color: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(22, 165, 179, 0.1); } QTabBar::tab { /* Unselected tabs mimic our button style: transparent teal with teal border */ background-color: rgba(22, 165, 179, 0.10); color: #2c3e50; padding: 12px 24px; margin-right: 2px; border-top-left-radius: 8px; border-top-right-radius: 8px; border: 1.5px solid rgba(22, 165, 179, 0.65); border-bottom: none; } QTabBar::tab:selected { background-color: #16a5b3; color: white; border-color: #16a5b3; font-weight: 600; } QTabBar::tab:hover:!selected { background-color: rgba(22, 165, 179, 0.18); border-color: #16a5b3; transition: all 0.3s ease; } /* Statistics Cards Styling */ QFrame[objectName*=&quot;Card&quot;] { background-color: white; border: 1px solid #e0e4e7; border-radius: 16px; padding: 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); } QFrame[objectName*=&quot;Card&quot;]:hover { box-shadow: 0 4px 20px rgba(22, 165, 179, 0.15); border-color: #16a5b3; transition: all 0.3s ease; } /* Form Styling */ QLineEdit { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); } QLineEdit:focus { border-color: #16a5b3; box-shadow: 0 0 0 3px rgba(22, 165, 179, 0.1); outline: none; } QLineEdit:hover { border-color: #16a5b3; transition: border-color 0.2s ease; } QComboBox { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); } QComboBox:focus { border-color: #16a5b3; box-shadow: 0 0 0 3px rgba(22, 165, 179, 0.1); } QComboBox:hover { border-color: #16a5b3; transition: border-color 0.2s ease; } QDateEdit, QSpinBox { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); } QDateEdit:focus, QSpinBox:focus { border-color: #16a5b3; box-shadow: 0 0 0 3px rgba(22, 165, 179, 0.1); } QTextEdit { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); } QTextEdit:focus { border-color: #16a5b3; box-shadow: 0 0 0 3px rgba(22, 165, 179, 0.1); } QPushButton#actionButton { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #16a5b3, stop:1 #139aa6); color: white; border: none; padding: 14px 28px; border-radius: 10px; font-size: 14px; font-weight: 600; box-shadow: 0 4px 8px rgba(22, 165, 179, 0.2); } QPushButton#actionButton:hover { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #139aa6, stop:1 #0f858f); box-shadow: 0 6px 12px rgba(22, 165, 179, 0.3); transform: translateY(-1px); } QPushButton#actionButton:pressed { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #0f858f, stop:1 #0c6b73); box-shadow: 0 2px 4px rgba(22, 165, 179, 0.2); transform: translateY(0px); } /* Table Styling */ QTableWidget { background-color: white; gridline-color: #e6eef0; border: 2px solid #16a5b3; /* teal border like the mock */ border-radius: 12px; selection-background-color: rgba(22, 165, 179, 0.14); selection-color: #2c3e50; } /* Header styled to main brand color */ QHeaderView::section { background-color: #16a5b3; color: white; padding: 8px 10px; border: none; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.25); } /* Corner button (top-left of table) to match header */ QTableCornerButton::section { background-color: #16a5b3; border: none; } /* Alternate rows for subtle striping */ QTableView::item:alternate { background: rgba(22, 165, 179, 0.03); } /* Selected row styling */ QTableView::item:selected { background: rgba(22, 165, 179, 0.14); color: #2c3e50; } /* Frame Styling */ QFrame { border-radius: 8px; } /* Label Styling */ QLabel { color: #2c3e50; } /* Search Frame Styling */ QFrame[objectName*=&quot;SearchFrame&quot;], QFrame[objectName*=&quot;searchFrame&quot;] { background-color: rgba(22, 165, 179, 0.02); border: 1px solid rgba(22, 165, 179, 0.1); border-radius: 12px; padding: 8px; } /* Default buttons: avoid gray; use brand color with high transparency */ QPushButton { background-color: rgba(22, 165, 179, 0.10); color: #2c3e50; border: 1.5px solid rgba(22, 165, 179, 0.65); padding: 10px 16px; border-radius: 10px; } QPushButton:hover { background-color: rgba(22, 165, 179, 0.18); } QPushButton:pressed { background-color: rgba(22, 165, 179, 0.26); } QPushButton:disabled { background-color: rgba(22, 165, 179, 0.06); color: #98a6ad; border-color: rgba(22, 165, 179, 0.25); }
+   <string notr="true">QMainWindow { background-color: #f5f7fa; } /* Top Bar Styling */ #topBarFrame { /* Match sidebar: smooth horizontal gradient from left to right */ background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgba(22, 165, 179, 0.28), stop:1 rgba(22, 165, 179, 0.12)); border-bottom: 1px solid #e0e4e7; } #logoLabel { font-size: 24px; font-weight: bold; color: #2c3e50; } #userInfoFrame { background-color: transparent; } #userNameLabel { font-size: 14px; font-weight: 600; color: #2c3e50; } #userRoleLabel { font-size: 12px; color: #7f8c8d; } #userAvatarLabel { background-color: #3498db; border-radius: 20px; color: white; font-weight: bold; } /* Sidebar Styling */ #sidebarFrame { /* Smooth horizontal gradient from left to right with stronger presence on the left */ background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgba(22, 165, 179, 0.28), stop:1 rgba(22, 165, 179, 0.12)); border-right: 1px solid #e0e4e7; } #navigationFrame { background-color: transparent; } QPushButton#employeesButton, QPushButton#membersButton, QPushButton#equipmentButton, QPushButton#activitiesButton, QPushButton#paymentsButton { background-color: transparent; border: none; padding: 15px 20px; text-align: left; font-size: 14px; color: #2c3e50; border-radius: 8px; margin: 2px 10px; } QPushButton#employeesButton:hover, QPushButton#membersButton:hover, QPushButton#equipmentButton:hover, QPushButton#activitiesButton:hover, QPushButton#paymentsButton:hover { background-color: #e8f4f5; } QPushButton#employeesButton:checked, QPushButton#membersButton:checked, QPushButton#equipmentButton:checked, QPushButton#activitiesButton:checked, QPushButton#paymentsButton:checked { background-color: #16a5b3; color: white; } QPushButton#employeesButton:checked:hover, QPushButton#membersButton:checked:hover, QPushButton#equipmentButton:checked:hover, QPushButton#activitiesButton:checked:hover, QPushButton#paymentsButton:checked:hover { background-color: #139aa6; } /* Main Content Styling */ #mainContentFrame { background-color: transparent; } /* Tab Widget Styling */ QTabWidget::pane { border: 2px solid #16a5b3; background-color: white; border-radius: 12px; } QTabBar::tab { /* Unselected tabs mimic our button style: transparent teal with teal border */ background-color: rgba(22, 165, 179, 0.10); color: #2c3e50; padding: 12px 24px; margin-right: 2px; border-top-left-radius: 8px; border-top-right-radius: 8px; border: 1.5px solid rgba(22, 165, 179, 0.65); border-bottom: none; } QTabBar::tab:selected { background-color: #16a5b3; color: white; border-color: #16a5b3; font-weight: 600; } QTabBar::tab:hover:!selected { background-color: rgba(22, 165, 179, 0.18); border-color: #16a5b3; } /* Statistics Cards Styling */ QFrame[objectName*=&quot;Card&quot;] { background-color: white; border: 1px solid #e0e4e7; border-radius: 16px; padding: 20px; } QFrame[objectName*=&quot;Card&quot;]:hover { border-color: #16a5b3; } /* Form Styling */ QLineEdit { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; } QLineEdit:focus { border-color: #16a5b3; outline: none; } QLineEdit:hover { border-color: #16a5b3; } QComboBox { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; } QComboBox:focus { border-color: #16a5b3; } QComboBox:hover { border-color: #16a5b3; } QDateEdit, QSpinBox { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; } QDateEdit:focus, QSpinBox:focus { border-color: #16a5b3; } QTextEdit { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; } QTextEdit:focus { border-color: #16a5b3; } QPushButton#actionButton { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #16a5b3, stop:1 #139aa6); color: white; border: none; padding: 14px 28px; border-radius: 10px; font-size: 14px; font-weight: 600; } QPushButton#actionButton:hover { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #139aa6, stop:1 #0f858f); transform: translateY(-1px); } QPushButton#actionButton:pressed { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #0f858f, stop:1 #0c6b73); transform: translateY(0px); } /* Table Styling */ QTableWidget { background-color: white; gridline-color: #e6eef0; border: 2px solid #16a5b3; /* teal border like the mock */ border-radius: 12px; selection-background-color: rgba(22, 165, 179, 0.14); selection-color: #2c3e50; } /* Header styled to main brand color */ QHeaderView::section { background-color: #16a5b3; color: white; padding: 8px 10px; border: none; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.25); } /* Corner button (top-left of table) to match header */ QTableCornerButton::section { background-color: #16a5b3; border: none; } /* Alternate rows for subtle striping */ QTableView::item:alternate { background: rgba(22, 165, 179, 0.03); } /* Selected row styling */ QTableView::item:selected { background: rgba(22, 165, 179, 0.14); color: #2c3e50; } /* Frame Styling */ QFrame { border-radius: 8px; } /* Label Styling */ QLabel { color: #2c3e50; } /* Search Frame Styling */ QFrame[objectName*=&quot;SearchFrame&quot;], QFrame[objectName*=&quot;searchFrame&quot;] { background-color: rgba(22, 165, 179, 0.02); border: 1px solid rgba(22, 165, 179, 0.1); border-radius: 12px; padding: 8px; } /* Default buttons: avoid gray; use brand color with high transparency */ QPushButton { background-color: rgba(22, 165, 179, 0.10); color: #2c3e50; border: 1.5px solid rgba(22, 165, 179, 0.65); padding: 10px 16px; border-radius: 10px; } QPushButton:hover { background-color: rgba(22, 165, 179, 0.18); } QPushButton:pressed { background-color: rgba(22, 165, 179, 0.26); } QPushButton:disabled { background-color: rgba(22, 165, 179, 0.06); color: #98a6ad; border-color: rgba(22, 165, 179, 0.25); }
 /* ===== FIX: Invisible text in login and search fields ===== */
 
 /* Make sure typed text is visible in all line edits */
@@ -2155,7 +2155,7 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                            </property>
                           </widget>
                          </item>
-                         <item row="5" column="0" colspan="4">
+                         <item row="6" column="0" colspan="4">
                           <widget class="QFrame" name="equipmentButtonFrame">
                            <layout class="QHBoxLayout" name="equipmentButtonLayout">
                             <item>
@@ -2235,40 +2235,106 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                           </widget>
                          </item>
                          <item row="2" column="2">
-                          <widget class="QLabel" name="equipmentStatusLabel">
+                          <widget class="QLabel" name="equipmentAvailableQtyLabel">
                            <property name="styleSheet">
                             <string notr="true">font-weight: 600; color: #2c3e50;</string>
                            </property>
                            <property name="text">
-                            <string>Status:</string>
+                            <string>Available Qty:</string>
                            </property>
                           </widget>
                          </item>
                          <item row="2" column="3">
+                          <widget class="QSpinBox" name="equipmentAvailableQtySpinBox">
+                           <property name="minimum">
+                            <number>0</number>
+                           </property>
+                           <property name="maximum">
+                            <number>999</number>
+                           </property>
+                           <property name="value">
+                            <number>0</number>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="4" column="0">
+                          <widget class="QLabel" name="equipmentReservedQtyLabel">
+                           <property name="styleSheet">
+                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                           </property>
+                           <property name="text">
+                            <string>Reserved Qty:</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="4" column="1">
+                          <widget class="QSpinBox" name="equipmentReservedQtySpinBox">
+                           <property name="minimum">
+                            <number>0</number>
+                           </property>
+                           <property name="maximum">
+                            <number>999</number>
+                           </property>
+                           <property name="value">
+                            <number>0</number>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="4" column="2">
+                          <widget class="QLabel" name="equipmentMaintenanceQtyLabel">
+                           <property name="styleSheet">
+                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                           </property>
+                           <property name="text">
+                            <string>Maintenance Qty:</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="4" column="3">
+                          <widget class="QSpinBox" name="equipmentMaintenanceQtySpinBox">
+                           <property name="minimum">
+                            <number>0</number>
+                           </property>
+                           <property name="maximum">
+                            <number>999</number>
+                           </property>
+                           <property name="value">
+                            <number>0</number>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="5" column="0">
+                          <widget class="QLabel" name="equipmentOutOfOrderQtyLabel">
+                           <property name="styleSheet">
+                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                           </property>
+                           <property name="text">
+                            <string>Out of Order Qty:</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="5" column="1">
+                          <widget class="QSpinBox" name="equipmentOutOfOrderQtySpinBox">
+                           <property name="minimum">
+                            <number>0</number>
+                           </property>
+                           <property name="maximum">
+                            <number>999</number>
+                           </property>
+                           <property name="value">
+                            <number>0</number>
+                           </property>
+                          </widget>
+                         </item>
+                         <!-- Hidden status combo for backward compatibility -->
+                         <item row="2" column="4">
                           <widget class="QComboBox" name="equipmentStatusComboBox">
+                           <property name="visible">
+                            <bool>false</bool>
+                           </property>
                            <item>
                             <property name="text">
                              <string>Available</string>
-                            </property>
-                           </item>
-                           <item>
-                            <property name="text">
-                             <string>In Use</string>
-                            </property>
-                           </item>
-                           <item>
-                            <property name="text">
-                             <string>Under Maintenance</string>
-                            </property>
-                           </item>
-                           <item>
-                            <property name="text">
-                             <string>Out of Order</string>
-                            </property>
-                           </item>
-                           <item>
-                            <property name="text">
-                             <string>Retired</string>
                             </property>
                            </item>
                           </widget>
@@ -3208,6 +3274,284 @@ QComboBox QAbstractItemView {
                   </item>
                  </layout>
                 </widget>
+               <widget class="QWidget" name="equipmentReservationTab">
+                <attribute name="title">
+                 <string> Equipment Reservation</string>
+                </attribute>
+                <layout class="QVBoxLayout" name="equipmentReservationLayout">
+                 <property name="spacing">
+                  <number>20</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>12</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>12</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>12</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>12</number>
+                 </property>
+                 <item>
+                  <widget class="QGroupBox" name="availableEquipmentGroupBox">
+                   <property name="title">
+                    <string>Available Equipment for [Selected Date]</string>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">QGroupBox { background-color: rgba(22, 165, 179, 0.05); border: 2px solid #16a5b3; border-radius: 12px; margin-top: 12px; }</string>
+                   </property>
+                   <layout class="QVBoxLayout" name="availableEquipmentLayout">
+                    <property name="spacing">
+                     <number>12</number>
+                    </property>
+                    <property name="leftMargin">
+                     <number>16</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>16</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>16</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>16</number>
+                    </property>
+                    <item>
+                     <widget class="QTableWidget" name="availableEquipmentTable">
+                      <property name="alternatingRowColors">
+                       <bool>true</bool>
+                      </property>
+                      <property name="selectionBehavior">
+                       <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+                      </property>
+                      <column>
+                       <property name="text">
+                        <string>Select</string>
+                       </property>
+                      </column>
+                      <column>
+                       <property name="text">
+                        <string>Equipment Name</string>
+                       </property>
+                      </column>
+                      <column>
+                       <property name="text">
+                        <string>Category</string>
+                       </property>
+                      </column>
+                      <column>
+                       <property name="text">
+                        <string>Available Qty</string>
+                       </property>
+                      </column>
+                      <column>
+                       <property name="text">
+                        <string>Reserve Qty</string>
+                       </property>
+                      </column>
+                     </widget>
+                    </item>
+                    <item>
+                     <layout class="QHBoxLayout" name="reserveQuantityControlLayout">
+                      <property name="spacing">
+                       <number>8</number>
+                      </property>
+                      <item>
+                       <widget class="QLabel" name="reserveQuantityLabel">
+                        <property name="styleSheet">
+                         <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                        </property>
+                        <property name="text">
+                         <string>Reserve quantity for selected equipment:</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QSpinBox" name="reserveQuantitySpinBox">
+                        <property name="minimum">
+                         <number>1</number>
+                        </property>
+                        <property name="maximum">
+                         <number>999</number>
+                        </property>
+                        <property name="value">
+                         <number>1</number>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLabel" name="reserveQuantityHelperLabel">
+                        <property name="styleSheet">
+                         <string notr="true">color: #7f8c8d;</string>
+                        </property>
+                        <property name="text">
+                         <string>Use the spin box to ensure quantities stay within availability.</string>
+                        </property>
+                       </widget>
+                      </item>
+                     </layout>
+                    </item>
+                    <item>
+                     <layout class="QHBoxLayout" name="availableEquipmentButtonsLayout">
+                      <property name="spacing">
+                       <number>10</number>
+                      </property>
+                      <item>
+                       <widget class="QPushButton" name="refreshEquipmentButton">
+                        <property name="minimumSize">
+                         <size>
+                          <width>180</width>
+                          <height>40</height>
+                         </size>
+                        </property>
+                        <property name="text">
+                         <string>Refresh Available Equipment</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QPushButton" name="addToReservationButton">
+                        <property name="minimumSize">
+                         <size>
+                          <width>200</width>
+                          <height>40</height>
+                         </size>
+                        </property>
+                        <property name="text">
+                         <string>Add Selected to Reservation</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <spacer name="availableEquipmentButtonsSpacer">
+                        <property name="orientation">
+                         <enum>Qt::Orientation::Horizontal</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>40</width>
+                          <height>20</height>
+                         </size>
+                        </property>
+                       </spacer>
+                      </item>
+                     </layout>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QGroupBox" name="reservedEquipmentGroupBox">
+                   <property name="title">
+                    <string>Reserved Equipment</string>
+                   </property>
+                   <property name="styleSheet">
+                    <string notr="true">QGroupBox { background-color: rgba(44, 62, 80, 0.04); border: 2px solid #2c3e50; border-radius: 12px; margin-top: 12px; }</string>
+                   </property>
+                   <layout class="QVBoxLayout" name="reservedEquipmentLayout">
+                    <property name="spacing">
+                     <number>12</number>
+                    </property>
+                    <property name="leftMargin">
+                     <number>16</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>16</number>
+                    </property>
+                    <property name="rightMargin">
+                     <number>16</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>16</number>
+                    </property>
+                    <item>
+                     <widget class="QTableWidget" name="reservedEquipmentTable">
+                      <property name="alternatingRowColors">
+                       <bool>true</bool>
+                      </property>
+                      <property name="selectionBehavior">
+                       <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+                      </property>
+                      <column>
+                       <property name="text">
+                        <string>Equipment Name</string>
+                       </property>
+                      </column>
+                      <column>
+                       <property name="text">
+                        <string>Reserved Qty</string>
+                       </property>
+                      </column>
+                      <column>
+                       <property name="text">
+                        <string>Actions</string>
+                       </property>
+                      </column>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QLabel" name="reservedTotalLabel">
+                      <property name="styleSheet">
+                       <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                      </property>
+                      <property name="text">
+                       <string>Total Reserved Items: 0</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <layout class="QHBoxLayout" name="reservedEquipmentButtonsLayout">
+                      <property name="spacing">
+                       <number>10</number>
+                      </property>
+                      <item>
+                       <widget class="QPushButton" name="confirmReservationButton">
+                        <property name="minimumSize">
+                         <size>
+                          <width>160</width>
+                          <height>40</height>
+                         </size>
+                        </property>
+                        <property name="text">
+                         <string>Confirm Reservation</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QPushButton" name="clearReservationButton">
+                        <property name="minimumSize">
+                         <size>
+                          <width>120</width>
+                          <height>40</height>
+                         </size>
+                        </property>
+                        <property name="text">
+                         <string>Clear All</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <spacer name="reservedEquipmentButtonsSpacer">
+                        <property name="orientation">
+                         <enum>Qt::Orientation::Horizontal</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>40</width>
+                          <height>20</height>
+                         </size>
+                        </property>
+                       </spacer>
+                      </item>
+                     </layout>
+                    </item>
+                   </layout>
+                  </widget>
+                 </item>
+                </layout>
+               </widget>
                </widget>
               </item>
              </layout>

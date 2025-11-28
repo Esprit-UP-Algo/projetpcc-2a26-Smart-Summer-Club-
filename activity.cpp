@@ -9,6 +9,8 @@
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QWidget>
+#include <QSpinBox>
+#include <QtGlobal>
 
 // ============================================================================
 // CONSTRUCTORS & DESTRUCTOR
@@ -18,7 +20,8 @@ Activity::Activity()
     : QObject(nullptr), idA(0), activityType(""), eventDate(QDate::currentDate()),
       eventTime(QTime::currentTime()), responsible(""), ageRequirement(0),
       status("Scheduled"), description(""), capacity(0),
-      ui(nullptr), parentWidget(nullptr), editingId(-1), useEmployeeComboBox(true)
+      ui(nullptr), parentWidget(nullptr), editingId(-1), useEmployeeComboBox(true),
+      currentActivityId(-1)
 {
 }
 
@@ -28,7 +31,8 @@ Activity::Activity(int idA, QString activityType, QDate eventDate,
     : QObject(nullptr), idA(idA), activityType(activityType),
       eventDate(eventDate), eventTime(eventTime), responsible(responsible),
       ageRequirement(ageRequirement), status(status), description(description),
-      capacity(capacity), ui(nullptr), parentWidget(nullptr), editingId(-1), useEmployeeComboBox(true)
+      capacity(capacity), ui(nullptr), parentWidget(nullptr), editingId(-1), useEmployeeComboBox(true),
+      currentActivityId(-1)
 {
 }
 
@@ -36,7 +40,8 @@ Activity::Activity(Ui::EmployerAdmin *ui, QWidget *parent)
     : QObject(parent), idA(0), activityType(""), eventDate(QDate::currentDate()),
       eventTime(QTime::currentTime()), responsible(""), ageRequirement(0),
       status("Scheduled"), description(""), capacity(0),
-      ui(ui), parentWidget(parent), editingId(-1), useEmployeeComboBox(true)
+      ui(ui), parentWidget(parent), editingId(-1), useEmployeeComboBox(true),
+      currentActivityId(-1)
 {
     // Load employees into combobox and setup initial state
     loadEmployeesToComboBox();
@@ -47,6 +52,8 @@ Activity::Activity(Ui::EmployerAdmin *ui, QWidget *parent)
         ui->responsibleLineEdit->setVisible(false);
         ui->responsibleToggleButton->setText("Use Manual");
     }
+    
+    setupEquipmentReservation();
 }
 
 Activity::~Activity()
@@ -458,16 +465,17 @@ void Activity::populateActivityTableWidget(QTableWidget* table, QSqlQueryModel* 
     
     // Store these before the loop to avoid race conditions
     int storedCols = cols;
-    int actionColumnIndex = storedCols; // Actions column is after data columns
+    int reservedColumnIndex = storedCols;
+    int actionColumnIndex = storedCols + 1; // Actions column is after reserved column
     
-    table->setColumnCount(storedCols + 1); // +1 for Actions column
+    table->setColumnCount(storedCols + 2); // + reserved + actions
     
     // Set headers
     QStringList headers;
     for (int c = 0; c < storedCols; ++c) {
         headers << model->headerData(c, Qt::Horizontal).toString();
     }
-    headers << "Actions";
+    headers << "Reserved Equipment" << "Actions";
     table->setHorizontalHeaderLabels(headers);
     
     for (int r = 0; r < rows; ++r) {
@@ -495,6 +503,15 @@ void Activity::populateActivityTableWidget(QTableWidget* table, QSqlQueryModel* 
             item->setFlags(item->flags() & ~Qt::ItemIsEditable);
             table->setItem(r, c, item);
         }
+        
+        // Reserved equipment summary
+        QString reservedSummary;
+        if (activityManager) {
+            reservedSummary = activityManager->getReservedEquipmentSummary(activityId);
+        }
+        QTableWidgetItem* reservedItem = new QTableWidgetItem(reservedSummary.isEmpty() ? "None" : reservedSummary);
+        reservedItem->setFlags(reservedItem->flags() & ~Qt::ItemIsEditable);
+        table->setItem(r, reservedColumnIndex, reservedItem);
         
         // Add action buttons
         QWidget* actionWidget = new QWidget(table);
@@ -564,6 +581,7 @@ void Activity::populateActivityTableWidget(QTableWidget* table, QSqlQueryModel* 
     table->setColumnWidth(7, 90);   // Status
     table->setColumnWidth(8, 200);  // Description
     table->setColumnWidth(9, 80);   // Capacity
+    table->setColumnWidth(reservedColumnIndex, 220); // Reserved equipment
     table->setColumnWidth(actionColumnIndex, 150); // Actions
 }
 
@@ -608,10 +626,35 @@ void Activity::onConfirmAdd()
                      ageRequirement, status, description, capacity);
     
     if (activity.ajouter()) {
+        QSqlQuery fetchIdQuery;
+        fetchIdQuery.prepare("SELECT ID_A FROM ACTIVITIES "
+                             "WHERE ACTIVITY_TYPE = :type "
+                             "AND EVENT_DATE = :eventDate "
+                             "AND EVENT_TIME = :eventTime "
+                             "ORDER BY ID_A DESC");
+        fetchIdQuery.bindValue(":type", activityType);
+        fetchIdQuery.bindValue(":eventDate", eventDate);
+        fetchIdQuery.bindValue(":eventTime", QDateTime(eventDate, eventTime));
+        
+        if (fetchIdQuery.exec() && fetchIdQuery.next()) {
+            currentActivityId = fetchIdQuery.value(0).toInt();
+        } else {
+            currentActivityId = -1;
+        }
+        
         QMessageBox::information(parentWidget, "Success",
-            QString("Activity '%1' added successfully!").arg(activityType));
-        clearActivityForm();
+            QString("Activity '%1' added successfully!\nYou can now reserve equipment.")
+                .arg(activityType));
+        
         refreshActivityTable();
+        refreshAvailableEquipment();
+        
+        if (ui && ui->activityTabWidget && ui->equipmentReservationTab) {
+            int tabIndex = ui->activityTabWidget->indexOf(ui->equipmentReservationTab);
+            if (tabIndex != -1) {
+                ui->activityTabWidget->setCurrentIndex(tabIndex);
+            }
+        }
     } else {
         // Show detailed validation error message
         QString errorMsg = "Please fix the following errors:\n\n";
@@ -702,6 +745,10 @@ void Activity::clearActivityForm()
     // Reset to add mode UI
     ui->activityConfirmButton->setVisible(true);
     ui->activityUpdateButton->setVisible(false);
+    
+    currentActivityId = -1;
+    clearReservation();
+    refreshAvailableEquipment();
 }
 
 // ============================================================================
@@ -859,6 +906,9 @@ void Activity::loadActivityToForm(Activity* activity)
 {
     if (!activity || !ui) return;
     editingId = activity->getIdA();
+    currentActivityId = activity->getIdA();
+    clearReservation();
+    refreshAvailableEquipment();
     // ID field removed from UI - it's auto-generated and shown in table only
     ui->activityTypeComboBox->setCurrentText(activity->getActivityType());
     ui->eventDateEdit->setDate(activity->getEventDate());
@@ -985,4 +1035,470 @@ void Activity::onToggleResponsibleInput()
     } else {
         ui->responsibleToggleButton->setText("Use Employee List");
     }
+}
+
+// ============================================================================
+// EQUIPMENT RESERVATION METHODS
+// ============================================================================
+
+void Activity::setupEquipmentReservation()
+{
+    if (!ui) return;
+    
+    setupAvailableEquipmentTable();
+    setupReservedEquipmentTable();
+    
+    if (ui->refreshEquipmentButton) {
+        connect(ui->refreshEquipmentButton, &QPushButton::clicked,
+                this, &Activity::refreshAvailableEquipment, Qt::UniqueConnection);
+    }
+    
+    if (ui->addToReservationButton) {
+        connect(ui->addToReservationButton, &QPushButton::clicked,
+                this, &Activity::addSelectedToReservation, Qt::UniqueConnection);
+    }
+    
+    if (ui->confirmReservationButton) {
+        connect(ui->confirmReservationButton, &QPushButton::clicked,
+                this, &Activity::confirmEquipmentReservation, Qt::UniqueConnection);
+    }
+    
+    if (ui->clearReservationButton) {
+        connect(ui->clearReservationButton, &QPushButton::clicked,
+                this, &Activity::clearReservation, Qt::UniqueConnection);
+    }
+    
+    if (ui->eventDateEdit) {
+        connect(ui->eventDateEdit, &QDateEdit::dateChanged,
+                this, &Activity::refreshAvailableEquipment, Qt::UniqueConnection);
+    }
+    
+    if (ui->reserveQuantitySpinBox) {
+        connect(ui->reserveQuantitySpinBox, qOverload<int>(&QSpinBox::valueChanged),
+                this, &Activity::onReserveQuantityChanged, Qt::UniqueConnection);
+    }
+    
+    reservedEquipment.clear();
+    updateReservedTotal();
+    refreshAvailableEquipment();
+}
+
+void Activity::setupAvailableEquipmentTable()
+{
+    if (!ui || !ui->availableEquipmentTable) return;
+    
+    QTableWidget *table = ui->availableEquipmentTable;
+    table->clear();
+    table->setColumnCount(5);
+    table->setHorizontalHeaderLabels(QStringList()
+                                     << "Select"
+                                     << "Equipment Name"
+                                     << "Category"
+                                     << "Available Qty"
+                                     << "Reserve Qty");
+    table->horizontalHeader()->setStretchLastSection(true);
+    table->horizontalHeader()->setSectionsClickable(false);
+    table->setSelectionBehavior(QAbstractItemView::SelectRows);
+    table->setSelectionMode(QAbstractItemView::SingleSelection);
+    table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    table->setAlternatingRowColors(true);
+    table->setRowCount(0);
+    table->setColumnWidth(0, 70);
+    table->setColumnWidth(1, 220);
+    table->setColumnWidth(2, 160);
+    table->setColumnWidth(3, 120);
+    table->setColumnWidth(4, 120);
+}
+
+void Activity::setupReservedEquipmentTable()
+{
+    if (!ui || !ui->reservedEquipmentTable) return;
+    
+    QTableWidget *table = ui->reservedEquipmentTable;
+    table->clear();
+    table->setColumnCount(3);
+    table->setHorizontalHeaderLabels(QStringList()
+                                     << "Equipment Name"
+                                     << "Reserved Qty"
+                                     << "Actions");
+    table->horizontalHeader()->setStretchLastSection(true);
+    table->setSelectionBehavior(QAbstractItemView::SelectRows);
+    table->setSelectionMode(QAbstractItemView::SingleSelection);
+    table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    table->setAlternatingRowColors(true);
+    table->setRowCount(0);
+    table->setColumnWidth(0, 250);
+    table->setColumnWidth(1, 120);
+    table->setColumnWidth(2, 120);
+    
+    updateReservedTotal();
+}
+
+void Activity::refreshAvailableEquipment()
+{
+    if (!ui || !ui->availableEquipmentTable) return;
+    
+    QTableWidget *table = ui->availableEquipmentTable;
+    table->setRowCount(0);
+    
+    QDate selectedDate = ui->eventDateEdit ? ui->eventDateEdit->date() : QDate::currentDate();
+    QSqlQueryModel *model = getAvailableEquipment(selectedDate);
+    
+    if (!model) {
+        return;
+    }
+    
+    int targetRow = 0;
+    for (int row = 0; row < model->rowCount(); ++row) {
+        QSqlRecord record = model->record(row);
+        int equipmentId = record.value("ID_EQ").toInt();
+        QString name = record.value("NAME").toString();
+        QString category = record.value("CATEGORY").toString();
+        int availableQty = record.value("QTY_AVAILABLE").toInt();
+        
+        if (availableQty <= 0) {
+            continue;
+        }
+        
+        table->insertRow(targetRow);
+        
+        QTableWidgetItem *selectItem = new QTableWidgetItem();
+        selectItem->setFlags(selectItem->flags() & ~Qt::ItemIsEditable);
+        selectItem->setCheckState(Qt::Unchecked);
+        selectItem->setData(Qt::UserRole, equipmentId);
+        table->setItem(targetRow, 0, selectItem);
+        
+        QTableWidgetItem *nameItem = new QTableWidgetItem(name);
+        nameItem->setData(Qt::UserRole, equipmentId);
+        table->setItem(targetRow, 1, nameItem);
+        table->setItem(targetRow, 2, new QTableWidgetItem(category));
+        table->setItem(targetRow, 3, new QTableWidgetItem(QString::number(availableQty)));
+        
+        QSpinBox *quantitySpinBox = new QSpinBox(table);
+        quantitySpinBox->setMinimum(1);
+        quantitySpinBox->setMaximum(availableQty);
+        int defaultQty = (ui->reserveQuantitySpinBox ? ui->reserveQuantitySpinBox->value() : 1);
+        quantitySpinBox->setValue(qBound(1, defaultQty, availableQty));
+        table->setCellWidget(targetRow, 4, quantitySpinBox);
+        
+        ++targetRow;
+    }
+    
+    delete model;
+}
+
+void Activity::onReserveQuantityChanged(int value)
+{
+    if (!ui || !ui->availableEquipmentTable) return;
+    
+    const int desiredValue = qMax(1, value);
+    QTableWidget *table = ui->availableEquipmentTable;
+    for (int row = 0; row < table->rowCount(); ++row) {
+        if (QSpinBox *spin = qobject_cast<QSpinBox*>(table->cellWidget(row, 4))) {
+            spin->setValue(qBound(1, desiredValue, spin->maximum()));
+        }
+    }
+}
+
+QSqlQueryModel* Activity::getAvailableEquipment(const QDate& date)
+{
+    QSqlQueryModel *model = new QSqlQueryModel();
+    QSqlQuery query;
+    
+    QString sql =
+        "SELECT e.ID_EQ, e.NAME, e.CATEGORY, "
+        "GREATEST(NVL(e.QUANTITY_AVAILABLE, e.AVAILABLE) - "
+        "NVL((SELECT SUM(r.QUANTITY_RESERVED) "
+        "      FROM EQUIPMENT_RESERVATIONS r "
+        "      WHERE r.RESERVATION_DATE = :selectedDate "
+        "        AND r.ID_EQUIPMENT = e.ID_EQ "
+        "        AND (:currentActivityId IS NULL OR r.ID_ACTIVITY <> :currentActivityId)"
+        "     ), 0), 0) AS QTY_AVAILABLE "
+        "FROM EQUIPEMENTS e "
+        "ORDER BY e.NAME";
+    
+    query.prepare(sql);
+    query.bindValue(":selectedDate", date);
+    if (currentActivityId > 0) {
+        query.bindValue(":currentActivityId", currentActivityId);
+    } else {
+        query.bindValue(":currentActivityId", QVariant(QVariant::Int));
+    }
+    
+    if (!query.exec()) {
+        qDebug() << "Error fetching available equipment:" << query.lastError().text();
+        delete model;
+        return nullptr;
+    }
+    
+    model->setQuery(query);
+    if (model->lastError().isValid()) {
+        qDebug() << "Model error while fetching equipment:" << model->lastError().text();
+    }
+    
+    return model;
+}
+
+void Activity::addSelectedToReservation()
+{
+    if (!ui || !ui->availableEquipmentTable) return;
+    
+    bool anySelected = false;
+    QTableWidget *table = ui->availableEquipmentTable;
+    
+    for (int row = 0; row < table->rowCount(); ++row) {
+        QTableWidgetItem *selectItem = table->item(row, 0);
+        if (!selectItem || selectItem->checkState() != Qt::Checked) {
+            continue;
+        }
+        
+        int equipmentId = selectItem->data(Qt::UserRole).toInt();
+        if (equipmentId <= 0) {
+            continue;
+        }
+        
+        QString equipmentName = table->item(row, 1) ? table->item(row, 1)->text() : QString();
+        int availableQty = table->item(row, 3) ? table->item(row, 3)->text().toInt() : 0;
+        QSpinBox *spinBox = qobject_cast<QSpinBox*>(table->cellWidget(row, 4));
+        int requestedQty = spinBox ? spinBox->value() : 0;
+        
+        if (requestedQty <= 0) {
+            continue;
+        }
+        
+        int newQuantity = reservedEquipment.value(equipmentId, 0) + requestedQty;
+        newQuantity = qMin(newQuantity, availableQty);
+        reservedEquipment[equipmentId] = newQuantity;
+        
+        addToReservedTable(equipmentId, equipmentName, newQuantity);
+        
+        selectItem->setCheckState(Qt::Unchecked);
+        if (spinBox) {
+            spinBox->setValue(1);
+        }
+        
+        anySelected = true;
+    }
+    
+    if (!anySelected) {
+        QMessageBox::information(parentWidget, "No Selection",
+                                 "Please select at least one equipment item to reserve.");
+    }
+    
+    updateReservedTotal();
+}
+
+void Activity::addToReservedTable(int equipmentId, const QString& name, int quantity)
+{
+    if (!ui || !ui->reservedEquipmentTable) return;
+    
+    QTableWidget *table = ui->reservedEquipmentTable;
+    for (int row = 0; row < table->rowCount(); ++row) {
+        QTableWidgetItem *item = table->item(row, 0);
+        if (item && item->data(Qt::UserRole).toInt() == equipmentId) {
+            item->setText(name);
+            if (table->item(row, 1)) {
+                table->item(row, 1)->setText(QString::number(quantity));
+            } else {
+                table->setItem(row, 1, new QTableWidgetItem(QString::number(quantity)));
+            }
+            return;
+        }
+    }
+    
+    int row = table->rowCount();
+    table->insertRow(row);
+    
+    QTableWidgetItem *nameItem = new QTableWidgetItem(name);
+    nameItem->setData(Qt::UserRole, equipmentId);
+    table->setItem(row, 0, nameItem);
+    table->setItem(row, 1, new QTableWidgetItem(QString::number(quantity)));
+    
+    QPushButton *removeButton = new QPushButton("Remove");
+    removeButton->setProperty("equipmentId", equipmentId);
+    connect(removeButton, &QPushButton::clicked, this, [this, equipmentId]() {
+        reservedEquipment.remove(equipmentId);
+        if (ui && ui->reservedEquipmentTable) {
+            for (int r = 0; r < ui->reservedEquipmentTable->rowCount(); ++r) {
+                QTableWidgetItem *item = ui->reservedEquipmentTable->item(r, 0);
+                if (item && item->data(Qt::UserRole).toInt() == equipmentId) {
+                    ui->reservedEquipmentTable->removeRow(r);
+                    break;
+                }
+            }
+        }
+        updateReservedTotal();
+    });
+    table->setCellWidget(row, 2, removeButton);
+}
+
+void Activity::updateReservedTotal()
+{
+    if (!ui) return;
+    
+    int totalItems = 0;
+    for (auto it = reservedEquipment.cbegin(); it != reservedEquipment.cend(); ++it) {
+        totalItems += it.value();
+    }
+    
+    if (ui->reservedTotalLabel) {
+        ui->reservedTotalLabel->setText(QString("Total Reserved Items: %1").arg(totalItems));
+    }
+    
+    const bool hasItems = totalItems > 0;
+    if (ui->confirmReservationButton) {
+        ui->confirmReservationButton->setEnabled(hasItems);
+    }
+    if (ui->clearReservationButton) {
+        ui->clearReservationButton->setEnabled(hasItems);
+    }
+}
+
+void Activity::confirmEquipmentReservation()
+{
+    if (reservedEquipment.isEmpty()) {
+        QMessageBox::information(parentWidget, "No Reservation",
+                                 "Select equipment and quantities before confirming.");
+        return;
+    }
+    
+    if (currentActivityId <= 0) {
+        QMessageBox::warning(parentWidget, "Activity Required",
+                             "Please save the activity details before reserving equipment.");
+        return;
+    }
+    
+    bool success = true;
+    for (auto it = reservedEquipment.cbegin(); it != reservedEquipment.cend(); ++it) {
+        if (!reserveEquipment(it.key(), it.value(), currentActivityId)) {
+            success = false;
+        }
+    }
+    
+    if (success) {
+        QMessageBox::information(parentWidget, "Reservation Saved",
+                                 "Equipment reserved successfully!");
+        clearReservation();
+        refreshAvailableEquipment();
+        refreshActivityTable();
+    } else {
+        QMessageBox::warning(parentWidget, "Reservation Error",
+                             "Some equipment could not be reserved. Please review availability.");
+        refreshAvailableEquipment();
+    }
+}
+
+bool Activity::reserveEquipment(int equipmentId, int quantity, int activityId)
+{
+    // Get the next reservation ID from sequence (fallback if trigger doesn't exist)
+    QSqlQuery seqQuery;
+    int reservationId = 0;
+    if (seqQuery.exec("SELECT SUMMERCLUB.SEQ_RESERVATIONS.NEXTVAL FROM DUAL")) {
+        if (seqQuery.next()) {
+            reservationId = seqQuery.value(0).toInt();
+        }
+    } else {
+        // Try without schema prefix
+        if (seqQuery.exec("SELECT SEQ_RESERVATIONS.NEXTVAL FROM DUAL")) {
+            if (seqQuery.next()) {
+                reservationId = seqQuery.value(0).toInt();
+            }
+        }
+    }
+    
+    if (reservationId <= 0) {
+        qDebug() << "Failed to get reservation ID from sequence:" << seqQuery.lastError().text();
+        return false;
+    }
+    
+    QSqlQuery insertQuery;
+    insertQuery.prepare(
+        "INSERT INTO EQUIPMENT_RESERVATIONS "
+        "(ID_RESERVATION, ID_ACTIVITY, ID_EQUIPMENT, QUANTITY_RESERVED, RESERVATION_DATE, RETURN_DATE, STATUS) "
+        "VALUES (:reservationId, :activityId, :equipmentId, :quantity, :startDate, :endDate, 'Reserved')");
+    
+    QDate reservationDate = (ui && ui->eventDateEdit) ? ui->eventDateEdit->date() : QDate::currentDate();
+    
+    insertQuery.bindValue(":reservationId", reservationId);
+    insertQuery.bindValue(":activityId", activityId);
+    insertQuery.bindValue(":equipmentId", equipmentId);
+    insertQuery.bindValue(":quantity", quantity);
+    insertQuery.bindValue(":startDate", reservationDate);
+    insertQuery.bindValue(":endDate", reservationDate);
+    
+    if (!insertQuery.exec()) {
+        qDebug() << "Failed to insert reservation:" << insertQuery.lastError().text();
+        return false;
+    }
+    
+    QSqlQuery updateQuery;
+    updateQuery.prepare(
+        "UPDATE EQUIPEMENTS SET "
+        "QUANTITY_AVAILABLE = NVL(QUANTITY_AVAILABLE, AVAILABLE) - :qty, "
+        "QUANTITY_RESERVED = NVL(QUANTITY_RESERVED, IN_USE) + :qty "
+        "WHERE ID_EQ = :id");
+    updateQuery.bindValue(":qty", quantity);
+    updateQuery.bindValue(":id", equipmentId);
+    
+    if (!updateQuery.exec()) {
+        qDebug() << "Failed to update equipment quantities:" << updateQuery.lastError().text();
+        return false;
+    }
+    
+    return true;
+}
+
+QString Activity::getReservedEquipmentSummary(int activityId) const
+{
+    QStringList parts;
+    QSqlQuery query;
+    query.prepare(
+        "SELECT e.NAME, r.QUANTITY_RESERVED "
+        "FROM EQUIPMENT_RESERVATIONS r "
+        "JOIN EQUIPEMENTS e ON e.ID_EQ = r.ID_EQUIPMENT "
+        "WHERE r.ID_ACTIVITY = :activityId "
+        "ORDER BY e.NAME");
+    query.bindValue(":activityId", activityId);
+    
+    if (query.exec()) {
+        while (query.next()) {
+            const QString name = query.value(0).toString();
+            const int qty = query.value(1).toInt();
+            parts << QString("%1 (%2)").arg(name).arg(qty);
+        }
+    } else {
+        qDebug() << "Failed to fetch reserved equipment summary:"
+                 << query.lastError().text();
+    }
+    
+    return parts.join(", ");
+}
+
+void Activity::clearReservation()
+{
+    if (!ui) return;
+    
+    reservedEquipment.clear();
+    
+    if (ui->reservedEquipmentTable) {
+        ui->reservedEquipmentTable->setRowCount(0);
+    }
+    
+    if (ui->availableEquipmentTable) {
+        for (int row = 0; row < ui->availableEquipmentTable->rowCount(); ++row) {
+            QTableWidgetItem *selectItem = ui->availableEquipmentTable->item(row, 0);
+            if (selectItem) {
+                selectItem->setCheckState(Qt::Unchecked);
+            }
+            if (QSpinBox *spin = qobject_cast<QSpinBox*>(ui->availableEquipmentTable->cellWidget(row, 4))) {
+                spin->setValue(1);
+            }
+        }
+    }
+    
+    if (ui->reserveQuantitySpinBox) {
+        ui->reserveQuantitySpinBox->setValue(1);
+    }
+    
+    updateReservedTotal();
 }

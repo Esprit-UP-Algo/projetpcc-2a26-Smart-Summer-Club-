@@ -18,6 +18,7 @@
 #include <QtWidgets/QDoubleSpinBox>
 #include <QtWidgets/QFrame>
 #include <QtWidgets/QGridLayout>
+#include <QtWidgets/QGroupBox>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
@@ -264,7 +265,14 @@ public:
     QPushButton *equipmentUpdateButton;
     QLabel *equipmentPurchaseDateLabel;
     QSpinBox *equipmentQuantitySpinBox;
-    QLabel *equipmentStatusLabel;
+    QLabel *equipmentAvailableQtyLabel;
+    QSpinBox *equipmentAvailableQtySpinBox;
+    QLabel *equipmentReservedQtyLabel;
+    QSpinBox *equipmentReservedQtySpinBox;
+    QLabel *equipmentMaintenanceQtyLabel;
+    QSpinBox *equipmentMaintenanceQtySpinBox;
+    QLabel *equipmentOutOfOrderQtyLabel;
+    QSpinBox *equipmentOutOfOrderQtySpinBox;
     QComboBox *equipmentStatusComboBox;
     QLabel *equipmentModelLabel;
     QDateEdit *equipmentPurchaseDateEdit;
@@ -360,6 +368,27 @@ public:
     QVBoxLayout *activityTypeStatsLayout;
     QLabel *activityTypeStatsTitle;
     QTableWidget *activityTypeStatsTable;
+    QWidget *equipmentReservationTab;
+    QVBoxLayout *equipmentReservationLayout;
+    QGroupBox *availableEquipmentGroupBox;
+    QVBoxLayout *availableEquipmentLayout1;
+    QTableWidget *availableEquipmentTable;
+    QHBoxLayout *reserveQuantityControlLayout;
+    QLabel *reserveQuantityLabel;
+    QSpinBox *reserveQuantitySpinBox;
+    QLabel *reserveQuantityHelperLabel;
+    QHBoxLayout *availableEquipmentButtonsLayout;
+    QPushButton *refreshEquipmentButton;
+    QPushButton *addToReservationButton;
+    QSpacerItem *availableEquipmentButtonsSpacer;
+    QGroupBox *reservedEquipmentGroupBox;
+    QVBoxLayout *reservedEquipmentLayout;
+    QTableWidget *reservedEquipmentTable;
+    QLabel *reservedTotalLabel;
+    QHBoxLayout *reservedEquipmentButtonsLayout;
+    QPushButton *confirmReservationButton;
+    QPushButton *clearReservationButton;
+    QSpacerItem *reservedEquipmentButtonsSpacer;
     QWidget *paymentsPage;
     QVBoxLayout *paymentsPageLayout;
     QTabWidget *paymentTabWidget;
@@ -437,11 +466,10 @@ public:
         EmployerAdmin->resize(1262, 852);
         EmployerAdmin->setStyleSheet(QString::fromUtf8("QMainWindow { background-color: #f5f7fa; } /* Top Bar Styling */ #topBarFrame { /* Match sidebar: smooth horizontal gradient from left to right */ background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgba(22, 165, 179, 0.28), stop:1 rgba(22, 165, 179, 0.12)); border-bottom: 1px solid #e0e4e7; } #logoLabel { font-size: 24px; font-weight: bold; color: #2c3e50; } #userInfoFrame { background-color: transparent; } #userNameLabel { font-size: 14px; font-weight: 600; color: #2c3e50; } #userRoleLabel { font-size: 12px; color: #7f8c8d; } #userAvatarLabel { background-color: #3498db; border-radius: 20px; color: white; font-weight: bold; } /* Sidebar Styling */ #sidebarFrame { /* Smooth horizontal gradient from left to right with stronger presence on the left */ background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 rgba(22, 165, 179, 0.28), stop:1 rgba(22, 165, 179, 0.12)); border-right: 1px solid #e0e4e7; } #navigationFrame { background-color: transparent; } QPushButton#employeesButton, QPushButto"
                         "n#membersButton, QPushButton#equipmentButton, QPushButton#activitiesButton, QPushButton#paymentsButton { background-color: transparent; border: none; padding: 15px 20px; text-align: left; font-size: 14px; color: #2c3e50; border-radius: 8px; margin: 2px 10px; } QPushButton#employeesButton:hover, QPushButton#membersButton:hover, QPushButton#equipmentButton:hover, QPushButton#activitiesButton:hover, QPushButton#paymentsButton:hover { background-color: #e8f4f5; } QPushButton#employeesButton:checked, QPushButton#membersButton:checked, QPushButton#equipmentButton:checked, QPushButton#activitiesButton:checked, QPushButton#paymentsButton:checked { background-color: #16a5b3; color: white; } QPushButton#employeesButton:checked:hover, QPushButton#membersButton:checked:hover, QPushButton#equipmentButton:checked:hover, QPushButton#activitiesButton:checked:hover, QPushButton#paymentsButton:checked:hover { background-color: #139aa6; } /* Main Content Styling */ #mainContentFrame { background-color: transparent; } /* Tab Widg"
-                        "et Styling */ QTabWidget::pane { border: 2px solid #16a5b3; background-color: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(22, 165, 179, 0.1); } QTabBar::tab { /* Unselected tabs mimic our button style: transparent teal with teal border */ background-color: rgba(22, 165, 179, 0.10); color: #2c3e50; padding: 12px 24px; margin-right: 2px; border-top-left-radius: 8px; border-top-right-radius: 8px; border: 1.5px solid rgba(22, 165, 179, 0.65); border-bottom: none; } QTabBar::tab:selected { background-color: #16a5b3; color: white; border-color: #16a5b3; font-weight: 600; } QTabBar::tab:hover:!selected { background-color: rgba(22, 165, 179, 0.18); border-color: #16a5b3; transition: all 0.3s ease; } /* Statistics Cards Styling */ QFrame[objectName*=\"Card\"] { background-color: white; border: 1px solid #e0e4e7; border-radius: 16px; padding: 20px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05); } QFrame[objectName*=\"Card\"]:hover { box-shadow: 0 4px 20px rgba(22, 165, 179, 0.15); border-color: #16a5b3; transiti"
-                        "on: all 0.3s ease; } /* Form Styling */ QLineEdit { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); } QLineEdit:focus { border-color: #16a5b3; box-shadow: 0 0 0 3px rgba(22, 165, 179, 0.1); outline: none; } QLineEdit:hover { border-color: #16a5b3; transition: border-color 0.2s ease; } QComboBox { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); } QComboBox:focus { border-color: #16a5b3; box-shadow: 0 0 0 3px rgba(22, 165, 179, 0.1); } QComboBox:hover { border-color: #16a5b3; transition: border-color 0.2s ease; } QDateEdit, QSpinBox { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); } QDateEdit:focus, QSpinBox:focus { border-color: #16a5b3; box-shadow: 0 0 0 3px rgba(22, 165, 179, 0.1); } QTextEdit { pad"
-                        "ding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); } QTextEdit:focus { border-color: #16a5b3; box-shadow: 0 0 0 3px rgba(22, 165, 179, 0.1); } QPushButton#actionButton { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #16a5b3, stop:1 #139aa6); color: white; border: none; padding: 14px 28px; border-radius: 10px; font-size: 14px; font-weight: 600; box-shadow: 0 4px 8px rgba(22, 165, 179, 0.2); } QPushButton#actionButton:hover { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #139aa6, stop:1 #0f858f); box-shadow: 0 6px 12px rgba(22, 165, 179, 0.3); transform: translateY(-1px); } QPushButton#actionButton:pressed { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #0f858f, stop:1 #0c6b73); box-shadow: 0 2px 4px rgba(22, 165, 179, 0.2); transform: translateY(0px); } /* Table Styling */ QTableWidget { background-color: white; gridline-color: #e6eef0; border: 2px solid #16a5b3; /* teal bord"
-                        "er like the mock */ border-radius: 12px; selection-background-color: rgba(22, 165, 179, 0.14); selection-color: #2c3e50; } /* Header styled to main brand color */ QHeaderView::section { background-color: #16a5b3; color: white; padding: 8px 10px; border: none; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.25); } /* Corner button (top-left of table) to match header */ QTableCornerButton::section { background-color: #16a5b3; border: none; } /* Alternate rows for subtle striping */ QTableView::item:alternate { background: rgba(22, 165, 179, 0.03); } /* Selected row styling */ QTableView::item:selected { background: rgba(22, 165, 179, 0.14); color: #2c3e50; } /* Frame Styling */ QFrame { border-radius: 8px; } /* Label Styling */ QLabel { color: #2c3e50; } /* Search Frame Styling */ QFrame[objectName*=\"SearchFrame\"], QFrame[objectName*=\"searchFrame\"] { background-color: rgba(22, 165, 179, 0.02); border: 1px solid rgba(22, 165, 179, 0.1); border-radius: 12px; padding: 8px; } /* Default buttons: avo"
-                        "id gray; use brand color with high transparency */ QPushButton { background-color: rgba(22, 165, 179, 0.10); color: #2c3e50; border: 1.5px solid rgba(22, 165, 179, 0.65); padding: 10px 16px; border-radius: 10px; } QPushButton:hover { background-color: rgba(22, 165, 179, 0.18); } QPushButton:pressed { background-color: rgba(22, 165, 179, 0.26); } QPushButton:disabled { background-color: rgba(22, 165, 179, 0.06); color: #98a6ad; border-color: rgba(22, 165, 179, 0.25); }\n"
+                        "et Styling */ QTabWidget::pane { border: 2px solid #16a5b3; background-color: white; border-radius: 12px; } QTabBar::tab { /* Unselected tabs mimic our button style: transparent teal with teal border */ background-color: rgba(22, 165, 179, 0.10); color: #2c3e50; padding: 12px 24px; margin-right: 2px; border-top-left-radius: 8px; border-top-right-radius: 8px; border: 1.5px solid rgba(22, 165, 179, 0.65); border-bottom: none; } QTabBar::tab:selected { background-color: #16a5b3; color: white; border-color: #16a5b3; font-weight: 600; } QTabBar::tab:hover:!selected { background-color: rgba(22, 165, 179, 0.18); border-color: #16a5b3; } /* Statistics Cards Styling */ QFrame[objectName*=\"Card\"] { background-color: white; border: 1px solid #e0e4e7; border-radius: 16px; padding: 20px; } QFrame[objectName*=\"Card\"]:hover { border-color: #16a5b3; } /* Form Styling */ QLineEdit { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; } QLineEdit:focus { border-color"
+                        ": #16a5b3; outline: none; } QLineEdit:hover { border-color: #16a5b3; } QComboBox { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; } QComboBox:focus { border-color: #16a5b3; } QComboBox:hover { border-color: #16a5b3; } QDateEdit, QSpinBox { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; } QDateEdit:focus, QSpinBox:focus { border-color: #16a5b3; } QTextEdit { padding: 14px 16px; border: 2px solid #e0e4e7; border-radius: 10px; font-size: 14px; background-color: white; } QTextEdit:focus { border-color: #16a5b3; } QPushButton#actionButton { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #16a5b3, stop:1 #139aa6); color: white; border: none; padding: 14px 28px; border-radius: 10px; font-size: 14px; font-weight: 600; } QPushButton#actionButton:hover { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #139aa6, stop:1 #0f858f); transform: translateY(-1px); } QPushButton#actio"
+                        "nButton:pressed { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #0f858f, stop:1 #0c6b73); transform: translateY(0px); } /* Table Styling */ QTableWidget { background-color: white; gridline-color: #e6eef0; border: 2px solid #16a5b3; /* teal border like the mock */ border-radius: 12px; selection-background-color: rgba(22, 165, 179, 0.14); selection-color: #2c3e50; } /* Header styled to main brand color */ QHeaderView::section { background-color: #16a5b3; color: white; padding: 8px 10px; border: none; font-weight: 600; border-right: 1px solid rgba(255,255,255,0.25); } /* Corner button (top-left of table) to match header */ QTableCornerButton::section { background-color: #16a5b3; border: none; } /* Alternate rows for subtle striping */ QTableView::item:alternate { background: rgba(22, 165, 179, 0.03); } /* Selected row styling */ QTableView::item:selected { background: rgba(22, 165, 179, 0.14); color: #2c3e50; } /* Frame Styling */ QFrame { border-radius: 8px; } /* Label Styling */ QLabel { color: #2c"
+                        "3e50; } /* Search Frame Styling */ QFrame[objectName*=\"SearchFrame\"], QFrame[objectName*=\"searchFrame\"] { background-color: rgba(22, 165, 179, 0.02); border: 1px solid rgba(22, 165, 179, 0.1); border-radius: 12px; padding: 8px; } /* Default buttons: avoid gray; use brand color with high transparency */ QPushButton { background-color: rgba(22, 165, 179, 0.10); color: #2c3e50; border: 1.5px solid rgba(22, 165, 179, 0.65); padding: 10px 16px; border-radius: 10px; } QPushButton:hover { background-color: rgba(22, 165, 179, 0.18); } QPushButton:pressed { background-color: rgba(22, 165, 179, 0.26); } QPushButton:disabled { background-color: rgba(22, 165, 179, 0.06); color: #98a6ad; border-color: rgba(22, 165, 179, 0.25); }\n"
 "/* ===== FIX: Invisible text in login and search fields ===== */\n"
 "\n"
 "/* Make sure typed text is visible in all line edits */\n"
@@ -449,7 +477,8 @@ public:
 "    color: #2c3e50;              /* dark readable text color like statistiques page */\n"
 "}\n"
 "\n"
-"/* Placeholder text readable but subtle */\n"
+"/* Placeholder text readable but subtle"
+                        " */\n"
 "QLineEdit::placeholder {\n"
 "    color: #7f8c8d;\n"
 "}\n"
@@ -458,8 +487,7 @@ public:
 "QLineEdit#emailLineEdit, \n"
 "QLineEdit#passwordLineEdit {\n"
 "    color: #2c3e50;\n"
-"    background-color: white"
-                        ";\n"
+"    background-color: white;\n"
 "}\n"
 "\n"
 "QLineEdit#emailLineEdit::placeholder, \n"
@@ -1695,7 +1723,7 @@ public:
         equipmentButtonLayout->addWidget(equipmentUpdateButton);
 
 
-        equipmentFormLayout->addWidget(equipmentButtonFrame, 5, 0, 1, 4);
+        equipmentFormLayout->addWidget(equipmentButtonFrame, 6, 0, 1, 4);
 
         equipmentPurchaseDateLabel = new QLabel(equipmentFormFrame);
         equipmentPurchaseDateLabel->setObjectName("equipmentPurchaseDateLabel");
@@ -1711,21 +1739,68 @@ public:
 
         equipmentFormLayout->addWidget(equipmentQuantitySpinBox, 3, 1, 1, 1);
 
-        equipmentStatusLabel = new QLabel(equipmentFormFrame);
-        equipmentStatusLabel->setObjectName("equipmentStatusLabel");
-        equipmentStatusLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+        equipmentAvailableQtyLabel = new QLabel(equipmentFormFrame);
+        equipmentAvailableQtyLabel->setObjectName("equipmentAvailableQtyLabel");
+        equipmentAvailableQtyLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
 
-        equipmentFormLayout->addWidget(equipmentStatusLabel, 2, 2, 1, 1);
+        equipmentFormLayout->addWidget(equipmentAvailableQtyLabel, 2, 2, 1, 1);
+
+        equipmentAvailableQtySpinBox = new QSpinBox(equipmentFormFrame);
+        equipmentAvailableQtySpinBox->setObjectName("equipmentAvailableQtySpinBox");
+        equipmentAvailableQtySpinBox->setMinimum(0);
+        equipmentAvailableQtySpinBox->setMaximum(999);
+        equipmentAvailableQtySpinBox->setValue(0);
+
+        equipmentFormLayout->addWidget(equipmentAvailableQtySpinBox, 2, 3, 1, 1);
+
+        equipmentReservedQtyLabel = new QLabel(equipmentFormFrame);
+        equipmentReservedQtyLabel->setObjectName("equipmentReservedQtyLabel");
+        equipmentReservedQtyLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+
+        equipmentFormLayout->addWidget(equipmentReservedQtyLabel, 4, 0, 1, 1);
+
+        equipmentReservedQtySpinBox = new QSpinBox(equipmentFormFrame);
+        equipmentReservedQtySpinBox->setObjectName("equipmentReservedQtySpinBox");
+        equipmentReservedQtySpinBox->setMinimum(0);
+        equipmentReservedQtySpinBox->setMaximum(999);
+        equipmentReservedQtySpinBox->setValue(0);
+
+        equipmentFormLayout->addWidget(equipmentReservedQtySpinBox, 4, 1, 1, 1);
+
+        equipmentMaintenanceQtyLabel = new QLabel(equipmentFormFrame);
+        equipmentMaintenanceQtyLabel->setObjectName("equipmentMaintenanceQtyLabel");
+        equipmentMaintenanceQtyLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+
+        equipmentFormLayout->addWidget(equipmentMaintenanceQtyLabel, 4, 2, 1, 1);
+
+        equipmentMaintenanceQtySpinBox = new QSpinBox(equipmentFormFrame);
+        equipmentMaintenanceQtySpinBox->setObjectName("equipmentMaintenanceQtySpinBox");
+        equipmentMaintenanceQtySpinBox->setMinimum(0);
+        equipmentMaintenanceQtySpinBox->setMaximum(999);
+        equipmentMaintenanceQtySpinBox->setValue(0);
+
+        equipmentFormLayout->addWidget(equipmentMaintenanceQtySpinBox, 4, 3, 1, 1);
+
+        equipmentOutOfOrderQtyLabel = new QLabel(equipmentFormFrame);
+        equipmentOutOfOrderQtyLabel->setObjectName("equipmentOutOfOrderQtyLabel");
+        equipmentOutOfOrderQtyLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+
+        equipmentFormLayout->addWidget(equipmentOutOfOrderQtyLabel, 5, 0, 1, 1);
+
+        equipmentOutOfOrderQtySpinBox = new QSpinBox(equipmentFormFrame);
+        equipmentOutOfOrderQtySpinBox->setObjectName("equipmentOutOfOrderQtySpinBox");
+        equipmentOutOfOrderQtySpinBox->setMinimum(0);
+        equipmentOutOfOrderQtySpinBox->setMaximum(999);
+        equipmentOutOfOrderQtySpinBox->setValue(0);
+
+        equipmentFormLayout->addWidget(equipmentOutOfOrderQtySpinBox, 5, 1, 1, 1);
 
         equipmentStatusComboBox = new QComboBox(equipmentFormFrame);
         equipmentStatusComboBox->addItem(QString());
-        equipmentStatusComboBox->addItem(QString());
-        equipmentStatusComboBox->addItem(QString());
-        equipmentStatusComboBox->addItem(QString());
-        equipmentStatusComboBox->addItem(QString());
         equipmentStatusComboBox->setObjectName("equipmentStatusComboBox");
+        equipmentStatusComboBox->setVisible(false);
 
-        equipmentFormLayout->addWidget(equipmentStatusComboBox, 2, 3, 1, 1);
+        equipmentFormLayout->addWidget(equipmentStatusComboBox, 2, 4, 1, 1);
 
         equipmentModelLabel = new QLabel(equipmentFormFrame);
         equipmentModelLabel->setObjectName("equipmentModelLabel");
@@ -2291,6 +2366,143 @@ public:
         activityStatisticsLayout->addWidget(activityStatsFrame);
 
         activityTabWidget->addTab(activityStatisticsTab, icon9, QString());
+        equipmentReservationTab = new QWidget();
+        equipmentReservationTab->setObjectName("equipmentReservationTab");
+        equipmentReservationLayout = new QVBoxLayout(equipmentReservationTab);
+        equipmentReservationLayout->setSpacing(20);
+        equipmentReservationLayout->setObjectName("equipmentReservationLayout");
+        equipmentReservationLayout->setContentsMargins(12, 12, 12, 12);
+        availableEquipmentGroupBox = new QGroupBox(equipmentReservationTab);
+        availableEquipmentGroupBox->setObjectName("availableEquipmentGroupBox");
+        availableEquipmentGroupBox->setStyleSheet(QString::fromUtf8("QGroupBox { background-color: rgba(22, 165, 179, 0.05); border: 2px solid #16a5b3; border-radius: 12px; margin-top: 12px; }"));
+        availableEquipmentLayout1 = new QVBoxLayout(availableEquipmentGroupBox);
+        availableEquipmentLayout1->setSpacing(12);
+        availableEquipmentLayout1->setObjectName("availableEquipmentLayout1");
+        availableEquipmentLayout1->setContentsMargins(16, 16, 16, 16);
+        availableEquipmentTable = new QTableWidget(availableEquipmentGroupBox);
+        if (availableEquipmentTable->columnCount() < 5)
+            availableEquipmentTable->setColumnCount(5);
+        QTableWidgetItem *__qtablewidgetitem58 = new QTableWidgetItem();
+        availableEquipmentTable->setHorizontalHeaderItem(0, __qtablewidgetitem58);
+        QTableWidgetItem *__qtablewidgetitem59 = new QTableWidgetItem();
+        availableEquipmentTable->setHorizontalHeaderItem(1, __qtablewidgetitem59);
+        QTableWidgetItem *__qtablewidgetitem60 = new QTableWidgetItem();
+        availableEquipmentTable->setHorizontalHeaderItem(2, __qtablewidgetitem60);
+        QTableWidgetItem *__qtablewidgetitem61 = new QTableWidgetItem();
+        availableEquipmentTable->setHorizontalHeaderItem(3, __qtablewidgetitem61);
+        QTableWidgetItem *__qtablewidgetitem62 = new QTableWidgetItem();
+        availableEquipmentTable->setHorizontalHeaderItem(4, __qtablewidgetitem62);
+        availableEquipmentTable->setObjectName("availableEquipmentTable");
+        availableEquipmentTable->setAlternatingRowColors(true);
+        availableEquipmentTable->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
+
+        availableEquipmentLayout1->addWidget(availableEquipmentTable);
+
+        reserveQuantityControlLayout = new QHBoxLayout();
+        reserveQuantityControlLayout->setSpacing(8);
+        reserveQuantityControlLayout->setObjectName("reserveQuantityControlLayout");
+        reserveQuantityLabel = new QLabel(availableEquipmentGroupBox);
+        reserveQuantityLabel->setObjectName("reserveQuantityLabel");
+        reserveQuantityLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+
+        reserveQuantityControlLayout->addWidget(reserveQuantityLabel);
+
+        reserveQuantitySpinBox = new QSpinBox(availableEquipmentGroupBox);
+        reserveQuantitySpinBox->setObjectName("reserveQuantitySpinBox");
+        reserveQuantitySpinBox->setMinimum(1);
+        reserveQuantitySpinBox->setMaximum(999);
+        reserveQuantitySpinBox->setValue(1);
+
+        reserveQuantityControlLayout->addWidget(reserveQuantitySpinBox);
+
+        reserveQuantityHelperLabel = new QLabel(availableEquipmentGroupBox);
+        reserveQuantityHelperLabel->setObjectName("reserveQuantityHelperLabel");
+        reserveQuantityHelperLabel->setStyleSheet(QString::fromUtf8("color: #7f8c8d;"));
+
+        reserveQuantityControlLayout->addWidget(reserveQuantityHelperLabel);
+
+
+        availableEquipmentLayout1->addLayout(reserveQuantityControlLayout);
+
+        availableEquipmentButtonsLayout = new QHBoxLayout();
+        availableEquipmentButtonsLayout->setSpacing(10);
+        availableEquipmentButtonsLayout->setObjectName("availableEquipmentButtonsLayout");
+        refreshEquipmentButton = new QPushButton(availableEquipmentGroupBox);
+        refreshEquipmentButton->setObjectName("refreshEquipmentButton");
+        refreshEquipmentButton->setMinimumSize(QSize(180, 40));
+
+        availableEquipmentButtonsLayout->addWidget(refreshEquipmentButton);
+
+        addToReservationButton = new QPushButton(availableEquipmentGroupBox);
+        addToReservationButton->setObjectName("addToReservationButton");
+        addToReservationButton->setMinimumSize(QSize(200, 40));
+
+        availableEquipmentButtonsLayout->addWidget(addToReservationButton);
+
+        availableEquipmentButtonsSpacer = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
+
+        availableEquipmentButtonsLayout->addItem(availableEquipmentButtonsSpacer);
+
+
+        availableEquipmentLayout1->addLayout(availableEquipmentButtonsLayout);
+
+
+        equipmentReservationLayout->addWidget(availableEquipmentGroupBox);
+
+        reservedEquipmentGroupBox = new QGroupBox(equipmentReservationTab);
+        reservedEquipmentGroupBox->setObjectName("reservedEquipmentGroupBox");
+        reservedEquipmentGroupBox->setStyleSheet(QString::fromUtf8("QGroupBox { background-color: rgba(44, 62, 80, 0.04); border: 2px solid #2c3e50; border-radius: 12px; margin-top: 12px; }"));
+        reservedEquipmentLayout = new QVBoxLayout(reservedEquipmentGroupBox);
+        reservedEquipmentLayout->setSpacing(12);
+        reservedEquipmentLayout->setObjectName("reservedEquipmentLayout");
+        reservedEquipmentLayout->setContentsMargins(16, 16, 16, 16);
+        reservedEquipmentTable = new QTableWidget(reservedEquipmentGroupBox);
+        if (reservedEquipmentTable->columnCount() < 3)
+            reservedEquipmentTable->setColumnCount(3);
+        QTableWidgetItem *__qtablewidgetitem63 = new QTableWidgetItem();
+        reservedEquipmentTable->setHorizontalHeaderItem(0, __qtablewidgetitem63);
+        QTableWidgetItem *__qtablewidgetitem64 = new QTableWidgetItem();
+        reservedEquipmentTable->setHorizontalHeaderItem(1, __qtablewidgetitem64);
+        QTableWidgetItem *__qtablewidgetitem65 = new QTableWidgetItem();
+        reservedEquipmentTable->setHorizontalHeaderItem(2, __qtablewidgetitem65);
+        reservedEquipmentTable->setObjectName("reservedEquipmentTable");
+        reservedEquipmentTable->setAlternatingRowColors(true);
+        reservedEquipmentTable->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
+
+        reservedEquipmentLayout->addWidget(reservedEquipmentTable);
+
+        reservedTotalLabel = new QLabel(reservedEquipmentGroupBox);
+        reservedTotalLabel->setObjectName("reservedTotalLabel");
+        reservedTotalLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+
+        reservedEquipmentLayout->addWidget(reservedTotalLabel);
+
+        reservedEquipmentButtonsLayout = new QHBoxLayout();
+        reservedEquipmentButtonsLayout->setSpacing(10);
+        reservedEquipmentButtonsLayout->setObjectName("reservedEquipmentButtonsLayout");
+        confirmReservationButton = new QPushButton(reservedEquipmentGroupBox);
+        confirmReservationButton->setObjectName("confirmReservationButton");
+        confirmReservationButton->setMinimumSize(QSize(160, 40));
+
+        reservedEquipmentButtonsLayout->addWidget(confirmReservationButton);
+
+        clearReservationButton = new QPushButton(reservedEquipmentGroupBox);
+        clearReservationButton->setObjectName("clearReservationButton");
+        clearReservationButton->setMinimumSize(QSize(120, 40));
+
+        reservedEquipmentButtonsLayout->addWidget(clearReservationButton);
+
+        reservedEquipmentButtonsSpacer = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
+
+        reservedEquipmentButtonsLayout->addItem(reservedEquipmentButtonsSpacer);
+
+
+        reservedEquipmentLayout->addLayout(reservedEquipmentButtonsLayout);
+
+
+        equipmentReservationLayout->addWidget(reservedEquipmentGroupBox);
+
+        activityTabWidget->addTab(equipmentReservationTab, QString());
 
         activitiesPageLayout->addWidget(activityTabWidget);
 
@@ -2340,24 +2552,24 @@ public:
         paymentTable = new QTableWidget(listTab_4);
         if (paymentTable->columnCount() < 9)
             paymentTable->setColumnCount(9);
-        QTableWidgetItem *__qtablewidgetitem58 = new QTableWidgetItem();
-        paymentTable->setHorizontalHeaderItem(0, __qtablewidgetitem58);
-        QTableWidgetItem *__qtablewidgetitem59 = new QTableWidgetItem();
-        paymentTable->setHorizontalHeaderItem(1, __qtablewidgetitem59);
-        QTableWidgetItem *__qtablewidgetitem60 = new QTableWidgetItem();
-        paymentTable->setHorizontalHeaderItem(2, __qtablewidgetitem60);
-        QTableWidgetItem *__qtablewidgetitem61 = new QTableWidgetItem();
-        paymentTable->setHorizontalHeaderItem(3, __qtablewidgetitem61);
-        QTableWidgetItem *__qtablewidgetitem62 = new QTableWidgetItem();
-        paymentTable->setHorizontalHeaderItem(4, __qtablewidgetitem62);
-        QTableWidgetItem *__qtablewidgetitem63 = new QTableWidgetItem();
-        paymentTable->setHorizontalHeaderItem(5, __qtablewidgetitem63);
-        QTableWidgetItem *__qtablewidgetitem64 = new QTableWidgetItem();
-        paymentTable->setHorizontalHeaderItem(6, __qtablewidgetitem64);
-        QTableWidgetItem *__qtablewidgetitem65 = new QTableWidgetItem();
-        paymentTable->setHorizontalHeaderItem(7, __qtablewidgetitem65);
         QTableWidgetItem *__qtablewidgetitem66 = new QTableWidgetItem();
-        paymentTable->setHorizontalHeaderItem(8, __qtablewidgetitem66);
+        paymentTable->setHorizontalHeaderItem(0, __qtablewidgetitem66);
+        QTableWidgetItem *__qtablewidgetitem67 = new QTableWidgetItem();
+        paymentTable->setHorizontalHeaderItem(1, __qtablewidgetitem67);
+        QTableWidgetItem *__qtablewidgetitem68 = new QTableWidgetItem();
+        paymentTable->setHorizontalHeaderItem(2, __qtablewidgetitem68);
+        QTableWidgetItem *__qtablewidgetitem69 = new QTableWidgetItem();
+        paymentTable->setHorizontalHeaderItem(3, __qtablewidgetitem69);
+        QTableWidgetItem *__qtablewidgetitem70 = new QTableWidgetItem();
+        paymentTable->setHorizontalHeaderItem(4, __qtablewidgetitem70);
+        QTableWidgetItem *__qtablewidgetitem71 = new QTableWidgetItem();
+        paymentTable->setHorizontalHeaderItem(5, __qtablewidgetitem71);
+        QTableWidgetItem *__qtablewidgetitem72 = new QTableWidgetItem();
+        paymentTable->setHorizontalHeaderItem(6, __qtablewidgetitem72);
+        QTableWidgetItem *__qtablewidgetitem73 = new QTableWidgetItem();
+        paymentTable->setHorizontalHeaderItem(7, __qtablewidgetitem73);
+        QTableWidgetItem *__qtablewidgetitem74 = new QTableWidgetItem();
+        paymentTable->setHorizontalHeaderItem(8, __qtablewidgetitem74);
         paymentTable->setObjectName("paymentTable");
         paymentTable->setAlternatingRowColors(true);
         paymentTable->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
@@ -2644,14 +2856,14 @@ public:
         paymentMethodStatsTable = new QTableWidget(paymentChartsFrame);
         if (paymentMethodStatsTable->columnCount() < 4)
             paymentMethodStatsTable->setColumnCount(4);
-        QTableWidgetItem *__qtablewidgetitem67 = new QTableWidgetItem();
-        paymentMethodStatsTable->setHorizontalHeaderItem(0, __qtablewidgetitem67);
-        QTableWidgetItem *__qtablewidgetitem68 = new QTableWidgetItem();
-        paymentMethodStatsTable->setHorizontalHeaderItem(1, __qtablewidgetitem68);
-        QTableWidgetItem *__qtablewidgetitem69 = new QTableWidgetItem();
-        paymentMethodStatsTable->setHorizontalHeaderItem(2, __qtablewidgetitem69);
-        QTableWidgetItem *__qtablewidgetitem70 = new QTableWidgetItem();
-        paymentMethodStatsTable->setHorizontalHeaderItem(3, __qtablewidgetitem70);
+        QTableWidgetItem *__qtablewidgetitem75 = new QTableWidgetItem();
+        paymentMethodStatsTable->setHorizontalHeaderItem(0, __qtablewidgetitem75);
+        QTableWidgetItem *__qtablewidgetitem76 = new QTableWidgetItem();
+        paymentMethodStatsTable->setHorizontalHeaderItem(1, __qtablewidgetitem76);
+        QTableWidgetItem *__qtablewidgetitem77 = new QTableWidgetItem();
+        paymentMethodStatsTable->setHorizontalHeaderItem(2, __qtablewidgetitem77);
+        QTableWidgetItem *__qtablewidgetitem78 = new QTableWidgetItem();
+        paymentMethodStatsTable->setHorizontalHeaderItem(3, __qtablewidgetitem78);
         paymentMethodStatsTable->setObjectName("paymentMethodStatsTable");
         paymentMethodStatsTable->setMaximumSize(QSize(16777215, 200));
         paymentMethodStatsTable->setAlternatingRowColors(true);
@@ -2680,16 +2892,16 @@ public:
         recentPaymentsTable = new QTableWidget(recentPaymentsFrame);
         if (recentPaymentsTable->columnCount() < 5)
             recentPaymentsTable->setColumnCount(5);
-        QTableWidgetItem *__qtablewidgetitem71 = new QTableWidgetItem();
-        recentPaymentsTable->setHorizontalHeaderItem(0, __qtablewidgetitem71);
-        QTableWidgetItem *__qtablewidgetitem72 = new QTableWidgetItem();
-        recentPaymentsTable->setHorizontalHeaderItem(1, __qtablewidgetitem72);
-        QTableWidgetItem *__qtablewidgetitem73 = new QTableWidgetItem();
-        recentPaymentsTable->setHorizontalHeaderItem(2, __qtablewidgetitem73);
-        QTableWidgetItem *__qtablewidgetitem74 = new QTableWidgetItem();
-        recentPaymentsTable->setHorizontalHeaderItem(3, __qtablewidgetitem74);
-        QTableWidgetItem *__qtablewidgetitem75 = new QTableWidgetItem();
-        recentPaymentsTable->setHorizontalHeaderItem(4, __qtablewidgetitem75);
+        QTableWidgetItem *__qtablewidgetitem79 = new QTableWidgetItem();
+        recentPaymentsTable->setHorizontalHeaderItem(0, __qtablewidgetitem79);
+        QTableWidgetItem *__qtablewidgetitem80 = new QTableWidgetItem();
+        recentPaymentsTable->setHorizontalHeaderItem(1, __qtablewidgetitem80);
+        QTableWidgetItem *__qtablewidgetitem81 = new QTableWidgetItem();
+        recentPaymentsTable->setHorizontalHeaderItem(2, __qtablewidgetitem81);
+        QTableWidgetItem *__qtablewidgetitem82 = new QTableWidgetItem();
+        recentPaymentsTable->setHorizontalHeaderItem(3, __qtablewidgetitem82);
+        QTableWidgetItem *__qtablewidgetitem83 = new QTableWidgetItem();
+        recentPaymentsTable->setHorizontalHeaderItem(4, __qtablewidgetitem83);
         recentPaymentsTable->setObjectName("recentPaymentsTable");
         recentPaymentsTable->setMaximumSize(QSize(16777215, 300));
         recentPaymentsTable->setAlternatingRowColors(true);
@@ -2971,12 +3183,11 @@ public:
         equipmentConfirmButton->setText(QCoreApplication::translate("EmployerAdmin", " Confirm Add Equipment", nullptr));
         equipmentUpdateButton->setText(QCoreApplication::translate("EmployerAdmin", " Update Equipment", nullptr));
         equipmentPurchaseDateLabel->setText(QCoreApplication::translate("EmployerAdmin", "Purchase Date:", nullptr));
-        equipmentStatusLabel->setText(QCoreApplication::translate("EmployerAdmin", "Status:", nullptr));
+        equipmentAvailableQtyLabel->setText(QCoreApplication::translate("EmployerAdmin", "Available Qty:", nullptr));
+        equipmentReservedQtyLabel->setText(QCoreApplication::translate("EmployerAdmin", "Reserved Qty:", nullptr));
+        equipmentMaintenanceQtyLabel->setText(QCoreApplication::translate("EmployerAdmin", "Maintenance Qty:", nullptr));
+        equipmentOutOfOrderQtyLabel->setText(QCoreApplication::translate("EmployerAdmin", "Out of Order Qty:", nullptr));
         equipmentStatusComboBox->setItemText(0, QCoreApplication::translate("EmployerAdmin", "Available", nullptr));
-        equipmentStatusComboBox->setItemText(1, QCoreApplication::translate("EmployerAdmin", "In Use", nullptr));
-        equipmentStatusComboBox->setItemText(2, QCoreApplication::translate("EmployerAdmin", "Under Maintenance", nullptr));
-        equipmentStatusComboBox->setItemText(3, QCoreApplication::translate("EmployerAdmin", "Out of Order", nullptr));
-        equipmentStatusComboBox->setItemText(4, QCoreApplication::translate("EmployerAdmin", "Retired", nullptr));
 
         equipmentModelLabel->setText(QCoreApplication::translate("EmployerAdmin", "Model:", nullptr));
         equipmentNameLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Enter equipment name", nullptr));
@@ -3075,28 +3286,54 @@ public:
         QTableWidgetItem *___qtablewidgetitem57 = activityTypeStatsTable->horizontalHeaderItem(3);
         ___qtablewidgetitem57->setText(QCoreApplication::translate("EmployerAdmin", "This Month", nullptr));
         activityTabWidget->setTabText(activityTabWidget->indexOf(activityStatisticsTab), QCoreApplication::translate("EmployerAdmin", " Statistics", nullptr));
+        availableEquipmentGroupBox->setTitle(QCoreApplication::translate("EmployerAdmin", "Available Equipment for [Selected Date]", nullptr));
+        QTableWidgetItem *___qtablewidgetitem58 = availableEquipmentTable->horizontalHeaderItem(0);
+        ___qtablewidgetitem58->setText(QCoreApplication::translate("EmployerAdmin", "Select", nullptr));
+        QTableWidgetItem *___qtablewidgetitem59 = availableEquipmentTable->horizontalHeaderItem(1);
+        ___qtablewidgetitem59->setText(QCoreApplication::translate("EmployerAdmin", "Equipment Name", nullptr));
+        QTableWidgetItem *___qtablewidgetitem60 = availableEquipmentTable->horizontalHeaderItem(2);
+        ___qtablewidgetitem60->setText(QCoreApplication::translate("EmployerAdmin", "Category", nullptr));
+        QTableWidgetItem *___qtablewidgetitem61 = availableEquipmentTable->horizontalHeaderItem(3);
+        ___qtablewidgetitem61->setText(QCoreApplication::translate("EmployerAdmin", "Available Qty", nullptr));
+        QTableWidgetItem *___qtablewidgetitem62 = availableEquipmentTable->horizontalHeaderItem(4);
+        ___qtablewidgetitem62->setText(QCoreApplication::translate("EmployerAdmin", "Reserve Qty", nullptr));
+        reserveQuantityLabel->setText(QCoreApplication::translate("EmployerAdmin", "Reserve quantity for selected equipment:", nullptr));
+        reserveQuantityHelperLabel->setText(QCoreApplication::translate("EmployerAdmin", "Use the spin box to ensure quantities stay within availability.", nullptr));
+        refreshEquipmentButton->setText(QCoreApplication::translate("EmployerAdmin", "Refresh Available Equipment", nullptr));
+        addToReservationButton->setText(QCoreApplication::translate("EmployerAdmin", "Add Selected to Reservation", nullptr));
+        reservedEquipmentGroupBox->setTitle(QCoreApplication::translate("EmployerAdmin", "Reserved Equipment", nullptr));
+        QTableWidgetItem *___qtablewidgetitem63 = reservedEquipmentTable->horizontalHeaderItem(0);
+        ___qtablewidgetitem63->setText(QCoreApplication::translate("EmployerAdmin", "Equipment Name", nullptr));
+        QTableWidgetItem *___qtablewidgetitem64 = reservedEquipmentTable->horizontalHeaderItem(1);
+        ___qtablewidgetitem64->setText(QCoreApplication::translate("EmployerAdmin", "Reserved Qty", nullptr));
+        QTableWidgetItem *___qtablewidgetitem65 = reservedEquipmentTable->horizontalHeaderItem(2);
+        ___qtablewidgetitem65->setText(QCoreApplication::translate("EmployerAdmin", "Actions", nullptr));
+        reservedTotalLabel->setText(QCoreApplication::translate("EmployerAdmin", "Total Reserved Items: 0", nullptr));
+        confirmReservationButton->setText(QCoreApplication::translate("EmployerAdmin", "Confirm Reservation", nullptr));
+        clearReservationButton->setText(QCoreApplication::translate("EmployerAdmin", "Clear All", nullptr));
+        activityTabWidget->setTabText(activityTabWidget->indexOf(equipmentReservationTab), QCoreApplication::translate("EmployerAdmin", " Equipment Reservation", nullptr));
         paymentSearchLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Search transactions...", nullptr));
         paymentSearchButton->setText(QCoreApplication::translate("EmployerAdmin", "Search", nullptr));
         paymentSortButton->setText(QCoreApplication::translate("EmployerAdmin", "Sort by Date", nullptr));
         paymentExportButton->setText(QCoreApplication::translate("EmployerAdmin", "Export PDF", nullptr));
-        QTableWidgetItem *___qtablewidgetitem58 = paymentTable->horizontalHeaderItem(0);
-        ___qtablewidgetitem58->setText(QCoreApplication::translate("EmployerAdmin", "Transaction ID", nullptr));
-        QTableWidgetItem *___qtablewidgetitem59 = paymentTable->horizontalHeaderItem(1);
-        ___qtablewidgetitem59->setText(QCoreApplication::translate("EmployerAdmin", "Date", nullptr));
-        QTableWidgetItem *___qtablewidgetitem60 = paymentTable->horizontalHeaderItem(2);
-        ___qtablewidgetitem60->setText(QCoreApplication::translate("EmployerAdmin", "Description", nullptr));
-        QTableWidgetItem *___qtablewidgetitem61 = paymentTable->horizontalHeaderItem(3);
-        ___qtablewidgetitem61->setText(QCoreApplication::translate("EmployerAdmin", "Type", nullptr));
-        QTableWidgetItem *___qtablewidgetitem62 = paymentTable->horizontalHeaderItem(4);
-        ___qtablewidgetitem62->setText(QCoreApplication::translate("EmployerAdmin", "Amount", nullptr));
-        QTableWidgetItem *___qtablewidgetitem63 = paymentTable->horizontalHeaderItem(5);
-        ___qtablewidgetitem63->setText(QCoreApplication::translate("EmployerAdmin", "Method", nullptr));
-        QTableWidgetItem *___qtablewidgetitem64 = paymentTable->horizontalHeaderItem(6);
-        ___qtablewidgetitem64->setText(QCoreApplication::translate("EmployerAdmin", "Status", nullptr));
-        QTableWidgetItem *___qtablewidgetitem65 = paymentTable->horizontalHeaderItem(7);
-        ___qtablewidgetitem65->setText(QCoreApplication::translate("EmployerAdmin", "Member ID", nullptr));
-        QTableWidgetItem *___qtablewidgetitem66 = paymentTable->horizontalHeaderItem(8);
-        ___qtablewidgetitem66->setText(QCoreApplication::translate("EmployerAdmin", "Actions", nullptr));
+        QTableWidgetItem *___qtablewidgetitem66 = paymentTable->horizontalHeaderItem(0);
+        ___qtablewidgetitem66->setText(QCoreApplication::translate("EmployerAdmin", "Transaction ID", nullptr));
+        QTableWidgetItem *___qtablewidgetitem67 = paymentTable->horizontalHeaderItem(1);
+        ___qtablewidgetitem67->setText(QCoreApplication::translate("EmployerAdmin", "Date", nullptr));
+        QTableWidgetItem *___qtablewidgetitem68 = paymentTable->horizontalHeaderItem(2);
+        ___qtablewidgetitem68->setText(QCoreApplication::translate("EmployerAdmin", "Description", nullptr));
+        QTableWidgetItem *___qtablewidgetitem69 = paymentTable->horizontalHeaderItem(3);
+        ___qtablewidgetitem69->setText(QCoreApplication::translate("EmployerAdmin", "Type", nullptr));
+        QTableWidgetItem *___qtablewidgetitem70 = paymentTable->horizontalHeaderItem(4);
+        ___qtablewidgetitem70->setText(QCoreApplication::translate("EmployerAdmin", "Amount", nullptr));
+        QTableWidgetItem *___qtablewidgetitem71 = paymentTable->horizontalHeaderItem(5);
+        ___qtablewidgetitem71->setText(QCoreApplication::translate("EmployerAdmin", "Method", nullptr));
+        QTableWidgetItem *___qtablewidgetitem72 = paymentTable->horizontalHeaderItem(6);
+        ___qtablewidgetitem72->setText(QCoreApplication::translate("EmployerAdmin", "Status", nullptr));
+        QTableWidgetItem *___qtablewidgetitem73 = paymentTable->horizontalHeaderItem(7);
+        ___qtablewidgetitem73->setText(QCoreApplication::translate("EmployerAdmin", "Member ID", nullptr));
+        QTableWidgetItem *___qtablewidgetitem74 = paymentTable->horizontalHeaderItem(8);
+        ___qtablewidgetitem74->setText(QCoreApplication::translate("EmployerAdmin", "Actions", nullptr));
         paymentTabWidget->setTabText(paymentTabWidget->indexOf(listTab_4), QCoreApplication::translate("EmployerAdmin", " List of Payments", nullptr));
         paymentDescriptionEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Enter transaction description", nullptr));
         paymentAmountLabel->setText(QCoreApplication::translate("EmployerAdmin", "Date:", nullptr));
@@ -3141,25 +3378,25 @@ public:
         netBalanceLabel->setText(QCoreApplication::translate("EmployerAdmin", "Net Balance", nullptr));
         netBalanceValue->setText(QCoreApplication::translate("EmployerAdmin", "$0.00", nullptr));
         paymentChartsTitle->setText(QCoreApplication::translate("EmployerAdmin", "Payment Method Distribution", nullptr));
-        QTableWidgetItem *___qtablewidgetitem67 = paymentMethodStatsTable->horizontalHeaderItem(0);
-        ___qtablewidgetitem67->setText(QCoreApplication::translate("EmployerAdmin", "Payment Method", nullptr));
-        QTableWidgetItem *___qtablewidgetitem68 = paymentMethodStatsTable->horizontalHeaderItem(1);
-        ___qtablewidgetitem68->setText(QCoreApplication::translate("EmployerAdmin", "Total Transactions", nullptr));
-        QTableWidgetItem *___qtablewidgetitem69 = paymentMethodStatsTable->horizontalHeaderItem(2);
-        ___qtablewidgetitem69->setText(QCoreApplication::translate("EmployerAdmin", "Total Amount", nullptr));
-        QTableWidgetItem *___qtablewidgetitem70 = paymentMethodStatsTable->horizontalHeaderItem(3);
-        ___qtablewidgetitem70->setText(QCoreApplication::translate("EmployerAdmin", "Percentage", nullptr));
+        QTableWidgetItem *___qtablewidgetitem75 = paymentMethodStatsTable->horizontalHeaderItem(0);
+        ___qtablewidgetitem75->setText(QCoreApplication::translate("EmployerAdmin", "Payment Method", nullptr));
+        QTableWidgetItem *___qtablewidgetitem76 = paymentMethodStatsTable->horizontalHeaderItem(1);
+        ___qtablewidgetitem76->setText(QCoreApplication::translate("EmployerAdmin", "Total Transactions", nullptr));
+        QTableWidgetItem *___qtablewidgetitem77 = paymentMethodStatsTable->horizontalHeaderItem(2);
+        ___qtablewidgetitem77->setText(QCoreApplication::translate("EmployerAdmin", "Total Amount", nullptr));
+        QTableWidgetItem *___qtablewidgetitem78 = paymentMethodStatsTable->horizontalHeaderItem(3);
+        ___qtablewidgetitem78->setText(QCoreApplication::translate("EmployerAdmin", "Percentage", nullptr));
         recentPaymentsTitle->setText(QCoreApplication::translate("EmployerAdmin", "Recent Transactions (Last 10)", nullptr));
-        QTableWidgetItem *___qtablewidgetitem71 = recentPaymentsTable->horizontalHeaderItem(0);
-        ___qtablewidgetitem71->setText(QCoreApplication::translate("EmployerAdmin", "Date", nullptr));
-        QTableWidgetItem *___qtablewidgetitem72 = recentPaymentsTable->horizontalHeaderItem(1);
-        ___qtablewidgetitem72->setText(QCoreApplication::translate("EmployerAdmin", "Description", nullptr));
-        QTableWidgetItem *___qtablewidgetitem73 = recentPaymentsTable->horizontalHeaderItem(2);
-        ___qtablewidgetitem73->setText(QCoreApplication::translate("EmployerAdmin", "Type", nullptr));
-        QTableWidgetItem *___qtablewidgetitem74 = recentPaymentsTable->horizontalHeaderItem(3);
-        ___qtablewidgetitem74->setText(QCoreApplication::translate("EmployerAdmin", "Amount", nullptr));
-        QTableWidgetItem *___qtablewidgetitem75 = recentPaymentsTable->horizontalHeaderItem(4);
-        ___qtablewidgetitem75->setText(QCoreApplication::translate("EmployerAdmin", "Status", nullptr));
+        QTableWidgetItem *___qtablewidgetitem79 = recentPaymentsTable->horizontalHeaderItem(0);
+        ___qtablewidgetitem79->setText(QCoreApplication::translate("EmployerAdmin", "Date", nullptr));
+        QTableWidgetItem *___qtablewidgetitem80 = recentPaymentsTable->horizontalHeaderItem(1);
+        ___qtablewidgetitem80->setText(QCoreApplication::translate("EmployerAdmin", "Description", nullptr));
+        QTableWidgetItem *___qtablewidgetitem81 = recentPaymentsTable->horizontalHeaderItem(2);
+        ___qtablewidgetitem81->setText(QCoreApplication::translate("EmployerAdmin", "Type", nullptr));
+        QTableWidgetItem *___qtablewidgetitem82 = recentPaymentsTable->horizontalHeaderItem(3);
+        ___qtablewidgetitem82->setText(QCoreApplication::translate("EmployerAdmin", "Amount", nullptr));
+        QTableWidgetItem *___qtablewidgetitem83 = recentPaymentsTable->horizontalHeaderItem(4);
+        ___qtablewidgetitem83->setText(QCoreApplication::translate("EmployerAdmin", "Status", nullptr));
         paymentTabWidget->setTabText(paymentTabWidget->indexOf(statisticsTab_4), QCoreApplication::translate("EmployerAdmin", " Statistics", nullptr));
     } // retranslateUi
 

@@ -16,7 +16,7 @@ CXX           = g++
 DEFINES       = -DUNICODE -D_UNICODE -DWIN32 -DMINGW_HAS_SECURE_API=1 -DQT_QML_DEBUG -DQT_NO_DEBUG -DQT_PRINTSUPPORT_LIB -DQT_CHARTS_LIB -DQT_OPENGLWIDGETS_LIB -DQT_WIDGETS_LIB -DQT_OPENGL_LIB -DQT_GUI_LIB -DQT_SQL_LIB -DQT_CORE_LIB -DQT_NEEDS_QMAIN
 CFLAGS        = -fno-keep-inline-dllexport -O2 -Wall -Wextra -Wextra $(DEFINES)
 CXXFLAGS      = -fno-keep-inline-dllexport -O2 -std=gnu++1z -Wall -Wextra -Wextra -fexceptions -mthreads $(DEFINES)
-INCPATH       = -I../../../SummerClub -I. -IC:/Qt/6.7.3/mingw_64/include -IC:/Qt/6.7.3/mingw_64/include/QtPrintSupport -IC:/Qt/6.7.3/mingw_64/include/QtCharts -IC:/Qt/6.7.3/mingw_64/include/QtOpenGLWidgets -IC:/Qt/6.7.3/mingw_64/include/QtWidgets -IC:/Qt/6.7.3/mingw_64/include/QtOpenGL -IC:/Qt/6.7.3/mingw_64/include/QtGui -IC:/Qt/6.7.3/mingw_64/include/QtSql -IC:/Qt/6.7.3/mingw_64/include/QtCore -Irelease -I. -I/include -IC:/Qt/6.7.3/mingw_64/mkspecs/win32-g++ 
+INCPATH       = -I../../../projetpcc-2a26-Smart-Summer-Club- -I. -IC:/Qt/6.7.3/mingw_64/include -IC:/Qt/6.7.3/mingw_64/include/QtPrintSupport -IC:/Qt/6.7.3/mingw_64/include/QtCharts -IC:/Qt/6.7.3/mingw_64/include/QtOpenGLWidgets -IC:/Qt/6.7.3/mingw_64/include/QtWidgets -IC:/Qt/6.7.3/mingw_64/include/QtOpenGL -IC:/Qt/6.7.3/mingw_64/include/QtGui -IC:/Qt/6.7.3/mingw_64/include/QtSql -IC:/Qt/6.7.3/mingw_64/include/QtCore -Irelease -I. -I/include -IC:/Qt/6.7.3/mingw_64/mkspecs/win32-g++ 
 LINKER      =        g++
 LFLAGS        =        -Wl,-s -Wl,-subsystem,windows -mthreads
 LIBS        =        C:\Qt\6.7.3\mingw_64\lib\libQt6PrintSupport.a C:\Qt\6.7.3\mingw_64\lib\libQt6Charts.a C:\Qt\6.7.3\mingw_64\lib\libQt6OpenGLWidgets.a C:\Qt\6.7.3\mingw_64\lib\libQt6Widgets.a C:\Qt\6.7.3\mingw_64\lib\libQt6OpenGL.a C:\Qt\6.7.3\mingw_64\lib\libQt6Gui.a C:\Qt\6.7.3\mingw_64\lib\libQt6Sql.a C:\Qt\6.7.3\mingw_64\lib\libQt6Core.a -lmingw32 C:\Qt\6.7.3\mingw_64\lib\libQt6EntryPoint.a -lshell32  
@@ -469,10 +469,10 @@ release/moc_employeradmin.cpp: ../../employeradmin.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QAbstractItemView \
 		../../activity.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QTime \
-		C:/Qt/6.7.3/mingw_64/include/QtCore/QDateTime \
 		C:/Qt/6.7.3/mingw_64/include/QtSql/QSqlRecord \
 		C:/Qt/6.7.3/mingw_64/include/QtSql/qsqlrecord.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QRegularExpression \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QMap \
 		../../equipment.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QTextStream \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QHBoxLayout \
@@ -498,13 +498,12 @@ release/moc_employeradmin.cpp: ../../employeradmin.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/qpageranges.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/QTextDocument \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/qtextdocument.h \
-		C:/Qt/6.7.3/mingw_64/include/QtCore/QMap \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QPair \
 		../../paymentmodel.h \
 		C:/Qt/6.7.3/mingw_64/include/QtSql/QSqlDatabase \
 		release/moc_predefs.h \
 		C:/Qt/6.7.3/mingw_64/bin/moc.exe
-	C:\Qt\6.7.3\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/yassi/OneDrive/Bureau/SummerClub/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/release/moc_predefs.h -IC:/Qt/6.7.3/mingw_64/mkspecs/win32-g++ -IC:/Users/yassi/OneDrive/Bureau/SummerClub -IC:/Qt/6.7.3/mingw_64/include -IC:/Qt/6.7.3/mingw_64/include/QtPrintSupport -IC:/Qt/6.7.3/mingw_64/include/QtCharts -IC:/Qt/6.7.3/mingw_64/include/QtOpenGLWidgets -IC:/Qt/6.7.3/mingw_64/include/QtWidgets -IC:/Qt/6.7.3/mingw_64/include/QtOpenGL -IC:/Qt/6.7.3/mingw_64/include/QtGui -IC:/Qt/6.7.3/mingw_64/include/QtSql -IC:/Qt/6.7.3/mingw_64/include/QtCore -I. -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++ -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed -IC:/Qt/Tools/mingw1120_64/x86_64-w64-mingw32/include ..\..\employeradmin.h -o release\moc_employeradmin.cpp
+	C:\Qt\6.7.3\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/yassi/OneDrive/Bureau/projetpcc-2a26-Smart-Summer-Club-/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/release/moc_predefs.h -IC:/Qt/6.7.3/mingw_64/mkspecs/win32-g++ -IC:/Users/yassi/OneDrive/Bureau/projetpcc-2a26-Smart-Summer-Club- -IC:/Qt/6.7.3/mingw_64/include -IC:/Qt/6.7.3/mingw_64/include/QtPrintSupport -IC:/Qt/6.7.3/mingw_64/include/QtCharts -IC:/Qt/6.7.3/mingw_64/include/QtOpenGLWidgets -IC:/Qt/6.7.3/mingw_64/include/QtWidgets -IC:/Qt/6.7.3/mingw_64/include/QtOpenGL -IC:/Qt/6.7.3/mingw_64/include/QtGui -IC:/Qt/6.7.3/mingw_64/include/QtSql -IC:/Qt/6.7.3/mingw_64/include/QtCore -I. -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++ -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed -IC:/Qt/Tools/mingw1120_64/x86_64-w64-mingw32/include ..\..\employeradmin.h -o release\moc_employeradmin.cpp
 
 release/moc_login.cpp: ../../login.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QDialog \
@@ -699,7 +698,7 @@ release/moc_login.cpp: ../../login.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qdialogbuttonbox.h \
 		release/moc_predefs.h \
 		C:/Qt/6.7.3/mingw_64/bin/moc.exe
-	C:\Qt\6.7.3\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/yassi/OneDrive/Bureau/SummerClub/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/release/moc_predefs.h -IC:/Qt/6.7.3/mingw_64/mkspecs/win32-g++ -IC:/Users/yassi/OneDrive/Bureau/SummerClub -IC:/Qt/6.7.3/mingw_64/include -IC:/Qt/6.7.3/mingw_64/include/QtPrintSupport -IC:/Qt/6.7.3/mingw_64/include/QtCharts -IC:/Qt/6.7.3/mingw_64/include/QtOpenGLWidgets -IC:/Qt/6.7.3/mingw_64/include/QtWidgets -IC:/Qt/6.7.3/mingw_64/include/QtOpenGL -IC:/Qt/6.7.3/mingw_64/include/QtGui -IC:/Qt/6.7.3/mingw_64/include/QtSql -IC:/Qt/6.7.3/mingw_64/include/QtCore -I. -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++ -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed -IC:/Qt/Tools/mingw1120_64/x86_64-w64-mingw32/include ..\..\login.h -o release\moc_login.cpp
+	C:\Qt\6.7.3\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/yassi/OneDrive/Bureau/projetpcc-2a26-Smart-Summer-Club-/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/release/moc_predefs.h -IC:/Qt/6.7.3/mingw_64/mkspecs/win32-g++ -IC:/Users/yassi/OneDrive/Bureau/projetpcc-2a26-Smart-Summer-Club- -IC:/Qt/6.7.3/mingw_64/include -IC:/Qt/6.7.3/mingw_64/include/QtPrintSupport -IC:/Qt/6.7.3/mingw_64/include/QtCharts -IC:/Qt/6.7.3/mingw_64/include/QtOpenGLWidgets -IC:/Qt/6.7.3/mingw_64/include/QtWidgets -IC:/Qt/6.7.3/mingw_64/include/QtOpenGL -IC:/Qt/6.7.3/mingw_64/include/QtGui -IC:/Qt/6.7.3/mingw_64/include/QtSql -IC:/Qt/6.7.3/mingw_64/include/QtCore -I. -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++ -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed -IC:/Qt/Tools/mingw1120_64/x86_64-w64-mingw32/include ..\..\login.h -o release\moc_login.cpp
 
 release/moc_employee.cpp: ../../employee.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QObject \
@@ -943,7 +942,7 @@ release/moc_employee.cpp: ../../employee.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/QPixmap \
 		release/moc_predefs.h \
 		C:/Qt/6.7.3/mingw_64/bin/moc.exe
-	C:\Qt\6.7.3\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/yassi/OneDrive/Bureau/SummerClub/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/release/moc_predefs.h -IC:/Qt/6.7.3/mingw_64/mkspecs/win32-g++ -IC:/Users/yassi/OneDrive/Bureau/SummerClub -IC:/Qt/6.7.3/mingw_64/include -IC:/Qt/6.7.3/mingw_64/include/QtPrintSupport -IC:/Qt/6.7.3/mingw_64/include/QtCharts -IC:/Qt/6.7.3/mingw_64/include/QtOpenGLWidgets -IC:/Qt/6.7.3/mingw_64/include/QtWidgets -IC:/Qt/6.7.3/mingw_64/include/QtOpenGL -IC:/Qt/6.7.3/mingw_64/include/QtGui -IC:/Qt/6.7.3/mingw_64/include/QtSql -IC:/Qt/6.7.3/mingw_64/include/QtCore -I. -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++ -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed -IC:/Qt/Tools/mingw1120_64/x86_64-w64-mingw32/include ..\..\employee.h -o release\moc_employee.cpp
+	C:\Qt\6.7.3\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/yassi/OneDrive/Bureau/projetpcc-2a26-Smart-Summer-Club-/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/release/moc_predefs.h -IC:/Qt/6.7.3/mingw_64/mkspecs/win32-g++ -IC:/Users/yassi/OneDrive/Bureau/projetpcc-2a26-Smart-Summer-Club- -IC:/Qt/6.7.3/mingw_64/include -IC:/Qt/6.7.3/mingw_64/include/QtPrintSupport -IC:/Qt/6.7.3/mingw_64/include/QtCharts -IC:/Qt/6.7.3/mingw_64/include/QtOpenGLWidgets -IC:/Qt/6.7.3/mingw_64/include/QtWidgets -IC:/Qt/6.7.3/mingw_64/include/QtOpenGL -IC:/Qt/6.7.3/mingw_64/include/QtGui -IC:/Qt/6.7.3/mingw_64/include/QtSql -IC:/Qt/6.7.3/mingw_64/include/QtCore -I. -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++ -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed -IC:/Qt/Tools/mingw1120_64/x86_64-w64-mingw32/include ..\..\employee.h -o release\moc_employee.cpp
 
 release/moc_member.cpp: ../../member.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QObject \
@@ -1185,7 +1184,7 @@ release/moc_member.cpp: ../../member.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QDebug \
 		release/moc_predefs.h \
 		C:/Qt/6.7.3/mingw_64/bin/moc.exe
-	C:\Qt\6.7.3\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/yassi/OneDrive/Bureau/SummerClub/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/release/moc_predefs.h -IC:/Qt/6.7.3/mingw_64/mkspecs/win32-g++ -IC:/Users/yassi/OneDrive/Bureau/SummerClub -IC:/Qt/6.7.3/mingw_64/include -IC:/Qt/6.7.3/mingw_64/include/QtPrintSupport -IC:/Qt/6.7.3/mingw_64/include/QtCharts -IC:/Qt/6.7.3/mingw_64/include/QtOpenGLWidgets -IC:/Qt/6.7.3/mingw_64/include/QtWidgets -IC:/Qt/6.7.3/mingw_64/include/QtOpenGL -IC:/Qt/6.7.3/mingw_64/include/QtGui -IC:/Qt/6.7.3/mingw_64/include/QtSql -IC:/Qt/6.7.3/mingw_64/include/QtCore -I. -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++ -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed -IC:/Qt/Tools/mingw1120_64/x86_64-w64-mingw32/include ..\..\member.h -o release\moc_member.cpp
+	C:\Qt\6.7.3\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/yassi/OneDrive/Bureau/projetpcc-2a26-Smart-Summer-Club-/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/release/moc_predefs.h -IC:/Qt/6.7.3/mingw_64/mkspecs/win32-g++ -IC:/Users/yassi/OneDrive/Bureau/projetpcc-2a26-Smart-Summer-Club- -IC:/Qt/6.7.3/mingw_64/include -IC:/Qt/6.7.3/mingw_64/include/QtPrintSupport -IC:/Qt/6.7.3/mingw_64/include/QtCharts -IC:/Qt/6.7.3/mingw_64/include/QtOpenGLWidgets -IC:/Qt/6.7.3/mingw_64/include/QtWidgets -IC:/Qt/6.7.3/mingw_64/include/QtOpenGL -IC:/Qt/6.7.3/mingw_64/include/QtGui -IC:/Qt/6.7.3/mingw_64/include/QtSql -IC:/Qt/6.7.3/mingw_64/include/QtCore -I. -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++ -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed -IC:/Qt/Tools/mingw1120_64/x86_64-w64-mingw32/include ..\..\member.h -o release\moc_member.cpp
 
 release/moc_activity.cpp: ../../activity.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QObject \
@@ -1307,7 +1306,6 @@ release/moc_activity.cpp: ../../activity.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/qvarlengtharray.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/q23utility.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QTime \
-		C:/Qt/6.7.3/mingw_64/include/QtCore/QDateTime \
 		C:/Qt/6.7.3/mingw_64/include/QtSql/QSqlQuery \
 		C:/Qt/6.7.3/mingw_64/include/QtSql/qsqlquery.h \
 		C:/Qt/6.7.3/mingw_64/include/QtSql/qtsqlglobal.h \
@@ -1322,8 +1320,6 @@ release/moc_activity.cpp: ../../activity.h \
 		C:/Qt/6.7.3/mingw_64/include/QtSql/QSqlRecord \
 		C:/Qt/6.7.3/mingw_64/include/QtSql/qsqlrecord.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QVariant \
-		C:/Qt/6.7.3/mingw_64/include/QtCore/QMetaType \
-		C:/Qt/6.7.3/mingw_64/include/QtCore/QDebug \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QWidget \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qwidget.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qtwidgetsglobal.h \
@@ -1430,9 +1426,10 @@ release/moc_activity.cpp: ../../activity.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qheaderview.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QFileInfo \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QRegularExpression \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QMap \
 		release/moc_predefs.h \
 		C:/Qt/6.7.3/mingw_64/bin/moc.exe
-	C:\Qt\6.7.3\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/yassi/OneDrive/Bureau/SummerClub/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/release/moc_predefs.h -IC:/Qt/6.7.3/mingw_64/mkspecs/win32-g++ -IC:/Users/yassi/OneDrive/Bureau/SummerClub -IC:/Qt/6.7.3/mingw_64/include -IC:/Qt/6.7.3/mingw_64/include/QtPrintSupport -IC:/Qt/6.7.3/mingw_64/include/QtCharts -IC:/Qt/6.7.3/mingw_64/include/QtOpenGLWidgets -IC:/Qt/6.7.3/mingw_64/include/QtWidgets -IC:/Qt/6.7.3/mingw_64/include/QtOpenGL -IC:/Qt/6.7.3/mingw_64/include/QtGui -IC:/Qt/6.7.3/mingw_64/include/QtSql -IC:/Qt/6.7.3/mingw_64/include/QtCore -I. -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++ -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed -IC:/Qt/Tools/mingw1120_64/x86_64-w64-mingw32/include ..\..\activity.h -o release\moc_activity.cpp
+	C:\Qt\6.7.3\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/yassi/OneDrive/Bureau/projetpcc-2a26-Smart-Summer-Club-/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/release/moc_predefs.h -IC:/Qt/6.7.3/mingw_64/mkspecs/win32-g++ -IC:/Users/yassi/OneDrive/Bureau/projetpcc-2a26-Smart-Summer-Club- -IC:/Qt/6.7.3/mingw_64/include -IC:/Qt/6.7.3/mingw_64/include/QtPrintSupport -IC:/Qt/6.7.3/mingw_64/include/QtCharts -IC:/Qt/6.7.3/mingw_64/include/QtOpenGLWidgets -IC:/Qt/6.7.3/mingw_64/include/QtWidgets -IC:/Qt/6.7.3/mingw_64/include/QtOpenGL -IC:/Qt/6.7.3/mingw_64/include/QtGui -IC:/Qt/6.7.3/mingw_64/include/QtSql -IC:/Qt/6.7.3/mingw_64/include/QtCore -I. -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++ -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed -IC:/Qt/Tools/mingw1120_64/x86_64-w64-mingw32/include ..\..\activity.h -o release\moc_activity.cpp
 
 release/moc_equipment.cpp: ../../equipment.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QObject \
@@ -1678,7 +1675,7 @@ release/moc_equipment.cpp: ../../equipment.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/qrandom.h \
 		release/moc_predefs.h \
 		C:/Qt/6.7.3/mingw_64/bin/moc.exe
-	C:\Qt\6.7.3\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/yassi/OneDrive/Bureau/SummerClub/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/release/moc_predefs.h -IC:/Qt/6.7.3/mingw_64/mkspecs/win32-g++ -IC:/Users/yassi/OneDrive/Bureau/SummerClub -IC:/Qt/6.7.3/mingw_64/include -IC:/Qt/6.7.3/mingw_64/include/QtPrintSupport -IC:/Qt/6.7.3/mingw_64/include/QtCharts -IC:/Qt/6.7.3/mingw_64/include/QtOpenGLWidgets -IC:/Qt/6.7.3/mingw_64/include/QtWidgets -IC:/Qt/6.7.3/mingw_64/include/QtOpenGL -IC:/Qt/6.7.3/mingw_64/include/QtGui -IC:/Qt/6.7.3/mingw_64/include/QtSql -IC:/Qt/6.7.3/mingw_64/include/QtCore -I. -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++ -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed -IC:/Qt/Tools/mingw1120_64/x86_64-w64-mingw32/include ..\..\equipment.h -o release\moc_equipment.cpp
+	C:\Qt\6.7.3\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/yassi/OneDrive/Bureau/projetpcc-2a26-Smart-Summer-Club-/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/release/moc_predefs.h -IC:/Qt/6.7.3/mingw_64/mkspecs/win32-g++ -IC:/Users/yassi/OneDrive/Bureau/projetpcc-2a26-Smart-Summer-Club- -IC:/Qt/6.7.3/mingw_64/include -IC:/Qt/6.7.3/mingw_64/include/QtPrintSupport -IC:/Qt/6.7.3/mingw_64/include/QtCharts -IC:/Qt/6.7.3/mingw_64/include/QtOpenGLWidgets -IC:/Qt/6.7.3/mingw_64/include/QtWidgets -IC:/Qt/6.7.3/mingw_64/include/QtOpenGL -IC:/Qt/6.7.3/mingw_64/include/QtGui -IC:/Qt/6.7.3/mingw_64/include/QtSql -IC:/Qt/6.7.3/mingw_64/include/QtCore -I. -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++ -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed -IC:/Qt/Tools/mingw1120_64/x86_64-w64-mingw32/include ..\..\equipment.h -o release\moc_equipment.cpp
 
 release/moc_payment.cpp: ../../payment.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QObject \
@@ -1928,7 +1925,7 @@ release/moc_payment.cpp: ../../payment.h \
 		C:/Qt/6.7.3/mingw_64/include/QtSql/QSqlDatabase \
 		release/moc_predefs.h \
 		C:/Qt/6.7.3/mingw_64/bin/moc.exe
-	C:\Qt\6.7.3\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/yassi/OneDrive/Bureau/SummerClub/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/release/moc_predefs.h -IC:/Qt/6.7.3/mingw_64/mkspecs/win32-g++ -IC:/Users/yassi/OneDrive/Bureau/SummerClub -IC:/Qt/6.7.3/mingw_64/include -IC:/Qt/6.7.3/mingw_64/include/QtPrintSupport -IC:/Qt/6.7.3/mingw_64/include/QtCharts -IC:/Qt/6.7.3/mingw_64/include/QtOpenGLWidgets -IC:/Qt/6.7.3/mingw_64/include/QtWidgets -IC:/Qt/6.7.3/mingw_64/include/QtOpenGL -IC:/Qt/6.7.3/mingw_64/include/QtGui -IC:/Qt/6.7.3/mingw_64/include/QtSql -IC:/Qt/6.7.3/mingw_64/include/QtCore -I. -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++ -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed -IC:/Qt/Tools/mingw1120_64/x86_64-w64-mingw32/include ..\..\payment.h -o release\moc_payment.cpp
+	C:\Qt\6.7.3\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/yassi/OneDrive/Bureau/projetpcc-2a26-Smart-Summer-Club-/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/release/moc_predefs.h -IC:/Qt/6.7.3/mingw_64/mkspecs/win32-g++ -IC:/Users/yassi/OneDrive/Bureau/projetpcc-2a26-Smart-Summer-Club- -IC:/Qt/6.7.3/mingw_64/include -IC:/Qt/6.7.3/mingw_64/include/QtPrintSupport -IC:/Qt/6.7.3/mingw_64/include/QtCharts -IC:/Qt/6.7.3/mingw_64/include/QtOpenGLWidgets -IC:/Qt/6.7.3/mingw_64/include/QtWidgets -IC:/Qt/6.7.3/mingw_64/include/QtOpenGL -IC:/Qt/6.7.3/mingw_64/include/QtGui -IC:/Qt/6.7.3/mingw_64/include/QtSql -IC:/Qt/6.7.3/mingw_64/include/QtCore -I. -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++ -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed -IC:/Qt/Tools/mingw1120_64/x86_64-w64-mingw32/include ..\..\payment.h -o release\moc_payment.cpp
 
 release/moc_paymentmodel.cpp: ../../paymentmodel.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QObject \
@@ -2062,7 +2059,7 @@ release/moc_paymentmodel.cpp: ../../paymentmodel.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/qlocale.h \
 		release/moc_predefs.h \
 		C:/Qt/6.7.3/mingw_64/bin/moc.exe
-	C:\Qt\6.7.3\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/yassi/OneDrive/Bureau/SummerClub/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/release/moc_predefs.h -IC:/Qt/6.7.3/mingw_64/mkspecs/win32-g++ -IC:/Users/yassi/OneDrive/Bureau/SummerClub -IC:/Qt/6.7.3/mingw_64/include -IC:/Qt/6.7.3/mingw_64/include/QtPrintSupport -IC:/Qt/6.7.3/mingw_64/include/QtCharts -IC:/Qt/6.7.3/mingw_64/include/QtOpenGLWidgets -IC:/Qt/6.7.3/mingw_64/include/QtWidgets -IC:/Qt/6.7.3/mingw_64/include/QtOpenGL -IC:/Qt/6.7.3/mingw_64/include/QtGui -IC:/Qt/6.7.3/mingw_64/include/QtSql -IC:/Qt/6.7.3/mingw_64/include/QtCore -I. -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++ -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed -IC:/Qt/Tools/mingw1120_64/x86_64-w64-mingw32/include ..\..\paymentmodel.h -o release\moc_paymentmodel.cpp
+	C:\Qt\6.7.3\mingw_64\bin\moc.exe $(DEFINES) --include C:/Users/yassi/OneDrive/Bureau/projetpcc-2a26-Smart-Summer-Club-/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/release/moc_predefs.h -IC:/Qt/6.7.3/mingw_64/mkspecs/win32-g++ -IC:/Users/yassi/OneDrive/Bureau/projetpcc-2a26-Smart-Summer-Club- -IC:/Qt/6.7.3/mingw_64/include -IC:/Qt/6.7.3/mingw_64/include/QtPrintSupport -IC:/Qt/6.7.3/mingw_64/include/QtCharts -IC:/Qt/6.7.3/mingw_64/include/QtOpenGLWidgets -IC:/Qt/6.7.3/mingw_64/include/QtWidgets -IC:/Qt/6.7.3/mingw_64/include/QtOpenGL -IC:/Qt/6.7.3/mingw_64/include/QtGui -IC:/Qt/6.7.3/mingw_64/include/QtSql -IC:/Qt/6.7.3/mingw_64/include/QtCore -I. -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++ -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32 -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include -IC:/Qt/Tools/mingw1120_64/lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed -IC:/Qt/Tools/mingw1120_64/x86_64-w64-mingw32/include ..\..\paymentmodel.h -o release\moc_paymentmodel.cpp
 
 compiler_moc_objc_header_make_all:
 compiler_moc_objc_header_clean:
@@ -2381,10 +2378,10 @@ release/main.o: ../../main.cpp ../../employeradmin.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QAbstractItemView \
 		../../activity.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QTime \
-		C:/Qt/6.7.3/mingw_64/include/QtCore/QDateTime \
 		C:/Qt/6.7.3/mingw_64/include/QtSql/QSqlRecord \
 		C:/Qt/6.7.3/mingw_64/include/QtSql/qsqlrecord.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QRegularExpression \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QMap \
 		../../equipment.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QTextStream \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QHBoxLayout \
@@ -2410,7 +2407,6 @@ release/main.o: ../../main.cpp ../../employeradmin.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/qpageranges.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/QTextDocument \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/qtextdocument.h \
-		C:/Qt/6.7.3/mingw_64/include/QtCore/QMap \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QPair \
 		../../paymentmodel.h \
 		C:/Qt/6.7.3/mingw_64/include/QtSql/QSqlDatabase \
@@ -2711,10 +2707,10 @@ release/employeradmin.o: ../../employeradmin.cpp ../../employeradmin.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QAbstractItemView \
 		../../activity.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QTime \
-		C:/Qt/6.7.3/mingw_64/include/QtCore/QDateTime \
 		C:/Qt/6.7.3/mingw_64/include/QtSql/QSqlRecord \
 		C:/Qt/6.7.3/mingw_64/include/QtSql/qsqlrecord.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QRegularExpression \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QMap \
 		../../equipment.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QTextStream \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QHBoxLayout \
@@ -2740,7 +2736,6 @@ release/employeradmin.o: ../../employeradmin.cpp ../../employeradmin.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/qpageranges.h \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/QTextDocument \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/qtextdocument.h \
-		C:/Qt/6.7.3/mingw_64/include/QtCore/QMap \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QPair \
 		../../paymentmodel.h \
 		C:/Qt/6.7.3/mingw_64/include/QtSql/QSqlDatabase \
@@ -3808,7 +3803,6 @@ release/activity.o: ../../activity.cpp ../../activity.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/qvarlengtharray.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/q23utility.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QTime \
-		C:/Qt/6.7.3/mingw_64/include/QtCore/QDateTime \
 		C:/Qt/6.7.3/mingw_64/include/QtSql/QSqlQuery \
 		C:/Qt/6.7.3/mingw_64/include/QtSql/qsqlquery.h \
 		C:/Qt/6.7.3/mingw_64/include/QtSql/qtsqlglobal.h \
@@ -3823,8 +3817,6 @@ release/activity.o: ../../activity.cpp ../../activity.h \
 		C:/Qt/6.7.3/mingw_64/include/QtSql/QSqlRecord \
 		C:/Qt/6.7.3/mingw_64/include/QtSql/qsqlrecord.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QVariant \
-		C:/Qt/6.7.3/mingw_64/include/QtCore/QMetaType \
-		C:/Qt/6.7.3/mingw_64/include/QtCore/QDebug \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QWidget \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qwidget.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qtwidgetsglobal.h \
@@ -3931,7 +3923,9 @@ release/activity.o: ../../activity.cpp ../../activity.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qheaderview.h \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QFileInfo \
 		C:/Qt/6.7.3/mingw_64/include/QtCore/QRegularExpression \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QMap \
 		ui_employeradmin.h \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QDateTime \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/QTextDocument \
 		C:/Qt/6.7.3/mingw_64/include/QtGui/qtextdocument.h \
 		C:/Qt/6.7.3/mingw_64/include/QtPrintSupport/QPrinter \
@@ -3952,7 +3946,10 @@ release/activity.o: ../../activity.cpp ../../activity.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qboxlayout.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qlayout.h \
 		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qlayoutitem.h \
-		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qgridlayout.h
+		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qgridlayout.h \
+		C:/Qt/6.7.3/mingw_64/include/QtWidgets/QSpinBox \
+		C:/Qt/6.7.3/mingw_64/include/QtWidgets/qspinbox.h \
+		C:/Qt/6.7.3/mingw_64/include/QtCore/QtGlobal
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o release\activity.o ..\..\activity.cpp
 
 release/equipment.o: ../../equipment.cpp ../../equipment.h \
