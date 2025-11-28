@@ -26,7 +26,9 @@ SOURCES += \
     totpinputdialog.cpp \
     emailpanel.cpp \
     activitypanel.cpp \
-    employeelogspanel.cpp
+    employeelogspanel.cpp \
+    activitycalendar.cpp \
+    ocrinterface.cpp
 
 HEADERS += \
     connexion_ard.h \
@@ -45,7 +47,9 @@ HEADERS += \
     totpinputdialog.h \
     emailpanel.h \
     activitypanel.h \
-    employeelogspanel.h
+    employeelogspanel.h \
+    activitycalendar.h \
+    ocrinterface.h
 
 FORMS += \
     employeradmin.ui \

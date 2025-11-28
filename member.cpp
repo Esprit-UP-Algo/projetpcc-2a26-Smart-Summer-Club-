@@ -7,6 +7,7 @@
 #include <QPrinter>
 #include <QPageLayout>
 #include <QFile>
+#include <QDir>
 #include <QPixmap>
 #include <QIODevice>
 #include <QPushButton>
@@ -1110,8 +1111,50 @@ void Member::onSortMembers()
 
 void Member::onExportMembers()
 {
-    if (!ui) return;
-    exportTableToPdf(ui->memberTable, "members.pdf", "Member List");
+    if (!ui || !ui->memberTable) return;
+    
+    // Get selected member from table
+    int currentRow = ui->memberTable->currentRow();
+    if (currentRow < 0 || currentRow >= ui->memberTable->rowCount()) {
+        QMessageBox::warning(parentWidget, "Warning", "Please select a member to export registration certificate.");
+        return;
+    }
+    
+    // Safely get member data from selected row with null checks
+    auto getItemText = [this](int row, int col) -> QString {
+        if (col >= ui->memberTable->columnCount()) return "";
+        QTableWidgetItem* item = ui->memberTable->item(row, col);
+        return item ? item->text() : "";
+    };
+    
+    // Adjusted column indices to match table structure (Photo is at column 0)
+    QString memberCin = getItemText(currentRow, 1);          // CIN is at column 1 (after Photo)
+    QString memberFirstName = getItemText(currentRow, 2);    // First Name is at column 2
+    QString memberLastName = getItemText(currentRow, 3);     // Last Name is at column 3
+    QString ageText = getItemText(currentRow, 4);           // Gender is at column 4, Age at 5
+    QString memberEmail = getItemText(currentRow, 6);        // Email is at column 6
+    QString memberPhone = getItemText(currentRow, 7);        // Phone is at column 7
+    QString subscriptionPlan = getItemText(currentRow, 8);   // Subscription is at column 8
+    QString joinDateStr = getItemText(currentRow, 9);       // Join Date is at column 9
+    
+    // Validate essential data
+    if (memberCin.isEmpty() || memberFirstName.isEmpty() || memberLastName.isEmpty()) {
+        QMessageBox::warning(parentWidget, "Warning", "Selected member has incomplete data. Cannot generate certificate.");
+        return;
+    }
+    
+    // Calculate birth date (approximation based on age if available)
+    QString birthDate = "[Date of Birth]";
+    QString ageFromGenderCol = getItemText(currentRow, 5);   // Age is at column 5
+    if (!ageFromGenderCol.isEmpty()) {
+        int age = ageFromGenderCol.toInt();
+        if (age > 0 && age < 150) { // Reasonable age range
+            int birthYear = QDate::currentDate().year() - age;
+            birthDate = QString::number(birthYear);
+        }
+    }
+    
+    exportMemberCertificate(memberCin, memberFirstName, memberLastName, birthDate, subscriptionPlan, joinDateStr);
 }
 
 void Member::loadMemberToForm(Member* member)
@@ -1133,6 +1176,121 @@ void Member::loadMemberToForm(Member* member)
     ui->memberConfirmAddButton->setVisible(false);  // Hide the Add button
     ui->memberConfirmUpdateButton->setVisible(true);  // Show the Update button
     ui->memberTabWidget->setCurrentIndex(1);  // Switch to Add/Edit tab
+}
+
+bool Member::exportMemberCertificate(const QString& memberCin, const QString& firstName, const QString& lastName, 
+                                      const QString& birthDate, const QString& membershipType, const QString& joinDate)
+{
+    // Validate input parameters
+    if (memberCin.isEmpty() || firstName.isEmpty() || lastName.isEmpty()) {
+        QMessageBox::warning(parentWidget, "Error", "Essential member information is missing.");
+        return false;
+    }
+    
+    // Safely create filename with HTML encoding
+    QString safeFirstName = firstName.simplified().remove(QRegularExpression("[^a-zA-Z0-9]"));
+    QString safeLastName = lastName.simplified().remove(QRegularExpression("[^a-zA-Z0-9]"));
+    QString defaultFileName = QString("Registration_Certificate_%1_%2.pdf").arg(safeFirstName).arg(safeLastName);
+    
+    QString file = QFileDialog::getSaveFileName(parentWidget, "Export Registration Certificate", defaultFileName, "PDF (*.pdf)");
+    if (file.isEmpty()) return false;
+    
+    try {
+        QPrinter printer;
+        printer.setOutputFormat(QPrinter::PdfFormat);
+        printer.setOutputFileName(file);
+        printer.setPageMargins(QMarginsF(20, 20, 20, 20), QPageLayout::Millimeter);
+        
+        // Get current date and year
+        QString currentDate = QDate::currentDate().toString("dd/MM/yyyy");
+        QString currentYear = QString::number(QDate::currentDate().year());
+        
+        // Safely escape HTML content
+        auto htmlEscape = [](const QString& text) -> QString {
+            return text.toHtmlEscaped();
+        };
+        
+        // Load logo safely
+        QString logoPath = QDir::currentPath() + "/assests/VibraClubLogo.png";
+        QFile logoFile(logoPath);
+        QString logoBase64 = "";
+        if (logoFile.exists() && logoFile.open(QIODevice::ReadOnly)) {
+            QByteArray logoData = logoFile.readAll();
+            if (!logoData.isEmpty()) {
+                logoBase64 = QString("data:image/png;base64,%1").arg(QString::fromLatin1(logoData.toBase64().data()));
+            }
+            logoFile.close();
+        }
+        
+        QTextDocument doc;
+        QString html = "<html><body style='font-family: Arial, sans-serif; line-height: 1.6;'>";
+        
+        // Header with logo and title
+        html += "<div style='text-align: center; border-bottom: 3px solid #2c5aa0; padding-bottom: 20px; margin-bottom: 30px;'>";
+        
+        if (!logoBase64.isEmpty()) {
+            html += "<img src='" + logoBase64 + "' style='height: 120px; margin-bottom: 15px;' /><br>";
+        }
+        
+        html += "<h1 style='color: #2c5aa0; font-size: 32px; margin: 10px 0; text-transform: uppercase; letter-spacing: 2px;'>VIBRACLUB - SMART SUMMER CLUB</h1>";
+        html += "<h2 style='color: #666; font-size: 24px; margin: 5px 0; font-weight: normal;'>Registration Certificate No. " + htmlEscape(memberCin) + "</h2>";
+        html += "</div>";
+        
+        // Certificate body
+        html += "<div style='margin: 40px 0; padding: 20px; background-color: #f8f9fa; border-left: 5px solid #2c5aa0;'>";
+        html += "<p style='font-size: 16px; margin-bottom: 20px; text-align: justify;'>";
+        html += "I, the undersigned, <strong>The Manager of member department</strong>,certify that:</p>";
+        
+        html += "<div style='margin: 30px 0; padding: 20px; background-color: white; border: 2px solid #2c5aa0; border-radius: 10px;'>";
+        html += "<table style='width: 100%; font-size: 16px; line-height: 2;'>";
+        html += "<tr><td style='width: 30%; font-weight: bold; color: #2c5aa0;'>Member:</td><td>" + htmlEscape(lastName) + " " + htmlEscape(firstName) + "</td></tr>";
+        html += "<tr><td style='font-weight: bold; color: #2c5aa0;'>Born on:</td><td>" + htmlEscape(birthDate) + "</td></tr>";
+        html += "<tr><td style='font-weight: bold; color: #2c5aa0;'>National Identity Card:</td><td>" + htmlEscape(memberCin) + "</td></tr>";
+        html += "</table>";
+        html += "</div>";
+        
+        html += "<p style='font-size: 16px; margin: 20px 0; text-align: center; font-weight: bold; color: #2c5aa0;'>";
+        html += "is officially registered with our club for the " + currentYear + " season.</p>";
+        
+        html += "<div style='margin: 20px 0; padding: 15px; background-color: white; border: 1px solid #ddd; border-radius: 5px;'>";
+        html += "<p style='font-size: 16px; text-align: center;'><strong>Membership Type:</strong> <span style='color: #2c5aa0; font-size: 18px;'>" + htmlEscape(membershipType.isEmpty() ? "Standard" : membershipType) + "</span></p>";
+        html += "</div>";
+        html += "</div>";
+        
+        // Footer with signature and stamp area
+        html += "<div style='margin-top: 50px; display: table; width: 100%;'>";
+        html += "<div style='display: table-cell; width: 50%; text-align: left;'>";
+        html += "<p style='font-size: 16px; margin-bottom: 5px;'>Done on <strong>" + currentDate + "</strong></p>";
+        html += "</div>";
+        html += "<div style='display: table-cell; width: 50%; text-align: right;'>";
+        html += "<div style='border: 2px solid #2c5aa0; width: 200px; height: 100px; margin-left: auto; position: relative;'>";
+        html += "<p style='text-align: center; margin-top: 35px; color: #666; font-style: italic;'>[Digital Signature]</p>";
+        html += "</div>";
+        html += "<p style='text-align: center; margin-top: 10px; font-size: 14px; color: #2c5aa0; font-weight: bold;'>Official VibraClub Stamp</p>";
+        html += "</div>";
+        html += "</div>";
+        
+        // Validity and certificate number footer
+        html += "<div style='margin-top: 40px; text-align: center; border-top: 2px solid #2c5aa0; padding-top: 20px;'>";
+        html += "<p style='font-size: 12px; color: #888; margin: 5px 0;'>This certificate is valid for the current season and serves as official proof of registration.</p>";
+        html += "<p style='font-size: 12px; color: #888; margin: 5px 0;'>Certificate Generated: " + currentDate + " | Member ID: " + htmlEscape(memberCin) + "</p>";
+        html += "</div>";
+        
+        html += "</body></html>";
+        
+        doc.setHtml(html);
+        doc.print(&printer);
+        
+        QMessageBox::information(parentWidget, "Success", "Registration Certificate exported successfully!");
+        return true;
+        
+    } catch (const std::exception& e) {
+        QMessageBox::critical(parentWidget, "Error", QString("Failed to export certificate: %1").arg(e.what()));
+        return false;
+    } catch (...) {
+        QMessageBox::critical(parentWidget, "Error", "An unexpected error occurred while exporting the certificate.");
+        return false;
+    }
 }
 
 bool Member::exportTableToPdf(QTableWidget* table, const QString& defaultName, const QString& title)

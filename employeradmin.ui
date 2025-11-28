@@ -514,8 +514,8 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>1030</width>
-                       <height>857</height>
+                       <width>536</width>
+                       <height>631</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="formMainLayout">
@@ -1213,7 +1213,7 @@ This panel will be implemented programmatically in C++
 Advanced audit logging system with dashboard, filters, and analytics</string>
                     </property>
                     <property name="alignment">
-                     <set>Qt::AlignCenter</set>
+                     <set>Qt::AlignmentFlag::AlignCenter</set>
                     </property>
                    </widget>
                   </item>
@@ -1238,7 +1238,7 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
               <item>
                <widget class="QTabWidget" name="memberTabWidget">
                 <property name="currentIndex">
-                 <number>3</number>
+                 <number>1</number>
                 </property>
                 <widget class="QWidget" name="memberListTab">
                  <attribute name="icon">
@@ -1888,6 +1888,20 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
                  <layout class="QVBoxLayout" name="memberSMSTabLayout">
                   <item>
                    <widget class="EmailPanel" name="emailPanel" native="true"/>
+                  </item>
+                 </layout>
+                </widget>
+                <widget class="QWidget" name="memberOCRTab">
+                 <attribute name="icon">
+                  <iconset resource="resources.qrc">
+                   <normaloff>:/icons/icons/search.png</normaloff>:/icons/icons/search.png</iconset>
+                 </attribute>
+                 <attribute name="title">
+                  <string> ID Card OCR</string>
+                 </attribute>
+                 <layout class="QVBoxLayout" name="memberOCRTabLayout">
+                  <item>
+                   <widget class="OCRInterface" name="ocrInterface" native="true"/>
                   </item>
                  </layout>
                 </widget>
@@ -3230,6 +3244,30 @@ QComboBox QAbstractItemView {
                   </item>
                  </layout>
                 </widget>
+                <widget class="QWidget" name="activityCalendarTab">
+                 <attribute name="icon">
+                  <iconset>
+                   <normaloff>:/icons/icons/calendar.png</normaloff>:/icons/icons/calendar.png</iconset>
+                 </attribute>
+                 <attribute name="title">
+                  <string> Calendar</string>
+                 </attribute>
+                 <layout class="QVBoxLayout" name="activityCalendarLayout">
+                  <item>
+                   <widget class="QLabel" name="activityCalendarPlaceholder">
+                    <property name="text">
+                     <string>📅 Activity Calendar
+
+This interactive calendar will be implemented programmatically in C++
+Shows activities by date with visual indicators, filters, and detailed views</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignmentFlag::AlignCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
                </widget>
               </item>
              </layout>
@@ -3377,8 +3415,8 @@ QComboBox QAbstractItemView {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>1030</width>
-                       <height>920</height>
+                       <width>573</width>
+                       <height>422</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="paymentFormMainLayout">
@@ -3715,8 +3753,8 @@ QComboBox QAbstractItemView {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>1030</width>
-                       <height>920</height>
+                       <width>629</width>
+                       <height>536</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="paymentStatsContentLayout">
@@ -4041,7 +4079,7 @@ QComboBox QAbstractItemView {
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>1035</width>
+                   <width>642</width>
                    <height>2011</height>
                   </rect>
                  </property>
@@ -4583,6 +4621,11 @@ QComboBox QAbstractItemView {
    <class>EmailPanel</class>
    <extends>QWidget</extends>
    <header>emailpanel.h</header>
+  </customwidget>
+  <customwidget>
+   <class>OCRInterface</class>
+   <extends>QWidget</extends>
+   <header>ocrinterface.h</header>
   </customwidget>
  </customwidgets>
  <resources>

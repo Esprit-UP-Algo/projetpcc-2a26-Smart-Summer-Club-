@@ -61,6 +61,8 @@ EmployerAdmin::EmployerAdmin(QWidget *parent)
     emailPanel     = new EmailPanel(this);
     activityPanel  = new ActivityPanel(this);
     employeeLogsPanel = nullptr; // Will be created in setupEmployeeLogsTab()
+    activityCalendar = nullptr; // Will be created in setupActivityCalendarTab()
+    ocrInterface   = new OCRInterface(this);
 
     // Setup connections
     setupConnections();
@@ -89,11 +91,21 @@ EmployerAdmin::EmployerAdmin(QWidget *parent)
     ui->memberSMSTabLayout->replaceWidget(ui->emailPanel, emailPanel);
     delete ui->emailPanel;  // Remove the placeholder
     
+    // Setup OCR Interface
+    setupOCRInterface();
+    
+    // Replace the OCR Interface placeholder with actual instance
+    ui->memberOCRTabLayout->replaceWidget(ui->ocrInterface, ocrInterface);
+    delete ui->ocrInterface;  // Remove the placeholder
+    
     // Setup Activity Analytics Panel
     setupActivityAnalyticsTab();
     
     // Setup Employee Logs Panel
     setupEmployeeLogsTab();
+    
+    // Setup Activity Calendar Panel
+    setupActivityCalendarTab();
 
     // Update payment statistics
     paymentManager->populatePaymentStatistics();
@@ -173,7 +185,9 @@ EmployerAdmin::~EmployerAdmin()
     delete equipmentManager;
     delete paymentManager;
     delete emailPanel;
+    delete ocrInterface;
     delete employeeLogsPanel;
+    delete activityCalendar;
     delete ui;
 }
 
@@ -830,6 +844,32 @@ void EmployerAdmin::setupEmployeeLogsTab()
     }
 }
 
+void EmployerAdmin::setupActivityCalendarTab()
+{
+    // Replace the placeholder content with the actual ActivityCalendar
+    activityCalendar = new ActivityCalendar(this);
+    
+    // Connect the add new activity signal
+    connect(activityCalendar, &ActivityCalendar::addNewActivityRequested,
+            this, &EmployerAdmin::onAddNewActivityRequested);
+    
+    // Remove the placeholder and set the actual panel
+    QVBoxLayout *calendarLayout = qobject_cast<QVBoxLayout*>(ui->activityCalendarTab->layout());
+    if (calendarLayout) {
+        // Clear existing content (placeholder)
+        QLayoutItem *item;
+        while ((item = calendarLayout->takeAt(0)) != nullptr) {
+            delete item->widget();
+            delete item;
+        }
+        
+        // Add the actual activity calendar panel
+        calendarLayout->addWidget(activityCalendar);
+    }
+    
+    qDebug() << "✅ Activity Calendar tab setup completed";
+}
+
 void EmployerAdmin::setupButtonStyling()
 {
     QString actionButtonStyle =
@@ -1390,6 +1430,30 @@ void EmployerAdmin::setupEmailPanel()
     }
 }
 
+void EmployerAdmin::setupOCRInterface()
+{
+    // Connect OCR interface signals to member form auto-fill
+    connect(ocrInterface, &OCRInterface::dataExtracted, 
+            this, &EmployerAdmin::onOCRDataExtracted);
+    
+    // Additional connections can be added here for OCR processing feedback
+    connect(ocrInterface, &OCRInterface::ocrProcessingStarted,
+            this, [this]() {
+                // You can add UI feedback here when OCR starts processing
+                qDebug() << "OCR processing started...";
+            });
+    
+    connect(ocrInterface, &OCRInterface::ocrProcessingFinished,
+            this, [this](bool success) {
+                // You can add UI feedback here when OCR finishes
+                if (success) {
+                    qDebug() << "OCR processing completed successfully!";
+                } else {
+                    qDebug() << "OCR processing failed!";
+                }
+            });
+}
+
 void EmployerAdmin::setArduino(Arduino *ard)
 {
     arduino = ard;
@@ -1433,4 +1497,115 @@ void EmployerAdmin::onArduinoErrorOccurred(QString errorMessage)
 {
     qDebug() << "Arduino error:" << errorMessage;
     // Display error to user or log it
+}
+
+void EmployerAdmin::onAddNewActivityRequested(const QDate &date)
+{
+    qDebug() << "🎯 Add new activity requested for date:" << date.toString();
+    
+    // Switch to the Add Activity tab (tab index 1 in activityTabWidget)
+    ui->activityTabWidget->setCurrentIndex(1);
+    
+    // Pre-fill the date in the eventDateEdit field
+    ui->eventDateEdit->setDate(date);
+    
+    // Optional: Show a brief message to the user
+    qDebug() << "✅ Switched to Add Activity tab with date pre-filled:" << date.toString();
+}
+
+void EmployerAdmin::onOCRDataExtracted(const QString &cin, const QString &firstName, 
+                                     const QString &lastName, const QString &dateOfBirth)
+{
+    qDebug() << "🔍 OCR data extracted - Auto-filling member form...";
+    qDebug() << "CIN:" << cin;
+    qDebug() << "Name:" << firstName << lastName;
+    qDebug() << "DOB:" << dateOfBirth;
+    
+    // Switch to the member add tab
+    ui->memberTabWidget->setCurrentIndex(1); // Add tab is typically index 1
+    
+    // Auto-fill the form fields with extracted data
+    if (!cin.isEmpty()) {
+        ui->memberIdLineEdit->setText(cin);
+    }
+    
+    if (!firstName.isEmpty()) {
+        ui->memberFirstNameLineEdit->setText(firstName);
+    }
+    
+    if (!lastName.isEmpty()) {
+        ui->memberLastNameLineEdit->setText(lastName);
+    }
+    
+    if (!dateOfBirth.isEmpty()) {
+        // Parse and calculate age from date of birth
+        // Expected formats: "DD/MM/YYYY", "DD-MM-YYYY", "DD.MM.YYYY", etc.
+        QStringList dateParts;
+        QString cleanDate = dateOfBirth;
+        QDate parsedDate;
+        
+        // Try different separators
+        if (cleanDate.contains("/")) {
+            dateParts = cleanDate.split("/");
+        } else if (cleanDate.contains("-")) {
+            dateParts = cleanDate.split("-");
+        } else if (cleanDate.contains(".")) {
+            dateParts = cleanDate.split(".");
+        } else if (cleanDate.contains(" ")) {
+            // Handle "DD Month YYYY" format
+            QStringList parts = cleanDate.split(" ");
+            if (parts.size() >= 3) {
+                QString day = parts[0];
+                QString monthStr = parts[1];
+                QString year = parts[2];
+                
+                // Convert month name to number
+                QMap<QString, int> monthMap;
+                monthMap["January"] = 1; monthMap["February"] = 2; monthMap["March"] = 3;
+                monthMap["April"] = 4; monthMap["May"] = 5; monthMap["June"] = 6;
+                monthMap["July"] = 7; monthMap["August"] = 8; monthMap["September"] = 9;
+                monthMap["October"] = 10; monthMap["November"] = 11; monthMap["December"] = 12;
+                
+                if (monthMap.contains(monthStr)) {
+                    parsedDate = QDate(year.toInt(), monthMap[monthStr], day.toInt());
+                }
+            }
+        }
+        
+        // Standard numeric date format (DD/MM/YYYY or similar)
+        if (dateParts.size() == 3 && !parsedDate.isValid()) {
+            bool ok1, ok2, ok3;
+            int day = dateParts[0].toInt(&ok1);
+            int month = dateParts[1].toInt(&ok2);
+            int year = dateParts[2].toInt(&ok3);
+            
+            if (ok1 && ok2 && ok3) {
+                parsedDate = QDate(year, month, day);
+            }
+        }
+        
+        // Calculate and set age if date is valid
+        if (parsedDate.isValid()) {
+            QDate currentDate = QDate::currentDate();
+            int age = currentDate.year() - parsedDate.year();
+            
+            // Adjust age if birthday hasn't occurred this year yet
+            if (currentDate.month() < parsedDate.month() || 
+                (currentDate.month() == parsedDate.month() && currentDate.day() < parsedDate.day())) {
+                age--;
+            }
+            
+            // Set the calculated age in the spin box
+            if (age >= 0 && age <= 120) { // Reasonable age range
+                ui->memberAgeSpinBox->setValue(age);
+                qDebug() << "✅ Age calculated and set:" << age << "years";
+            } else {
+                qDebug() << "⚠️ Calculated age out of range:" << age;
+            }
+        } else {
+            qDebug() << "⚠️ Invalid date format detected:" << dateOfBirth;
+        }
+    }
+    
+    qDebug() << "✅ Member form auto-filled with OCR data successfully!";
 }

@@ -136,6 +136,8 @@ private:
     // Helper UI methods
     void loadMemberToForm(Member* member);
     bool exportTableToPdf(QTableWidget* table, const QString& defaultName, const QString& title);
+    bool exportMemberCertificate(const QString& memberCin, const QString& firstName, const QString& lastName, 
+                                 const QString& birthDate, const QString& membershipType, const QString& joinDate);
     QByteArray loadPhotoAsBlob(const QString& path);
 };
 

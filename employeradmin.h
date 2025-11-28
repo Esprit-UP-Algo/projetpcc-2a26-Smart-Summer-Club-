@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QButtonGroup>
 #include <QPixmap>
+#include <QDate>
 
 #include <QtCharts/QChartView>
 #include <QtCharts/QHorizontalBarSeries>
@@ -27,7 +28,9 @@
 #include "emailpanel.h"
 #include "activitypanel.h"
 #include "employeelogspanel.h"
+#include "activitycalendar.h"
 #include "connexion_ard.h"
+#include "ocrinterface.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -57,6 +60,9 @@ private slots:
     void onArduinoDataReceived(QByteArray data);
     void onArduinoConnectionStatusChanged(bool connected);
     void onArduinoErrorOccurred(QString errorMessage);
+    void onAddNewActivityRequested(const QDate &date);
+    void onOCRDataExtracted(const QString &cin, const QString &firstName, 
+                           const QString &lastName, const QString &dateOfBirth);
 
 private:
     Ui::EmployerAdmin *ui;
@@ -72,6 +78,8 @@ private:
     EmailPanel *emailPanel;
     ActivityPanel *activityPanel;
     EmployeeLogsPanel *employeeLogsPanel;
+    ActivityCalendar *activityCalendar;
+    OCRInterface *ocrInterface;
     
     void setupEmployeeStatisticsCharts();
     void buildEmployeeDepartmentChart();
@@ -96,12 +104,14 @@ private:
     void setupButtonStyling();  // Apply consistent button styling
     void setupActivityAnalyticsTab(); // Setup Activity Analytics tab
     void setupEmployeeLogsTab(); // Setup Employee Logs tab
+    void setupActivityCalendarTab(); // Setup Activity Calendar tab
     void updateNavigationStyle();
     void showUserInfo();
     void updateTabVisibility();
     void setupSettingsPage();
     void updateTwoFactorStatus();
     void setupEmailPanel();
+    void setupOCRInterface();
     void loadUserProfileInfo();
     void setupArduinoConnections();
     

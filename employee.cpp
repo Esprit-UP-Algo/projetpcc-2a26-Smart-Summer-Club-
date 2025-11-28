@@ -7,6 +7,7 @@
 #include <QPrinter>
 #include <QPageLayout>
 #include <QFile>
+#include <QDir>
 #include <QPushButton>
 #include <QHBoxLayout>
 #include <QWidget>
@@ -1317,18 +1318,79 @@ bool Employee::exportTableToPdf(QTableView* table, const QString& name, const QS
     printer.setOutputFileName(file);
     printer.setPageMargins(QMarginsF(15, 15, 15, 15), QPageLayout::Millimeter);
     
+    // Define which columns to export: CIN, First Name, Last Name, Department
+    QList<int> columnsToExport = {0, 1, 2, 4}; // CIN, First Name, Last Name, Department
+    
+    // Get current date for export
+    QString currentDate = QDate::currentDate().toString("dd/MM/yyyy");
+    
+    // Convert logo to base64 for embedding in HTML
+    QString logoPath = QDir::currentPath() + "/assests/VibraClubLogo.png";
+    QFile logoFile(logoPath);
+    QString logoBase64 = "";
+    if (logoFile.open(QIODevice::ReadOnly)) {
+        QByteArray logoData = logoFile.readAll();
+        logoBase64 = QString("data:image/png;base64,%1").arg(QString::fromLatin1(logoData.toBase64().data()));
+        logoFile.close();
+    }
+    
     QTextDocument doc;
-    QString html = "<h1>" + title + "</h1><table border='1' cellpadding='5'><tr>";
-    for (int c = 0; c < table->model()->columnCount(); ++c)
-        html += "<th>" + table->model()->headerData(c, Qt::Horizontal).toString() + "</th>";
+    
+    // Simplified HTML with inline styles for better QTextDocument compatibility
+    QString html = "<html><body>";
+    
+    // Header section
+    html += "<div style='text-align: center; margin-bottom: 30px; border-bottom: 3px solid #2c5aa0; padding-bottom: 20px;'>";
+    
+    // Add logo if available
+    if (!logoBase64.isEmpty()) {
+        html += "<img src='" + logoBase64 + "' style='height: 100px; margin-bottom: 15px;' /><br>";
+    }
+    
+    // Add title and date
+    html += "<h1 style='color: #2c5aa0; font-size: 36px; margin: 10px 0;'>VIBRA CLUB</h1>";
+    html += "<h2 style='color: #666; font-size: 20px; margin: 8px 0;'>" + title + "</h2>";
+    html += "<p style='color: #888; font-size: 14px; font-style: italic; margin: 5px 0;'>Export Date: " + currentDate + "</p>";
+    html += "</div>";
+    
+    // Start table with simple but effective styling
+    html += "<table border='1' cellpadding='10' cellspacing='0' style='width: 100%; border-collapse: collapse; margin-top: 20px;'>";
+    
+    // Table header row with strong styling
+    html += "<tr style='background-color: #2c5aa0;'>";
+    
+    // Export specified column headers
+    for (int colIndex : columnsToExport) {
+        html += "<th style='background-color: #2c5aa0; color: white; font-weight: bold; text-align: center; padding: 15px; border: 1px solid #2c5aa0;'>" 
+                + table->model()->headerData(colIndex, Qt::Horizontal).toString() + "</th>";
+    }
+    
+    // Add signature columns
+    html += "<th style='background-color: #2c5aa0; color: white; font-weight: bold; text-align: center; padding: 15px; border: 1px solid #2c5aa0; width: 130px;'>Entry Signature</th>";
+    html += "<th style='background-color: #2c5aa0; color: white; font-weight: bold; text-align: center; padding: 15px; border: 1px solid #2c5aa0; width: 130px;'>Leave Signature</th>";
     html += "</tr>";
+    
+    // Export data rows
     for (int r = 0; r < table->model()->rowCount(); ++r) {
-        html += "<tr>";
-        for (int c = 0; c < table->model()->columnCount(); ++c)
-            html += "<td>" + table->model()->data(table->model()->index(r, c)).toString() + "</td>";
+        QString rowColor = (r % 2 == 0) ? "#f8f9fa" : "#ffffff";
+        html += "<tr style='background-color: " + rowColor + ";'>";
+        
+        for (int colIndex : columnsToExport) {
+            html += "<td style='text-align: center; padding: 12px; border: 1px solid #ddd; background-color: " + rowColor + ";'>" 
+                    + table->model()->data(table->model()->index(r, colIndex)).toString() + "</td>";
+        }
+        
+        // Add signature cells
+        html += "<td style='height: 50px; border: 2px solid #2c5aa0; background-color: white; text-align: center;'>&nbsp;</td>";
+        html += "<td style='height: 50px; border: 2px solid #2c5aa0; background-color: white; text-align: center;'>&nbsp;</td>";
         html += "</tr>";
     }
     html += "</table>";
+    
+    // Add footer
+    html += "<div style='text-align: center; margin-top: 30px; font-size: 12px; color: #888;'>This document was generated automatically by Vibra Club Employee Management System</div>";
+    html += "</body></html>";
+    
     doc.setHtml(html);
     doc.print(&printer);
     
