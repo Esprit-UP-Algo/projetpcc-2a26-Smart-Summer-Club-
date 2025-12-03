@@ -1,0 +1,125 @@
+--------------------------------------------------------
+--  RFID Integration for Summer Club Database
+--  Created - December-02-2025
+--  Purpose: Add RFID card support for member access control
+--------------------------------------------------------
+
+-- Drop RFID table if exists (for clean reinstall)
+DROP TABLE "SUMMERCLUB"."RFID_CARDS" cascade constraints;
+
+--------------------------------------------------------
+--  DDL for Sequence RFID_ID_SEQ
+--------------------------------------------------------
+CREATE SEQUENCE "SUMMERCLUB"."RFID_ID_SEQ" 
+  MINVALUE 1 MAXVALUE 9999999999999999999999999999 
+  INCREMENT BY 1 START WITH 1 CACHE 20 NOORDER NOCYCLE;
+
+--------------------------------------------------------
+--  DDL for Table RFID_CARDS
+--------------------------------------------------------
+CREATE TABLE "SUMMERCLUB"."RFID_CARDS" 
+(	"RFID_ID" NUMBER, 
+	"RFID_UID" VARCHAR2(50 BYTE), 
+	"CIN" VARCHAR2(50 BYTE), 
+	"CARD_STATUS" VARCHAR2(20 BYTE) DEFAULT 'Active',
+	"ISSUED_DATE" DATE DEFAULT SYSDATE,
+	"LAST_USED" TIMESTAMP (6),
+	"NOTES" VARCHAR2(500 BYTE),
+	"CREATED_DATE" DATE DEFAULT SYSDATE,
+	"UPDATED_DATE" DATE DEFAULT SYSDATE
+) SEGMENT CREATION IMMEDIATE 
+PCTFREE 10 PCTUSED 40 INITRANS 1 MAXTRANS 255 NOCOMPRESS LOGGING
+STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+TABLESPACE "SYSTEM";
+
+--------------------------------------------------------
+--  DDL for Index PK_RFID_CARDS
+--------------------------------------------------------
+CREATE UNIQUE INDEX "SUMMERCLUB"."PK_RFID_CARDS" ON "SUMMERCLUB"."RFID_CARDS" ("RFID_ID") 
+  PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
+  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+  TABLESPACE "SYSTEM";
+
+--------------------------------------------------------
+--  DDL for Index UK_RFID_UID
+--------------------------------------------------------
+CREATE UNIQUE INDEX "SUMMERCLUB"."UK_RFID_UID" ON "SUMMERCLUB"."RFID_CARDS" ("RFID_UID") 
+  PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
+  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+  TABLESPACE "SYSTEM";
+
+--------------------------------------------------------
+--  DDL for Index IDX_RFID_CIN
+--------------------------------------------------------
+CREATE INDEX "SUMMERCLUB"."IDX_RFID_CIN" ON "SUMMERCLUB"."RFID_CARDS" ("CIN") 
+  PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
+  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+  TABLESPACE "SYSTEM";
+
+--------------------------------------------------------
+--  Constraints for Table RFID_CARDS
+--------------------------------------------------------
+ALTER TABLE "SUMMERCLUB"."RFID_CARDS" ADD CONSTRAINT "PK_RFID_CARDS" PRIMARY KEY ("RFID_ID")
+  USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
+  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+  TABLESPACE "SYSTEM" ENABLE;
+
+ALTER TABLE "SUMMERCLUB"."RFID_CARDS" ADD CONSTRAINT "UK_RFID_UID" UNIQUE ("RFID_UID")
+  USING INDEX PCTFREE 10 INITRANS 2 MAXTRANS 255 COMPUTE STATISTICS 
+  STORAGE(INITIAL 65536 NEXT 1048576 MINEXTENTS 1 MAXEXTENTS 2147483645
+  PCTINCREASE 0 FREELISTS 1 FREELIST GROUPS 1 BUFFER_POOL DEFAULT FLASH_CACHE DEFAULT CELL_FLASH_CACHE DEFAULT)
+  TABLESPACE "SYSTEM" ENABLE;
+
+-- Check constraint for card status
+ALTER TABLE "SUMMERCLUB"."RFID_CARDS" ADD CONSTRAINT "CHK_CARD_STATUS" 
+  CHECK ("CARD_STATUS" IN ('Active', 'Disabled', 'Lost', 'Expired')) ENABLE;
+
+-- Not null constraints
+ALTER TABLE "SUMMERCLUB"."RFID_CARDS" MODIFY ("RFID_UID" NOT NULL ENABLE);
+ALTER TABLE "SUMMERCLUB"."RFID_CARDS" MODIFY ("CIN" NOT NULL ENABLE);
+
+--------------------------------------------------------
+--  Foreign Key Constraints
+--------------------------------------------------------
+-- Link RFID cards to members
+ALTER TABLE "SUMMERCLUB"."RFID_CARDS" ADD CONSTRAINT "FK_RFID_MEMBER" 
+  FOREIGN KEY ("CIN") REFERENCES "SUMMERCLUB"."MEMBERS" ("CIN") ON DELETE CASCADE ENABLE;
+
+--------------------------------------------------------
+--  DDL for Trigger TRG_RFID_ID
+--------------------------------------------------------
+CREATE OR REPLACE TRIGGER "SUMMERCLUB"."TRG_RFID_ID" 
+    BEFORE INSERT ON "SUMMERCLUB"."RFID_CARDS"
+    FOR EACH ROW
+BEGIN
+    IF :NEW.RFID_ID IS NULL THEN
+        :NEW.RFID_ID := SUMMERCLUB.RFID_ID_SEQ.NEXTVAL;
+    END IF;
+END;
+/
+ALTER TRIGGER "SUMMERCLUB"."TRG_RFID_ID" ENABLE;
+
+--------------------------------------------------------
+--  Comments and Documentation
+--------------------------------------------------------
+COMMENT ON TABLE "SUMMERCLUB"."RFID_CARDS" IS 'RFID cards assigned to members';
+COMMENT ON COLUMN "SUMMERCLUB"."RFID_CARDS"."RFID_UID" IS 'RFID Card UID in format: XX XX XX XX (hexadecimal bytes separated by spaces)';
+COMMENT ON COLUMN "SUMMERCLUB"."RFID_CARDS"."CIN" IS 'Member CIN (Foreign Key to MEMBERS table)';
+COMMENT ON COLUMN "SUMMERCLUB"."RFID_CARDS"."CARD_STATUS" IS 'Card status: Active, Disabled, Lost, Expired';
+COMMENT ON COLUMN "SUMMERCLUB"."RFID_CARDS"."LAST_USED" IS 'Last time this card was used for access';
+
+--------------------------------------------------------
+--  Sample Data for Testing
+--------------------------------------------------------
+-- Insert sample RFID cards for existing members
+INSERT INTO SUMMERCLUB.RFID_CARDS (RFID_UID, CIN, NOTES) VALUES ('13 2C 01 96', '12345678', 'Test card for John Doe');
+INSERT INTO SUMMERCLUB.RFID_CARDS (RFID_UID, CIN, NOTES) VALUES ('A3 89 36 A6', '11112222', 'Test card for Ahmad Ali');
+INSERT INTO SUMMERCLUB.RFID_CARDS (RFID_UID, CIN, NOTES) VALUES ('B1 F4 23 C7', '11111115', 'Test card for Sara Ben Salah');
+
+-- Commit the test data
+COMMIT;

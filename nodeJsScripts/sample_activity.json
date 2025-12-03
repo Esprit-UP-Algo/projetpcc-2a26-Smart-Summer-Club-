@@ -1,0 +1,17 @@
+{
+    "activityId": 1001,
+    "title": "Mini Hackathon Kids",
+    "type": "Mini Hackathon Kids",
+    "date": "2025-12-15",
+    "startTime": "09:00",
+    "endTime": "12:00",
+    "location": "Computer Lab A",
+    "instructor": "Omar Ghali",
+    "responsible": "Tech Team",
+    "currentParticipants": 12,
+    "maxCapacity": 20,
+    "priority": "High",
+    "status": "Scheduled",
+    "description": "An exciting hackathon for kids to learn coding and problem-solving skills",
+    "registrationUrl": "https://docs.google.com/forms/d/e/1FAIpQLSekepqj1qV4n0eMj9_52NBH8EOJpO4ys6IsIcHjYutrSUFlgg/viewform?usp=sharing&ouid=111944286949916535680"
+}

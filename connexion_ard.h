@@ -23,6 +23,12 @@ public:
     bool isConnected() const;
     QString getLastError() const;
 
+    // RFID-specific methods
+    void sendRFIDVerificationRequest(const QString &rfidUid);
+    void sendAccessResponse(bool granted, const QString &memberName = "");
+    bool isRFIDData(const QByteArray &data) const;
+    QString extractRFIDFromData(const QByteArray &data) const;
+
 private slots:
     void onSerialError(QSerialPort::SerialPortError error);
     void onDataAvailable();
@@ -35,11 +41,19 @@ private:
     QString arduino_port_name;
     QByteArray data;
     QString lastError;
+    
+    // Message buffering for fragmented data
+    QByteArray messageBuffer;
+    void processCompleteMessages();
 
 signals:
     void connectionStatusChanged(bool connected);
     void dataReceived(QByteArray data);
     void errorOccurred(QString errorMessage);
+    
+    // RFID-specific signals
+    void rfidCardDetected(QString rfidUid);
+    void rfidVerificationRequest(QString rfidUid);
 };
 
 #endif // ARDUINO_CANDIDAT_H

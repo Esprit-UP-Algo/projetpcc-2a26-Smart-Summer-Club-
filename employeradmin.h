@@ -29,6 +29,8 @@
 #include "activitypanel.h"
 #include "employeelogspanel.h"
 #include "activitycalendar.h"
+#include "rfidmanager.h"
+#include "rfidpanel.h"
 #include "connexion_ard.h"
 #include "ocrinterface.h"
 
@@ -60,6 +62,10 @@ private slots:
     void onArduinoDataReceived(QByteArray data);
     void onArduinoConnectionStatusChanged(bool connected);
     void onArduinoErrorOccurred(QString errorMessage);
+    
+    // RFID Access Control Slots
+    void onRFIDAccessGranted(const QString &memberName, const QString &rfidUid);
+    void onRFIDAccessDenied(const QString &rfidUid, const QString &reason);
     void onAddNewActivityRequested(const QDate &date);
     void onOCRDataExtracted(const QString &cin, const QString &firstName, 
                            const QString &lastName, const QString &dateOfBirth);
@@ -68,6 +74,8 @@ private:
     Ui::EmployerAdmin *ui;
     QButtonGroup *navigationButtonGroup;
     Arduino *arduino;
+    RFIDManager *rfidSystem;
+    RFIDPanel *rfidPanel;
     
     // Management class instances
     Employee *employeeManager;

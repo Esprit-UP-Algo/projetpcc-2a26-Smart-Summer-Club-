@@ -40,16 +40,60 @@ CustomCalendarWidget::CustomCalendarWidget(QWidget *parent)
     // Set current date to ensure proper initialization
     setSelectedDate(QDate::currentDate());
     
+    // Enable custom drawing
+    setAttribute(Qt::WA_OpaquePaintEvent, false);
+    setAutoFillBackground(false);
+    
     // Connect selection changed signal
     connect(this, &QCalendarWidget::selectionChanged, this, [this]() {
         emit dayClicked(selectedDate());
     });
+    
+    qDebug() << "📅 CustomCalendarWidget initialized";
 }
 
 void CustomCalendarWidget::setActivities(const QMap<QDate, QList<ActivityCalendarItem>> &activities)
 {
+    qDebug() << "🎨 CustomCalendarWidget::setActivities called with" << activities.size() << "days of activities";
     m_activities = activities;
+    
+    // Debug: Print some activity details
+    for (auto it = activities.begin(); it != activities.end(); ++it) {
+        qDebug() << "📅 Date:" << it.key().toString() << "has" << it.value().size() << "activities";
+    }
+    
+    // Use QCalendarWidget's built-in date formatting to color dates
+    // Clear any existing formats first
+    QMap<QDate, QTextCharFormat> formats;
+    
+    // Apply colored formats to dates with activities
+    for (auto it = activities.begin(); it != activities.end(); ++it) {
+        const QDate& date = it.key();
+        const QList<ActivityCalendarItem>& dayActivities = it.value();
+        
+        if (!dayActivities.isEmpty()) {
+            QTextCharFormat format;
+            QColor activityColor = getActivityColor(dayActivities.first().type);
+            
+            // Set background color
+            format.setBackground(QBrush(activityColor.lighter(180)));
+            
+            // Set border
+            format.setProperty(QTextFormat::OutlinePen, QPen(activityColor, 2));
+            
+            // Make text bold and colored
+            format.setFontWeight(QFont::Bold);
+            format.setForeground(QBrush(activityColor.darker(150)));
+            
+            // Apply the format to this date
+            setDateTextFormat(date, format);
+            
+            qDebug() << "🎨 Applied format to date" << date.toString() << "with color" << activityColor.name();
+        }
+    }
+    
     update(); // Trigger repaint
+    repaint(); // Force immediate repaint
 }
 
 void CustomCalendarWidget::addActivity(const QDate &date, const ActivityCalendarItem &activity)
@@ -85,11 +129,39 @@ void CustomCalendarWidget::paintCell(QPainter *painter, const QRect &rect, const
     // Call base implementation first
     QCalendarWidget::paintCell(painter, rect, date);
     
+    // Debug: Check if we have activities data
+    static bool debugPrinted = false;
+    if (!debugPrinted) {
+        qDebug() << "🎨 paintCell called. Total activity days:" << m_activities.size();
+        debugPrinted = true;
+    }
+    
     // Check if this date has activities
     if (m_activities.contains(date)) {
         const auto &activities = m_activities[date];
         if (!activities.isEmpty()) {
-            // Draw activity indicators
+            qDebug() << "🎨 Painting" << activities.size() << "activities for date" << date.toString();
+            
+            // First, draw colored background for days with activities
+            QRect bgRect = rect.adjusted(1, 1, -1, -1);
+            
+            // Use the color of the first activity as the primary color
+            QColor primaryColor = getActivityColor(activities.first().type);
+            qDebug() << "🎨 Using color" << primaryColor.name() << "for activity type" << activities.first().type;
+            
+            // Create a more visible colored background (less transparency)
+            painter->save();
+            painter->setRenderHint(QPainter::Antialiasing);
+            
+            // Make the background much more visible
+            QColor bgColor = primaryColor.lighter(140); // Much less light, more visible
+            painter->setBrush(QBrush(bgColor));
+            painter->setPen(QPen(primaryColor.darker(110), 2));
+            painter->drawRoundedRect(bgRect, 6, 6);
+            
+            painter->restore();
+            
+            // Draw activity indicators at the bottom
             painter->save();
             
             int indicatorSize = 6;
@@ -190,6 +262,12 @@ ActivityCalendar::ActivityCalendar(QWidget *parent)
     loadActivitiesFromDatabase();
     updateStatistics();
     
+    // Add sample activities for testing if no activities are found
+    if (m_activities.isEmpty()) {
+        qDebug() << "🎯 No activities found, adding sample activities for testing";
+        addSampleActivities();
+    }
+    
     // Navigate to November 2025 where we have activities
     m_calendar->setCurrentPage(2025, 11);
     m_currentDate = QDate(2025, 11, 1);
@@ -232,7 +310,7 @@ void ActivityCalendar::setupUI()
     
     // Set specific sizes instead of just stretch factors
     QList<int> sizes;
-    sizes << 850 << 300; // Calendar: 850px, Statistics: 300px
+    sizes << 800 << 300; // Calendar: 800px, Statistics: 300px
     mainSplitter->setSizes(sizes);
     
     m_mainLayout->addWidget(mainSplitter, 1); // Give it stretch factor
@@ -330,14 +408,14 @@ void ActivityCalendar::setupCalendarSection()
 {
     m_calendarFrame = new QFrame(this);
     m_calendarFrame->setObjectName("calendarFrame");
-    m_calendarFrame->setMinimumSize(650, 450);
+    m_calendarFrame->setMinimumSize(600, 350);
     m_calendarFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     
     QVBoxLayout *calendarLayout = new QVBoxLayout(m_calendarFrame);
     calendarLayout->setContentsMargins(12, 12, 12, 12);
     
     m_calendar = new CustomCalendarWidget(this);
-    m_calendar->setMinimumSize(600, 400);
+    m_calendar->setMinimumSize(550, 320);
     m_calendar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     
     calendarLayout->addWidget(m_calendar);
@@ -390,8 +468,8 @@ void ActivityCalendar::setupDetailsSection()
 {
     m_detailsFrame = new QFrame(this);
     m_detailsFrame->setObjectName("detailsFrame");
-    m_detailsFrame->setMinimumHeight(180);
-    m_detailsFrame->setMaximumHeight(220);
+    m_detailsFrame->setMinimumHeight(280);
+    m_detailsFrame->setMaximumHeight(350);
     m_detailsFrame->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     
     m_detailsLayout = new QVBoxLayout(m_detailsFrame);
@@ -412,8 +490,8 @@ void ActivityCalendar::setupDetailsSection()
     
     m_activitiesContainer = new QWidget();
     m_activitiesContainerLayout = new QHBoxLayout(m_activitiesContainer);
-    m_activitiesContainerLayout->setSpacing(12);
-    m_activitiesContainerLayout->setContentsMargins(8, 8, 8, 8);
+    m_activitiesContainerLayout->setSpacing(16);
+    m_activitiesContainerLayout->setContentsMargins(12, 12, 12, 12);
     
     m_activitiesScrollArea->setWidget(m_activitiesContainer);
     
@@ -689,6 +767,8 @@ void ActivityCalendar::loadActivitiesFromDatabase()
             
             // Update calendar display
             m_calendar->setActivities(m_activities);
+            m_calendar->update();
+            m_calendar->repaint(); // Force immediate repaint
             updateStatistics();
             updateSelectedDateActivities(m_selectedDate);
             
@@ -788,6 +868,9 @@ void ActivityCalendar::onAddActivityClicked()
 void ActivityCalendar::onRefreshClicked()
 {
     loadActivitiesFromDatabase();
+    updateStatistics();
+    updateSelectedDateActivities(m_selectedDate);
+    
     QMessageBox::information(this, "Calendar Refreshed", "Activity data has been refreshed from the database.");
 }
 
@@ -841,7 +924,7 @@ void ActivityCalendar::updateSelectedDateActivities(const QDate &date)
     // Add "Add New Activity" card
     ClickableFrame *addCard = new ClickableFrame();
     addCard->setObjectName("addActivityCard");
-    addCard->setFixedSize(200, 120);
+    addCard->setFixedSize(220, 160);
     addCard->setStyleSheet(
         "QFrame#addActivityCard {"
         "    background-color: rgba(22, 165, 179, 0.1);"
@@ -897,7 +980,7 @@ void ActivityCalendar::addActivityToDetailsPanel(const ActivityCalendarItem &act
     
     QFrame *activityCard = new QFrame();
     activityCard->setObjectName("activityCard");
-    activityCard->setFixedSize(200, 120);
+    activityCard->setFixedSize(220, 160);
     activityCard->setVisible(true);
     activityCard->setStyleSheet(
         "QFrame#activityCard {"
@@ -913,8 +996,8 @@ void ActivityCalendar::addActivityToDetailsPanel(const ActivityCalendarItem &act
     );
     
     QVBoxLayout *cardLayout = new QVBoxLayout(activityCard);
-    cardLayout->setSpacing(4);
-    cardLayout->setContentsMargins(8, 8, 8, 8);
+    cardLayout->setSpacing(6);
+    cardLayout->setContentsMargins(10, 10, 10, 10);
     
     // Activity header
     QHBoxLayout *headerLayout = new QHBoxLayout();

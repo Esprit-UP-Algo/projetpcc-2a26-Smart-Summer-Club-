@@ -28,7 +28,13 @@ SOURCES += \
     activitypanel.cpp \
     employeelogspanel.cpp \
     activitycalendar.cpp \
-    ocrinterface.cpp
+    ocrinterface.cpp \
+    rfidservice.cpp \
+    rfidcard.cpp \
+    rfidmanager.cpp \
+    rfidpanel.cpp \
+    rfidcarddialog.cpp
+    
 
 HEADERS += \
     connexion_ard.h \
@@ -49,7 +55,12 @@ HEADERS += \
     activitypanel.h \
     employeelogspanel.h \
     activitycalendar.h \
-    ocrinterface.h
+    ocrinterface.h \
+    rfidservice.h \
+    rfidcard.h \
+    rfidmanager.h \
+    rfidpanel.h \
+    rfidcarddialog.h
 
 FORMS += \
     employeradmin.ui \

@@ -24,6 +24,10 @@
 #include <QStandardPaths>
 #include <QDir>
 #include <QApplication>
+#include <QSplitter>
+#include <QGroupBox>
+#include <QTimer>
+#include <QMetaObject>
 
 class OCRInterface : public QWidget
 {
@@ -45,8 +49,16 @@ private slots:
     void onClearFormClicked();
     void onAutoFillMemberFormClicked();
     void processOCRFinished(int exitCode, QProcess::ExitStatus exitStatus);
+    void onProcessTimeout();
 
 private:
+    // UI Setup methods
+    void setupUI();
+    void setupTitleBar();
+    void setupInputPanel(QSplitter *parent);
+    void setupResultsPanel(QSplitter *parent);
+    void connectSignals();
+    
     // UI Components
     QVBoxLayout *m_mainLayout;
     QFrame *m_uploadFrame;
@@ -54,29 +66,21 @@ private:
     QFrame *m_resultFrame;
     QFrame *m_actionFrame;
 
-    // Upload section
+    // Main UI elements
     QLabel *m_uploadTitle;
     QPushButton *m_uploadButton;
     QLabel *m_uploadStatusLabel;
-
-    // Preview section
     QLabel *m_previewTitle;
     QLabel *m_imagePreview;
-    
-    // Processing section
     QPushButton *m_processButton;
     QProgressBar *m_progressBar;
     QLabel *m_progressLabel;
-
-    // Results section
     QLabel *m_resultTitle;
     QLineEdit *m_cinLineEdit;
     QLineEdit *m_firstNameLineEdit;
     QLineEdit *m_lastNameLineEdit;
     QLineEdit *m_dobLineEdit;
     QTextEdit *m_rawTextEdit;
-
-    // Action buttons
     QPushButton *m_clearButton;
     QPushButton *m_autoFillButton;
 
@@ -90,22 +94,20 @@ private:
 
     // Process handling
     QProcess *m_ocrProcess;
+    QTimer *m_processTimeout;
 
     // Helper methods
-    void setupUI();
-    void setupUploadSection();
-    void setupPreviewSection();
-    void setupResultSection();
-    void setupActionSection();
-    void connectSignals();
     void clearResults();
     void updatePreviewImage();
     void parseOCRResults(const QString &jsonOutput);
     void parseTextBasedOCRResults(const QString &textOutput);
+    void parseStructuredOCRResults(const QString &outputText);
     QString getNodeScriptPath();
     bool ensureNodeJsScriptsExists();
     QString findActualProjectLocation();
     bool copyDirectoryRecursively(const QString &sourceDir, const QString &destDir);
+    QString translateArabicToEnglish(const QString &arabicText);
+    QString translateArabicDateToEnglish(const QString &arabicDate);
 
 signals:
     void dataExtracted(const QString &cin, const QString &firstName, 

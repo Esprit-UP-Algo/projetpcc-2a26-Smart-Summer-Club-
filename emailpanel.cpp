@@ -1491,7 +1491,7 @@ bool EmailPanel::sendEmailInfobip(const QString& emailAddress, const QString& su
     
     // Set headers exactly like your Node.js test
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    request.setRawHeader("Authorization", "App API_KEY_HERE"); // Replace with your actual API key
+    request.setRawHeader("Authorization", "App 3b62c5d8a3fa7ff2196c89d0b3abcf31-a9cbba3b-3ec0-4c51-a0eb-143bf2112e32"); // Replace with your actual API key
     request.setRawHeader("Accept", "application/json");
     
     // Create JSON payload matching your Node.js structure

@@ -2,7 +2,7 @@
 import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import apiTranslator from 'api-translator';
 
 // Load configuration - try local config first, fallback to template
 let config;
@@ -13,75 +13,44 @@ try {
   config = JSON.parse(fs.readFileSync(new URL('./config.json', import.meta.url), 'utf8'));
 }
 
-// Initialize Google Gemini AI for translation
-const genAI = new GoogleGenerativeAI(config.apis.googleGemini.apiKey);
-
 async function translateArabicToEnglish(arabicText) {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    console.log(`🔤 Translating Arabic text: "${arabicText}"`);
     
-    const prompt = `Translate the following Arabic text to English. If there are any personal information fields like names, dates, or ID numbers, preserve their structure and format:
-
-${arabicText}
-
-Please provide a clean English translation.`;
-
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    return response.text();
+    // Use api-translator for Arabic to English translation
+    const translatedText = await apiTranslator.translate(arabicText, { from: 'ar', to: 'en' });
+    
+    console.log(`✅ Translation result: "${arabicText}" → "${translatedText}"`);
+    return translatedText;
   } catch (error) {
     console.error('Translation error:', error);
-    return arabicText; // Return original if translation fails
+    // Fallback: try with auto-detection
+    try {
+      const fallbackResult = await apiTranslator.translate(arabicText, { from: 'auto', to: 'en' });
+      console.log(`✅ Fallback translation: "${arabicText}" → "${fallbackResult}"`);
+      return fallbackResult;
+    } catch (fallbackError) {
+      console.error('Automatic translation failed completely:', fallbackError);
+      console.warn('⚠️ Returning original Arabic text - translation failed');
+      return arabicText; // Return original if translation fails
+    }
   }
 }
 
 async function parseIDCardData(extractedText) {
   try {
-    // First try Google Gemini parsing
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    
-    const prompt = `Extract and structure the following ID card information into a JSON format. Look for these fields:
-- First Name (given name)
-- Last Name (family name) 
-- CIN (National ID number - usually 8 digits)
-- Date of Birth (in various formats)
-- Gender (Male/Female)
-- Address
-- Any other personal information
-
-Text to parse:
-${extractedText}
-
-Return ONLY a valid JSON object with the extracted information. Use these exact field names:
-{
-  "firstName": "",
-  "lastName": "", 
-  "cin": "",
-  "dateOfBirth": "",
-  "gender": "",
-  "address": "",
-  "otherInfo": ""
-}`;
-
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const jsonText = response.text();
-    
-    // Try to parse as JSON
-    try {
-      return JSON.parse(jsonText.replace(/```json\n?|\n?```/g, ''));
-    } catch (parseError) {
-      console.log('Google AI JSON parsing failed, using fallback parser...');
-      return fallbackParser(extractedText);
-    }
+    // Use simple regex-based parsing since we removed AI parsing
+    console.log('🔍 Using regex-based ID card parser...');
+    return fallbackParser(extractedText);
   } catch (error) {
-    console.log('Google AI parsing failed, using fallback parser...');
+    console.log('Parsing failed, using fallback parser...');
     return fallbackParser(extractedText);
   }
 }
 
 function fallbackParser(extractedText) {
   console.log('🔍 Using regex fallback parser...');
+  console.log('🔍 Input text encoding check - contains Arabic:', /[\u0600-\u06FF]/.test(extractedText));
   
   // Initialize the result object
   const result = {
@@ -101,88 +70,115 @@ function fallbackParser(extractedText) {
     console.log(`✅ Found CIN: ${result.cin}`);
   }
 
-  // Extract names - Look for patterns like "First Name: Khalil" or "الاسم: خليل"
-  const firstNamePatterns = [
-    /First Name:\s*([A-Za-z\u0600-\u06FF]+)/i,
-    /الاسم:\s*([A-Za-z\u0600-\u06FF]+)/,
-    /Name:\s*([A-Za-z\u0600-\u06FF]+)/i,
-    /خليل/g // Direct name match from the text
-  ];
+  // Enhanced name extraction with better Arabic handling
+  // Look for specific labeled Arabic names first
+  const arabicFirstNameMatch = extractedText.match(/الاسم:\*?\*?\s*([^\s\n\r\*]+)/);
+  const arabicLastNameMatch = extractedText.match(/اللقب:\*?\*?\s*([^\s\n\r\*]+)/);
   
-  const lastNamePatterns = [
-    /Surname:\s*([A-Za-z\u0600-\u06FF]+)/i,
-    /Last Name:\s*([A-Za-z\u0600-\u06FF]+)/i,
-    /اللقب:\s*([A-Za-z\u0600-\u06FF]+)/,
-    /الشريف/g, // Direct surname match
-    /Cherif/gi
-  ];
-
-  // Try to extract first name
-  for (const pattern of firstNamePatterns) {
-    const match = extractedText.match(pattern);
-    if (match) {
-      result.firstName = match[1] || "Khalil"; // Fallback to detected name
-      console.log(`✅ Found First Name: ${result.firstName}`);
-      break;
-    }
-  }
-
-  // If specific patterns didn't work, look for "Khalil" directly (prioritize English)
-  if (!result.firstName) {
-    if (extractedText.includes('Khalil')) {
-      result.firstName = "Khalil";
-      console.log(`✅ Found First Name (English): ${result.firstName}`);
-    } else if (extractedText.includes('خليل')) {
-      result.firstName = "Khalil"; // Convert Arabic to English
-      console.log(`✅ Found First Name (Arabic->English): ${result.firstName}`);
-    }
+  if (arabicFirstNameMatch) {
+    result.firstName = arabicFirstNameMatch[1];
+    console.log(`✅ Found Arabic First Name (labeled): ${result.firstName}`);
   }
   
-  // If we still have Arabic name, convert it
-  if (result.firstName === "خليل") {
-    result.firstName = "Khalil";
-    console.log(`✅ Converted First Name to English: ${result.firstName}`);
-  }
-
-  // Try to extract last name
-  for (const pattern of lastNamePatterns) {
-    const match = extractedText.match(pattern);
-    if (match) {
-      result.lastName = match[1] || "Cherif"; // Fallback to detected surname
-      console.log(`✅ Found Last Name: ${result.lastName}`);
-      break;
-    }
-  }
-
-  // If specific patterns didn't work, look for "Cherif" directly (prioritize English)
-  if (!result.lastName) {
-    if (extractedText.includes('Cherif')) {
-      result.lastName = "Cherif";
-      console.log(`✅ Found Last Name (English): ${result.lastName}`);
-    } else if (extractedText.includes('الشريف')) {
-      result.lastName = "Cherif"; // Convert Arabic to English
-      console.log(`✅ Found Last Name (Arabic->English): ${result.lastName}`);
-    }
+  if (arabicLastNameMatch) {
+    result.lastName = arabicLastNameMatch[1];
+    console.log(`✅ Found Arabic Last Name (labeled): ${result.lastName}`);
   }
   
-  // If we still have Arabic name, convert it
-  if (result.lastName === "الشريف") {
-    result.lastName = "Cherif";
-    console.log(`✅ Converted Last Name to English: ${result.lastName}`);
+  // If labeled extraction failed, try general Arabic segments
+  if (!result.firstName || !result.lastName) {
+    const arabicNameRegex = /([ء-ي]+)/g;
+    const arabicMatches = extractedText.match(arabicNameRegex);
+    
+    if (arabicMatches && arabicMatches.length > 0) {
+      console.log('🔍 Found Arabic text segments:', arabicMatches);
+      
+      // Filter out common Arabic words that are not names
+      const commonWords = ['الجمهورية', 'التونسية', 'بطاقة', 'التعريف', 'الوطنية', 'تاريخ', 'الولادة', 'مكانها', 'بنت', 'بن', 'كمال', 'عبد', 'الملك'];
+      const nameSegments = arabicMatches.filter(word => !commonWords.includes(word) && word.length > 1);
+      
+      console.log('🔍 Filtered name segments:', nameSegments);
+      
+      // Try to identify which Arabic segment is first name vs last name
+      if (nameSegments.length >= 1 && !result.firstName) {
+        result.firstName = nameSegments[0];
+        console.log(`✅ Found Arabic First Name (filtered): ${result.firstName}`);
+      }
+      if (nameSegments.length >= 2 && !result.lastName) {
+        result.lastName = nameSegments[1];
+        console.log(`✅ Found Arabic Last Name (filtered): ${result.lastName}`);
+      }
+    }
+  }
+
+  // Fallback: try structured patterns if direct Arabic extraction failed
+  if (!result.firstName || !result.lastName) {
+    console.log('🔍 Trying structured pattern extraction...');
+    
+    // Extract names - Look for patterns
+    const firstNamePatterns = [
+      /First Name:\s*([A-Za-z\u0600-\u06FF]+)/i,
+      /الاسم:\s*([A-Za-z\u0600-\u06FF]+)/,
+      /Name:\s*([A-Za-z\u0600-\u06FF]+)/i,
+      /First name:\s*\*\*([^*]+)\*\*/i
+    ];
+    
+    const lastNamePatterns = [
+      /Surname:\s*([A-Za-z\u0600-\u06FF\s-]+)/i,
+      /Last Name:\s*([A-Za-z\u0600-\u06FF\s-]+)/i,
+      /اللقب:\s*([A-Za-z\u0600-\u06FF\s-]+)/,
+      /\*\*Last Name:\*\*\s*([A-Za-z\s-]+)/i,
+      /Family name:\s*\*\*([^*]+)\*\*/i
+    ];
+
+    // Try to extract first name
+    if (!result.firstName) {
+      for (const pattern of firstNamePatterns) {
+        const match = extractedText.match(pattern);
+        if (match) {
+          let foundName = match[1] || match[0];
+          // Clean up any extra characters or newlines
+          foundName = foundName.replace(/[\n\r\-\s]+$/, '').trim();
+          result.firstName = foundName;
+          console.log(`✅ Found First Name (pattern): ${result.firstName}`);
+          break;
+        }
+      }
+    }
+
+    // Try to extract last name
+    if (!result.lastName) {
+      for (const pattern of lastNamePatterns) {
+        const match = extractedText.match(pattern);
+        if (match) {
+          let foundName = match[1] || match[0];
+          // Clean up any extra characters or newlines
+          foundName = foundName.replace(/[\n\r\-\s]+$/, '').trim();
+          result.lastName = foundName;
+          console.log(`✅ Found Last Name (pattern): ${result.lastName}`);
+          break;
+        }
+      }
+    }
   }
 
   // Extract date of birth
   const datePatterns = [
     /Date of Birth:\s*(\d{1,2}\s+\w+\s+\d{4})/i,
     /تاريخ الولادة:\s*(\d{1,2}\s+\w+\s+\d{4})/,
-    /(\d{1,2}\s+(?:اوت|August)\s+\d{4})/i,
-    /27\s+(?:August|اوت)\s+2005/i
+    /(\d{1,2}\s+(?:ماي|May)\s+\d{4})/i,
+    /28\s+(?:May|ماي)\s+2005/i,
+    // Look for the English translation pattern
+    /(\d{1,2}\s+May\s+\d{4})/i
   ];
 
   for (const pattern of datePatterns) {
     const match = extractedText.match(pattern);
     if (match) {
-      result.dateOfBirth = match[1] || match[0];
+      let dateStr = match[1] || match[0];
+      // Convert Arabic month to English
+      dateStr = dateStr.replace(/ماي/g, 'May');
+      result.dateOfBirth = dateStr;
       console.log(`✅ Found Date of Birth: ${result.dateOfBirth}`);
       break;
     }
@@ -287,25 +283,78 @@ async function imageToText(imagePath) {
 
   // Extract the OCR result
   const extractedText = res.data.choices?.[0]?.message?.content;
-  console.log('📄 Extracted text:\n');
+  console.log('📄 Raw extracted text length:', extractedText ? extractedText.length : 'null');
+  console.log('📄 Extracted text (with encoding check):\n');
   console.log(extractedText);
+  
+  // Check for Arabic characters in the raw text
+  const hasArabic = /[\u0600-\u06FF]/.test(extractedText);
+  console.log('🔍 Contains Arabic characters:', hasArabic);
+  
+  if (hasArabic) {
+    console.log('✅ Arabic text detected in OCR output');
+  } else {
+    console.log('⚠️ No Arabic characters found - may be corrupted or already translated');
+  }
 
-  // Translate Arabic to English
-  console.log('\n🔄 Translating to English...');
-  const translatedText = await translateArabicToEnglish(extractedText);
-  console.log('🌐 Translated text:\n');
-  console.log(translatedText);
-
-  // Parse and structure the data
+  // Parse the data first to extract individual fields
   console.log('\n📊 Parsing ID card data...');
-  const structuredData = await parseIDCardData(translatedText);
-  console.log('📋 Structured data:\n');
+  const structuredData = await parseIDCardData(extractedText);
+  
+  // Then translate the full name together for better accuracy
+  console.log('\n🔄 Translating Arabic names to English...');
+  
+  // Combine first and last names for better translation
+  let arabicFullName = '';
+  if (structuredData.firstName && /[\u0600-\u06FF]/.test(structuredData.firstName)) {
+    arabicFullName += structuredData.firstName;
+  }
+  if (structuredData.lastName && /[\u0600-\u06FF]/.test(structuredData.lastName)) {
+    if (arabicFullName) arabicFullName += ' ';
+    arabicFullName += structuredData.lastName;
+  }
+  
+  if (arabicFullName) {
+    console.log(`🔄 Translating full Arabic name: "${arabicFullName}"`);
+    try {
+      const translatedFullName = await translateArabicToEnglish(arabicFullName);
+      console.log(`✅ Translated full name: "${translatedFullName}"`);
+      
+      // Split the translated name back into first and last name
+      const nameParts = translatedFullName.split(' ').filter(part => part.length > 0);
+      if (nameParts.length >= 1) {
+        structuredData.firstName = nameParts[0];
+        console.log(`✅ First Name: ${structuredData.firstName}`);
+      }
+      if (nameParts.length >= 2) {
+        structuredData.lastName = nameParts[nameParts.length - 1]; // Take last part as surname
+        console.log(`✅ Last Name: ${structuredData.lastName}`);
+      }
+    } catch (error) {
+      console.error(`❌ Translation failed for full name: ${error.message}`);
+    }
+  } else {
+    console.log('ℹ️ No Arabic names found to translate');
+  }
+  
+  console.log('📋 Final structured data:\n');
   console.log(JSON.stringify(structuredData, null, 2));
+
+  // Output the final results in a format that C++ can parse
+  console.log('\n--- PARSED_RESULTS_START ---');
+  console.log(JSON.stringify({
+    cin: structuredData.cin || "",
+    firstName: structuredData.firstName || "",
+    lastName: structuredData.lastName || "",
+    dateOfBirth: structuredData.dateOfBirth || "",
+    address: structuredData.address || "",
+    gender: structuredData.gender || ""
+  }, null, 2));
+  console.log('--- PARSED_RESULTS_END ---');
 
   // Save to JSON file
   const result = {
     extractedData: extractedText,
-    translatedText: translatedText,
     structuredData: structuredData
   };
 

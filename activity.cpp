@@ -9,9 +9,18 @@
 #include <QFile>
 #include <QPushButton>
 #include <QHBoxLayout>
+#include <QVBoxLayout>
 #include <QWidget>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QProcess>
+#include <QDir>
+#include <QStandardPaths>
+#include <QDialog>
+#include <QLabel>
+#include <QLineEdit>
+#include <QSpinBox>
+#include <QFileDialog>\n#include <QApplication>\n#include <QProcessEnvironment>
 
 // ============================================================================
 // CONSTRUCTORS & DESTRUCTOR
@@ -877,7 +886,167 @@ void Activity::onSortComboBoxChanged(int index)
 void Activity::onExportActivities()
 {
     if (!ui) return;
-    exportTableToPdf(ui->activityTable, "activities_export.pdf", "List of Activities");
+    
+    // Create export configuration dialog
+    QDialog dialog(parentWidget);
+    dialog.setWindowTitle("Export Poster Configuration");
+    dialog.setModal(true);
+    dialog.resize(500, 300);
+    
+    QVBoxLayout* layout = new QVBoxLayout(&dialog);
+    
+    // Background image selection
+    QHBoxLayout* bgLayout = new QHBoxLayout();
+    QLabel* bgLabel = new QLabel("Background Image:");
+    QLineEdit* bgLineEdit = new QLineEdit();
+    bgLineEdit->setPlaceholderText("Select background image...");
+    QPushButton* bgBrowseBtn = new QPushButton("Browse");
+    
+    bgLayout->addWidget(bgLabel);
+    bgLayout->addWidget(bgLineEdit);
+    bgLayout->addWidget(bgBrowseBtn);
+    layout->addLayout(bgLayout);
+    
+    // QR code position
+    QHBoxLayout* posLayout = new QHBoxLayout();
+    QLabel* posLabel = new QLabel("QR Code Position:");
+    QLabel* xLabel = new QLabel("X:");
+    QSpinBox* xSpinBox = new QSpinBox();
+    xSpinBox->setRange(0, 9999);
+    xSpinBox->setValue(417); // Default X
+    QLabel* yLabel = new QLabel("Y:");
+    QSpinBox* ySpinBox = new QSpinBox();
+    ySpinBox->setRange(0, 9999);
+    ySpinBox->setValue(216); // Default Y
+    
+    posLayout->addWidget(posLabel);
+    posLayout->addWidget(xLabel);
+    posLayout->addWidget(xSpinBox);
+    posLayout->addWidget(yLabel);
+    posLayout->addWidget(ySpinBox);
+    posLayout->addStretch();
+    layout->addLayout(posLayout);
+    
+    // Output path selection
+    QHBoxLayout* outLayout = new QHBoxLayout();
+    QLabel* outLabel = new QLabel("Save to:");
+    QLineEdit* outLineEdit = new QLineEdit();
+    outLineEdit->setPlaceholderText("Select output location...");
+    QPushButton* outBrowseBtn = new QPushButton("Browse");
+    
+    outLayout->addWidget(outLabel);
+    outLayout->addWidget(outLineEdit);
+    outLayout->addWidget(outBrowseBtn);
+    layout->addLayout(outLayout);
+    
+    // Buttons
+    QHBoxLayout* btnLayout = new QHBoxLayout();
+    QPushButton* okBtn = new QPushButton("Generate Poster");
+    QPushButton* cancelBtn = new QPushButton("Cancel");
+    btnLayout->addStretch();
+    btnLayout->addWidget(okBtn);
+    btnLayout->addWidget(cancelBtn);
+    layout->addLayout(btnLayout);
+    
+    // Connect browse buttons
+    QObject::connect(bgBrowseBtn, &QPushButton::clicked, [&]() {
+        QString file = QFileDialog::getOpenFileName(&dialog, "Select Background Image", 
+            "", "Image Files (*.png *.jpg *.jpeg *.bmp)");
+        if (!file.isEmpty()) {
+            bgLineEdit->setText(file);
+        }
+    });
+    
+    QObject::connect(outBrowseBtn, &QPushButton::clicked, [&]() {
+        QString file = QFileDialog::getSaveFileName(&dialog, "Save Poster As", 
+            "poster_with_qr.png", "PNG Files (*.png)");
+        if (!file.isEmpty()) {
+            outLineEdit->setText(file);
+        }
+    });
+    
+    QObject::connect(okBtn, &QPushButton::clicked, &dialog, &QDialog::accept);
+    QObject::connect(cancelBtn, &QPushButton::clicked, &dialog, &QDialog::reject);
+    
+    if (dialog.exec() == QDialog::Accepted) {
+        QString bgImage = bgLineEdit->text().trimmed();
+        QString outputPath = outLineEdit->text().trimmed();
+        int qrX = xSpinBox->value();
+        int qrY = ySpinBox->value();
+        
+        if (bgImage.isEmpty()) {
+            QMessageBox::warning(parentWidget, "Warning", "Please select a background image.");
+            return;
+        }
+        
+        if (outputPath.isEmpty()) {
+            QMessageBox::warning(parentWidget, "Warning", "Please select an output location.");
+            return;
+        }
+        
+        // Validate background image exists
+        if (!QFile::exists(bgImage)) {
+            QMessageBox::warning(parentWidget, "Warning", "Background image file does not exist.");
+            return;
+        }
+        
+        // Ensure output directory exists
+        QFileInfo outputInfo(outputPath);
+        QDir outputDir = outputInfo.absoluteDir();
+        if (!outputDir.exists()) {
+            if (!outputDir.mkpath(outputDir.absolutePath())) {
+                QMessageBox::warning(parentWidget, "Warning", "Cannot create output directory.");
+                return;
+            }
+        }
+        
+        // Convert to absolute paths to avoid working directory issues
+        QString absoluteBgImage = QFileInfo(bgImage).absoluteFilePath();
+        QString absoluteOutputPath = QFileInfo(outputPath).absoluteFilePath();
+        
+        // Get the node script path using the same approach as OCR interface
+        QString scriptPath = getNodeScriptPath();
+        if (scriptPath.isEmpty()) {
+            QMessageBox::critical(parentWidget, "Error", "Cannot find qr_adder.js script!");
+            return;
+        }
+        
+        QFileInfo scriptInfo(scriptPath);
+        QString nodeScriptsPath = scriptInfo.absolutePath();
+        
+        QProcess process;
+        process.setWorkingDirectory(nodeScriptsPath);
+        
+        QStringList arguments;
+        arguments << scriptInfo.fileName() << absoluteBgImage << QString::number(qrX) 
+                 << QString::number(qrY) << absoluteOutputPath;
+        
+        // Debug information
+        qDebug() << "Working directory:" << nodeScriptsPath;
+        qDebug() << "Background image:" << absoluteBgImage;
+        qDebug() << "Output path:" << absoluteOutputPath;
+        qDebug() << "Arguments:" << arguments;
+        
+        process.start("node", arguments);
+        process.waitForFinished(15000); // Wait up to 15 seconds
+        
+        QString output = process.readAllStandardOutput();
+        QString error = process.readAllStandardError();
+        
+        if (process.exitCode() == 0) {
+            // Check if file actually exists using the absolute path
+            if (QFile::exists(absoluteOutputPath)) {
+                QMessageBox::information(parentWidget, "Success", 
+                    QString("Poster with QR code generated successfully!\n\nSaved to: %1").arg(absoluteOutputPath));
+            } else {
+                QMessageBox::warning(parentWidget, "Warning", 
+                    QString("Process completed but file not found at: %1\n\nWorking dir: %2\nOutput: %3").arg(absoluteOutputPath, nodeScriptsPath, output));
+            }
+        } else {
+            QMessageBox::critical(parentWidget, "Error", 
+                QString("Failed to generate poster:\n\nWorking dir: %1\nError: %2\n\nOutput: %3").arg(nodeScriptsPath, error, output));
+        }
+    }
 }
 
 void Activity::onSearchActivities()
@@ -941,58 +1110,6 @@ void Activity::loadActivityToForm(Activity* activity)
     ui->activityTabWidget->setCurrentIndex(1); // Switch to Add/Edit tab
 }
 
-bool Activity::exportTableToPdf(QTableWidget* table, const QString& defaultName, const QString& title)
-{
-    if (!table) return false;
-    QString file = QFileDialog::getSaveFileName(parentWidget, "Export PDF", defaultName, "PDF (*.pdf)");
-    if (file.isEmpty()) return false;
-    
-    QPrinter printer;
-    printer.setOutputFormat(QPrinter::PdfFormat);
-    printer.setOutputFileName(file);
-    printer.setPageMargins(QMarginsF(15, 15, 15, 15), QPageLayout::Millimeter);
-    
-    QTextDocument doc;
-    QString html = "<html><head><style>";
-    html += "table { border-collapse: collapse; width: 100%; font-family: Arial; }";
-    html += "th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }";
-    html += "th { background-color: #16a5b3; color: white; font-weight: bold; }";
-    html += "tr:nth-child(even) { background-color: #f9f9f9; }";
-    html += ".title { font-size: 20px; font-weight: bold; text-align: center; margin-bottom: 10px; }";
-    html += "</style></head><body>";
-    
-    html += QString("<div class='title'>%1</div>").arg(title);
-    html += "<div style='text-align:center; margin-bottom:20px; color:#666;'>Generated: " + 
-            QDateTime::currentDateTime().toString("yyyy-MM-dd HH:mm") + "</div>";
-    
-    html += "<table><tr>";
-    
-    // Add headers (exclude Actions column)
-    int colCount = table->columnCount() - 1;
-    for (int c = 0; c < colCount; ++c) {
-        QTableWidgetItem* headerItem = table->horizontalHeaderItem(c);
-        html += "<th>" + (headerItem ? headerItem->text() : "") + "</th>";
-    }
-    html += "</tr>";
-    
-    // Add data rows
-    for (int r = 0; r < table->rowCount(); ++r) {
-        html += "<tr>";
-        for (int c = 0; c < colCount; ++c) {
-            QTableWidgetItem* item = table->item(r, c);
-            html += "<td>" + (item ? item->text() : "") + "</td>";
-        }
-        html += "</tr>";
-    }
-    
-    html += "</table></body></html>";
-    
-    doc.setHtml(html);
-    doc.print(&printer);
-    
-    QMessageBox::information(parentWidget, "Success", "Activities exported to PDF successfully!");
-    return true;
-}
 
 // Load employee names from database into combobox
 void Activity::loadEmployeesToComboBox()
@@ -1047,4 +1164,258 @@ void Activity::onToggleResponsibleInput()
     } else {
         ui->responsibleToggleButton->setText("Use Employee List");
     }
+}
+
+QString Activity::getNodeScriptPath() const
+{
+    // First ensure the nodeJsScripts folder exists in Qt workspace
+    if (!ensureNodeJsScriptsExists()) {
+        qDebug() << "❌ Failed to ensure nodeJsScripts exists in Qt workspace";
+        return QString();
+    }
+    
+    // Use Qt workspace location (where files are copied)
+    QString buildDir = QApplication::applicationDirPath();
+    QDir dir(buildDir);
+    
+    // Navigate to Qt workspace root
+    dir.cdUp();  // Go up from Debug to build directory
+    dir.cdUp();  // Go up from build to project root directory
+    
+    QString qtWorkspaceRoot = dir.absolutePath();
+    
+    // Try qr_adder.js in nodeJsScripts directory
+    QString scriptPath = qtWorkspaceRoot + "/nodeJsScripts/qr_adder.js";
+    
+    qDebug() << "Looking for QR script at:" << scriptPath;
+    
+    if (QFileInfo::exists(scriptPath)) {
+        return scriptPath;
+    }
+    
+    qDebug() << "QR script not found in Qt workspace, script does not exist at:" << scriptPath;
+    return QString(); // Return empty string if not found
+}
+
+bool Activity::ensureNodeJsScriptsExists() const
+{
+    // Get Qt workspace location
+    QString buildDir = QApplication::applicationDirPath();
+    QDir dir(buildDir);
+    dir.cdUp(); dir.cdUp(); // Navigate to Qt workspace root
+    QString qtWorkspaceRoot = dir.absolutePath();
+    QString destNodeScriptsDir = qtWorkspaceRoot + "/nodeJsScripts";
+    
+    // Check if nodeJsScripts already exists in Qt workspace
+    QDir destDir(destNodeScriptsDir);
+    if (destDir.exists() && QFileInfo::exists(destNodeScriptsDir + "/qr_adder.js")) {
+        qDebug() << "✅ nodeJsScripts folder already exists in Qt workspace:" << destNodeScriptsDir;
+        return true;
+    }
+    
+    // Find the actual project location
+    QString actualProjectPath = findActualProjectLocation();
+    if (actualProjectPath.isEmpty()) {
+        qDebug() << "❌ Could not find actual SummerClub_Advanced project location";
+        return false;
+    }
+    
+    QString sourceNodeScriptsDir = actualProjectPath + "/nodeJsScripts";
+    QDir sourceDir(sourceNodeScriptsDir);
+    
+    if (!sourceDir.exists()) {
+        qDebug() << "❌ Source nodeJsScripts folder does not exist:" << sourceNodeScriptsDir;
+        return false;
+    }
+    
+    qDebug() << "📋 Copying nodeJsScripts from:" << sourceNodeScriptsDir;
+    qDebug() << "📋 Copying nodeJsScripts to:" << destNodeScriptsDir;
+    
+    // Copy the entire nodeJsScripts directory
+    if (copyDirectoryRecursively(sourceNodeScriptsDir, destNodeScriptsDir)) {
+        // Verify the copy was successful
+        QDir destDirVerify(destNodeScriptsDir);
+        QStringList copiedFiles = destDirVerify.entryList(QDir::Files);
+        qDebug() << "✅ Successfully copied nodeJsScripts to Qt workspace";
+        qDebug() << "📄 Copied files:" << copiedFiles;
+        return true;
+    } else {
+        qDebug() << "❌ Failed to copy nodeJsScripts to Qt workspace";
+        return false;
+    }
+}
+
+QString Activity::findActualProjectLocation() const
+{
+    qDebug() << "🔍 Starting comprehensive project location search...";
+    qDebug() << "🏠 Current user home path:" << QDir::homePath();
+    qDebug() << "👤 Current username:" << qgetenv("USERNAME");
+    
+    // Get current username for dynamic path construction
+    QString currentUser = qgetenv("USERNAME");
+    if (currentUser.isEmpty()) {
+        currentUser = qgetenv("USER"); // For Unix-like systems
+    }
+    
+    QStringList searchPaths;
+    
+    // 1. Common user-specific paths with current username
+    if (!currentUser.isEmpty()) {
+        searchPaths << QString("C:/Users/%1/Desktop/ProjetC++/SummerClub_Advanced").arg(currentUser);
+        searchPaths << QString("C:/Users/%1/Desktop/SummerClub_Advanced").arg(currentUser);
+        searchPaths << QString("C:/Users/%1/OneDrive/Desktop/ProjetC++/SummerClub_Advanced").arg(currentUser);
+        searchPaths << QString("C:/Users/%1/OneDrive/Desktop/SummerClub_Advanced").arg(currentUser);
+        searchPaths << QString("C:/Users/%1/Documents/ProjetC++/SummerClub_Advanced").arg(currentUser);
+        searchPaths << QString("C:/Users/%1/Documents/SummerClub_Advanced").arg(currentUser);
+        searchPaths << QString("C:/Users/%1/Downloads/SummerClub_Advanced").arg(currentUser);
+    }
+    
+    // 2. Qt-based home directory paths (cross-platform)
+    searchPaths << QDir::homePath() + "/Desktop/ProjetC++/SummerClub_Advanced";
+    searchPaths << QDir::homePath() + "/Desktop/SummerClub_Advanced"; 
+    searchPaths << QDir::homePath() + "/OneDrive/Desktop/ProjetC++/SummerClub_Advanced";
+    searchPaths << QDir::homePath() + "/OneDrive/Desktop/SummerClub_Advanced";
+    searchPaths << QDir::homePath() + "/Documents/ProjetC++/SummerClub_Advanced";
+    searchPaths << QDir::homePath() + "/Documents/SummerClub_Advanced";
+    searchPaths << QDir::homePath() + "/Downloads/SummerClub_Advanced";
+    
+    // 3. Known specific user paths (for backwards compatibility)
+    searchPaths << "C:/Users/Khalil/Desktop/ProjetC++/SummerClub_Advanced";
+    searchPaths << "C:/Users/Khalil/Desktop/SummerClub_Advanced";
+    searchPaths << "C:/Users/khali/OneDrive/Desktop/SummerClub_Advanced";
+    
+    // 4. Root drive locations
+    searchPaths << "C:/ProjetC++/SummerClub_Advanced";
+    searchPaths << "C:/SummerClub_Advanced";
+    searchPaths << "D:/ProjetC++/SummerClub_Advanced";
+    searchPaths << "D:/SummerClub_Advanced";
+    searchPaths << "E:/ProjetC++/SummerClub_Advanced";
+    searchPaths << "E:/SummerClub_Advanced";
+    
+    // 5. Dynamic search in common base locations
+    QStringList baseSearchLocations = {
+        QDir::homePath() + "/OneDrive/Desktop",
+        QDir::homePath() + "/Desktop",
+        QDir::homePath() + "/Documents", 
+        QDir::homePath() + "/Downloads",
+        "C:/Users/" + currentUser + "/Desktop",
+        "C:/Users/" + currentUser + "/OneDrive/Desktop",
+        "C:/Users/" + currentUser + "/Documents",
+        "C:/", "D:/", "E:/", "F:/"
+    };
+    
+    qDebug() << "🔍 Searching for SummerClub* folders in common locations...";
+    for (const QString &basePath : baseSearchLocations) {
+        QDir baseDir(basePath);
+        if (baseDir.exists()) {
+            // Look for any folder containing "SummerClub" (case insensitive)
+            QStringList filters;
+            filters << "*SummerClub*" << "*summerclub*" << "*SUMMERCLUB*" << "*ProjetC++*" << "*projetc++*";
+            
+            QStringList subdirs = baseDir.entryList(filters, QDir::Dirs);
+            for (const QString &subdir : subdirs) {
+                QString fullPath = basePath + "/" + subdir;
+                searchPaths.append(fullPath);
+                
+                // Also check subdirectories for nested projects
+                QDir subDirObj(fullPath);
+                QStringList nestedDirs = subDirObj.entryList(QStringList() << "*SummerClub*", QDir::Dirs);
+                for (const QString &nestedDir : nestedDirs) {
+                    searchPaths.append(fullPath + "/" + nestedDir);
+                }
+            }
+        }
+    }
+    
+    // Remove duplicates and sort by most likely paths first
+    searchPaths.removeDuplicates();
+    
+    qDebug() << "🔍 Total search paths to check:" << searchPaths.size();
+    
+    // Check each potential path
+    for (const QString &path : searchPaths) {
+        QDir projectDir(path);
+        if (projectDir.exists()) {
+            // Verify it's our project by checking for key files
+            QString nodeScriptsPath = path + "/nodeJsScripts";
+            QString qrScriptPath = nodeScriptsPath + "/qr_adder.js";
+            QString packageJsonPath = nodeScriptsPath + "/package.json";
+            QString activityFile = path + "/activity.cpp";
+            QString activityHeader = path + "/activity.h";
+            QString employerAdminFile = path + "/employeradmin.cpp";
+            
+            // Check for multiple indicators to ensure it's the right project
+            bool hasNodeScripts = QFileInfo::exists(nodeScriptsPath);
+            bool hasQRScript = QFileInfo::exists(qrScriptPath);
+            bool hasActivityFiles = QFileInfo::exists(activityFile) && QFileInfo::exists(activityHeader);
+            bool hasMainProject = QFileInfo::exists(employerAdminFile);
+            
+            // Must have at least nodeJsScripts folder AND either QR script or activity files
+            if (hasNodeScripts && (hasQRScript || (hasActivityFiles && hasMainProject))) {
+                qDebug() << "✅ Found actual project at:" << path;
+                qDebug() << "  ✅ NodeJs scripts folder:" << hasNodeScripts;
+                qDebug() << "  ✅ QR script exists:" << hasQRScript;
+                qDebug() << "  ✅ Activity files:" << hasActivityFiles;
+                qDebug() << "  ✅ Main project files:" << hasMainProject;
+                qDebug() << "  📄 Package.json exists:" << QFileInfo::exists(packageJsonPath);
+                return path;
+            }
+        }
+    }
+    
+    qDebug() << "❌ Could not find SummerClub_Advanced project in any location";
+    qDebug() << "🔍 Searched paths:";
+    for (int i = 0; i < qMin(10, searchPaths.size()); ++i) { // Show first 10 for brevity
+        qDebug() << "  - " << searchPaths[i];
+    }
+    if (searchPaths.size() > 10) {
+        qDebug() << "  ... and" << (searchPaths.size() - 10) << "more locations";
+    }
+    
+    return QString();
+}
+
+bool Activity::copyDirectoryRecursively(const QString &sourceDir, const QString &destDir) const
+{
+    QDir sourceDirectory(sourceDir);
+    if (!sourceDirectory.exists()) {
+        return false;
+    }
+    
+    QDir destDirectory(destDir);
+    if (!destDirectory.exists()) {
+        destDirectory.mkpath(".");
+    }
+    
+    // Copy all files
+    QStringList files = sourceDirectory.entryList(QDir::Files);
+    for (const QString &fileName : files) {
+        QString sourceFilePath = sourceDir + "/" + fileName;
+        QString destFilePath = destDir + "/" + fileName;
+        
+        // Remove existing file if it exists
+        if (QFileInfo::exists(destFilePath)) {
+            QFile::remove(destFilePath);
+        }
+        
+        if (!QFile::copy(sourceFilePath, destFilePath)) {
+            qDebug() << "❌ Failed to copy file:" << sourceFilePath << "to" << destFilePath;
+            return false;
+        } else {
+            qDebug() << "✅ Copied:" << fileName;
+        }
+    }
+    
+    // Copy subdirectories recursively
+    QStringList subdirs = sourceDirectory.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+    for (const QString &subdirName : subdirs) {
+        QString sourceSubdir = sourceDir + "/" + subdirName;
+        QString destSubdir = destDir + "/" + subdirName;
+        
+        if (!copyDirectoryRecursively(sourceSubdir, destSubdir)) {
+            return false;
+        }
+    }
+    
+    return true;
 }

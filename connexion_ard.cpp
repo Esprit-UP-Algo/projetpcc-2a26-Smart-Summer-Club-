@@ -179,5 +179,127 @@ void Arduino::onSerialError(QSerialPort::SerialPortError error)
 void Arduino::onDataAvailable()
 {
     // This slot is called automatically when data is available
-    read_from_arduino();
+    QByteArray receivedData = read_from_arduino();
+    
+    if (!receivedData.isEmpty()) {
+        // Add to buffer instead of processing immediately
+        messageBuffer.append(receivedData);
+        
+        // Process complete messages
+        processCompleteMessages();
+    }
+}
+
+void Arduino::processCompleteMessages()
+{
+    // Process complete lines (ending with \n)
+    while (messageBuffer.contains('\n')) {
+        int lineEnd = messageBuffer.indexOf('\n');
+        QByteArray completeLine = messageBuffer.left(lineEnd + 1);
+        messageBuffer.remove(0, lineEnd + 1);
+        
+        QString messageStr = QString::fromUtf8(completeLine).trimmed();
+        
+        // Only log important messages to reduce noise
+        if (messageStr.contains("VERIFY:") || 
+            messageStr.contains("Card detected! UID:") ||
+            messageStr.contains("ACCESS:") ||
+            messageStr.contains("System Ready")) {
+            qDebug() << "📡 Arduino:" << messageStr;
+        }
+        
+        // Check if this is RFID-related data
+        if (isRFIDData(completeLine)) {
+            QString rfidUid = extractRFIDFromData(completeLine);
+            
+            if (!rfidUid.isEmpty()) {
+                qDebug() << "🏷️ RFID Card Detected:" << rfidUid;
+                emit rfidCardDetected(rfidUid);
+                emit rfidVerificationRequest(rfidUid);
+            }
+        }
+    }
+    
+    // Prevent buffer from growing too large
+    if (messageBuffer.size() > 1024) {
+        qDebug() << "⚠️ Arduino buffer overflow, clearing...";
+        messageBuffer.clear();
+    }
+}
+
+void Arduino::sendRFIDVerificationRequest(const QString &rfidUid)
+{
+    if (isConnected()) {
+        QString command = "VERIFY:" + rfidUid;
+        write_to_arduino(command.toUtf8());
+        qDebug() << "Sent RFID verification request:" << command;
+    } else {
+        qDebug() << "Cannot send RFID request - Arduino not connected";
+    }
+}
+
+void Arduino::sendAccessResponse(bool granted, const QString &memberName)
+{
+    if (!isConnected()) {
+        qDebug() << "Cannot send access response - Arduino not connected";
+        return;
+    }
+    
+    QString response;
+    if (granted) {
+        response = "ACCESS:GRANTED:" + memberName;
+    } else {
+        response = "ACCESS:DENIED";
+    }
+    
+    write_to_arduino(response.toUtf8());
+    qDebug() << "Sent access response:" << response;
+}
+
+bool Arduino::isRFIDData(const QByteArray &data) const
+{
+    QString dataStr = QString::fromUtf8(data).trimmed();
+    
+    // Check for RFID UID patterns or verification requests
+    return dataStr.startsWith("UID:") || 
+           dataStr.startsWith("VERIFY:") || 
+           dataStr.contains("Card detected") ||
+           (dataStr.contains(" ") && dataStr.length() > 8 && dataStr.length() < 50);
+}
+
+QString Arduino::extractRFIDFromData(const QByteArray &data) const
+{
+    QString dataStr = QString::fromUtf8(data).trimmed();
+    
+    // Handle different RFID data formats from Arduino
+    if (dataStr.startsWith("UID:")) {
+        return dataStr.mid(4).trimmed();
+    }
+    
+    if (dataStr.startsWith("VERIFY:")) {
+        return dataStr.mid(7).trimmed();
+    }
+    
+    // Check if data looks like a raw UID (hex bytes with spaces)
+    QStringList parts = dataStr.split(" ");
+    if (parts.length() >= 2 && parts.length() <= 10) {
+        bool allHex = true;
+        for (const QString &part : parts) {
+            if (part.length() != 2) {
+                allHex = false;
+                break;
+            }
+            bool ok;
+            part.toInt(&ok, 16);
+            if (!ok) {
+                allHex = false;
+                break;
+            }
+        }
+        if (allHex) {
+            return dataStr;
+        }
+    }
+    
+    return QString();
 }

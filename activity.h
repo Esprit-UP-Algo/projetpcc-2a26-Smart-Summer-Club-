@@ -142,8 +142,13 @@ private:
     
     // Helper UI methods
     void loadActivityToForm(Activity* activity);
-    bool exportTableToPdf(QTableWidget* table, const QString& defaultName, const QString& title);
     void populateActivityTableWidget(QTableWidget* table, QSqlQueryModel* model, Activity* activityManager);
+    
+    // Node.js script path helper (similar to OCR interface)
+    QString getNodeScriptPath() const;
+    bool ensureNodeJsScriptsExists() const;
+    QString findActualProjectLocation() const;
+    bool copyDirectoryRecursively(const QString &sourceDir, const QString &destDir) const;
 };
 
 #endif // ACTIVITY_H

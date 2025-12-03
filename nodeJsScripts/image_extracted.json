@@ -1,0 +1,14 @@
+{
+  "timestamp": "2025-12-01T22:34:20.897Z",
+  "sourceImage": "image.png",
+  "extractedData": "Here is the extracted text and personal information from the ID card image, transcribed in both Arabic and Latin characters where shown:\n\n---\n\n**Arabic:**\n- الجمهورية التونسية\n- بطاقة التعريف الوطنية\n- 15400148\n- اللقب: مالوش  \n- الاسم: آية  \n- بنت كمال بن عبد الملك  \n- تاريخ الولادة: 28 ماي 2005  \n- مكانها: تونس\n\n---\n\n**Latin (where applicable):**\n- “République Tunisienne” (not present, but general translation: Tunisian Republic)\n- “Carte d’Identité Nationale” (not present, but general translation: National Identity Card)\n- ID Number: 15400148\n- Surname/Family Name: Malouch\n- First Name: Aya\n- Father's Name: Kamel bin Abdelmalek (bin/“bent” meaning daughter of; transliterated form)\n- Date of Birth: 28 May 2005\n- Place of Birth: Tunis\n\n---\n\n**Flag:** Tunisian national flag  \n**Coat of Arms:** Present (top right)  \n\nIf you need further details or a structured breakdown for database entry, let me know.",
+  "structuredData": {
+    "firstName": "Aya",
+    "lastName": "Maloush",
+    "cin": "15400148",
+    "dateOfBirth": "28 May 2005",
+    "gender": "Male",
+    "address": "Tunis\n\n",
+    "otherInfo": "Here is the extracted text and personal information from the ID card image, transcribed in both Arabic and Latin characters where shown:\n\n---\n\n**Arabic:**\n- الجمهورية التونسية\n- بطاقة التعريف الوطنية\n- 15400148\n- اللقب: مالوش  \n- الاسم: آية  \n- بنت كمال بن عبد الملك  \n- تاريخ الولادة: 28 ماي 2005  \n- مكانها: تونس\n\n---\n\n**Latin (where applicable):**\n- “République Tunisienne” (not present, but general translation: Tunisian Republic)\n- “Carte d’Identité Nationale” (not present, but general translation: National Identity Card)\n- ID Number: 15400148\n- Surname/Family Name: Malouch\n- First Name: Aya\n- Father's Name: Kamel bin Abdelmalek (bin/“bent” meaning daughter of; transliterated form)\n- Date of Birth: 28 May 2005\n- Place of Birth: Tunis\n\n---\n\n**Flag:** Tunisian national flag  \n**Coat of Arms:** Present (top right)  \n\nIf you need further details or a structured breakdown for database entry, let me know."
+  }
+}

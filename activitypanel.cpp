@@ -1,7 +1,7 @@
 #include "activitypanel.h"
 #include <QApplication>
 #include <QStandardPaths>
-#include <QFileInfo>
+#include <QFileInfo>\n#include <QProcessEnvironment>
 
 ActivityPanel::ActivityPanel(QWidget *parent)
     : QWidget(parent)
@@ -846,31 +846,90 @@ bool ActivityPanel::ensureNodeJsScriptsExists()
 
 QString ActivityPanel::findActualProjectLocation()
 {
-    // List of possible project locations to search
-    QStringList searchPaths = {
-        "C:/Users/Khalil/Desktop/SummerClub_Advanced",
-        QDir::homePath() + "/Desktop/SummerClub_Advanced",
-        QDir::homePath() + "/Documents/SummerClub_Advanced",
-        "D:/SummerClub_Advanced",
-        "E:/SummerClub_Advanced"
-    };
+    qDebug() << "🔍 Starting comprehensive project location search...";
+    qDebug() << "🏠 Current user home path:" << QDir::homePath();
+    qDebug() << "👤 Current username:" << qgetenv("USERNAME");
     
-    // Also try to find it by looking for common project indicators
-    QStringList commonLocations = {
+    // Get current username for dynamic path construction
+    QString currentUser = qgetenv("USERNAME");
+    if (currentUser.isEmpty()) {
+        currentUser = qgetenv("USER"); // For Unix-like systems
+    }
+    
+    QStringList searchPaths;
+    
+    // 1. Common user-specific paths with current username
+    if (!currentUser.isEmpty()) {
+        searchPaths << QString("C:/Users/%1/Desktop/ProjetC++/SummerClub_Advanced").arg(currentUser);
+        searchPaths << QString("C:/Users/%1/Desktop/SummerClub_Advanced").arg(currentUser);
+        searchPaths << QString("C:/Users/%1/OneDrive/Desktop/ProjetC++/SummerClub_Advanced").arg(currentUser);
+        searchPaths << QString("C:/Users/%1/OneDrive/Desktop/SummerClub_Advanced").arg(currentUser);
+        searchPaths << QString("C:/Users/%1/Documents/ProjetC++/SummerClub_Advanced").arg(currentUser);
+        searchPaths << QString("C:/Users/%1/Documents/SummerClub_Advanced").arg(currentUser);
+        searchPaths << QString("C:/Users/%1/Downloads/SummerClub_Advanced").arg(currentUser);
+    }
+    
+    // 2. Qt-based home directory paths (cross-platform)
+    searchPaths << QDir::homePath() + "/Desktop/ProjetC++/SummerClub_Advanced";
+    searchPaths << QDir::homePath() + "/Desktop/SummerClub_Advanced"; 
+    searchPaths << QDir::homePath() + "/OneDrive/Desktop/ProjetC++/SummerClub_Advanced";
+    searchPaths << QDir::homePath() + "/OneDrive/Desktop/SummerClub_Advanced";
+    searchPaths << QDir::homePath() + "/Documents/ProjetC++/SummerClub_Advanced";
+    searchPaths << QDir::homePath() + "/Documents/SummerClub_Advanced";
+    searchPaths << QDir::homePath() + "/Downloads/SummerClub_Advanced";
+    
+    // 3. Known specific user paths (for backwards compatibility)
+    searchPaths << "C:/Users/Khalil/Desktop/ProjetC++/SummerClub_Advanced";
+    searchPaths << "C:/Users/Khalil/Desktop/SummerClub_Advanced";
+    searchPaths << "C:/Users/khali/OneDrive/Desktop/SummerClub_Advanced";
+    
+    // 4. Root drive locations
+    searchPaths << "C:/ProjetC++/SummerClub_Advanced";
+    searchPaths << "C:/SummerClub_Advanced";
+    searchPaths << "D:/ProjetC++/SummerClub_Advanced";
+    searchPaths << "D:/SummerClub_Advanced";
+    searchPaths << "E:/ProjetC++/SummerClub_Advanced";
+    searchPaths << "E:/SummerClub_Advanced";
+    
+    // 5. Dynamic search in common base locations
+    QStringList baseSearchLocations = {
+        QDir::homePath() + "/OneDrive/Desktop",
         QDir::homePath() + "/Desktop",
-        QDir::homePath() + "/Documents",
-        "C:/", "D:/", "E:/"
+        QDir::homePath() + "/Documents", 
+        QDir::homePath() + "/Downloads",
+        "C:/Users/" + currentUser + "/Desktop",
+        "C:/Users/" + currentUser + "/OneDrive/Desktop",
+        "C:/Users/" + currentUser + "/Documents",
+        "C:/", "D:/", "E:/", "F:/"
     };
     
-    // Search in common locations for SummerClub_Advanced folder
-    for (const QString &basePath : commonLocations) {
+    qDebug() << "🔍 Searching for SummerClub* folders in common locations...";
+    for (const QString &basePath : baseSearchLocations) {
         QDir baseDir(basePath);
-        QStringList subdirs = baseDir.entryList(QStringList() << "*SummerClub*", QDir::Dirs);
-        for (const QString &subdir : subdirs) {
-            QString fullPath = basePath + "/" + subdir;
-            searchPaths.append(fullPath);
+        if (baseDir.exists()) {
+            // Look for any folder containing "SummerClub" (case insensitive)
+            QStringList filters;
+            filters << "*SummerClub*" << "*summerclub*" << "*SUMMERCLUB*" << "*ProjetC++*" << "*projetc++*";
+            
+            QStringList subdirs = baseDir.entryList(filters, QDir::Dirs);
+            for (const QString &subdir : subdirs) {
+                QString fullPath = basePath + "/" + subdir;
+                searchPaths.append(fullPath);
+                
+                // Also check subdirectories for nested projects
+                QDir subDirObj(fullPath);
+                QStringList nestedDirs = subDirObj.entryList(QStringList() << "*SummerClub*", QDir::Dirs);
+                for (const QString &nestedDir : nestedDirs) {
+                    searchPaths.append(fullPath + "/" + nestedDir);
+                }
+            }
         }
     }
+    
+    // Remove duplicates and sort by most likely paths first
+    searchPaths.removeDuplicates();
+    
+    qDebug() << "🔍 Total search paths to check:" << searchPaths.size();
     
     // Check each potential path
     for (const QString &path : searchPaths) {
@@ -878,23 +937,41 @@ QString ActivityPanel::findActualProjectLocation()
         if (projectDir.exists()) {
             // Verify it's our project by checking for key files
             QString nodeScriptsPath = path + "/nodeJsScripts";
-            QString scriptPath = nodeScriptsPath + "/forms_data_extractor.js";
+            QString formsScriptPath = nodeScriptsPath + "/forms_data_extractor.js";
             QString credentialsPath = nodeScriptsPath + "/credentials.json";
             QString packageJsonPath = nodeScriptsPath + "/package.json";
+            QString activityFile = path + "/activity.cpp";
+            QString activityPanelFile = path + "/activitypanel.cpp";
+            QString employerAdminFile = path + "/employeradmin.cpp";
             
-            if (QFileInfo::exists(scriptPath) && QFileInfo::exists(credentialsPath)) {
+            // Check for multiple indicators to ensure it's the right project
+            bool hasNodeScripts = QFileInfo::exists(nodeScriptsPath);
+            bool hasFormsScript = QFileInfo::exists(formsScriptPath);
+            bool hasCredentials = QFileInfo::exists(credentialsPath);
+            bool hasActivityFiles = QFileInfo::exists(activityFile) && QFileInfo::exists(activityPanelFile);
+            bool hasMainProject = QFileInfo::exists(employerAdminFile);
+            
+            // Must have nodeJsScripts folder AND either forms script or (activity files AND credentials)
+            if (hasNodeScripts && (hasFormsScript || (hasActivityFiles && hasCredentials && hasMainProject))) {
                 qDebug() << "✅ Found actual project at:" << path;
-                qDebug() << "  ✅ Script exists:" << QFileInfo::exists(scriptPath);
-                qDebug() << "  ✅ Credentials exist:" << QFileInfo::exists(credentialsPath);
+                qDebug() << "  ✅ NodeJs scripts folder:" << hasNodeScripts;
+                qDebug() << "  ✅ Forms script exists:" << hasFormsScript;
+                qDebug() << "  ✅ Credentials exist:" << hasCredentials;
+                qDebug() << "  ✅ Activity files:" << hasActivityFiles;
+                qDebug() << "  ✅ Main project files:" << hasMainProject;
                 qDebug() << "  📄 Package.json exists:" << QFileInfo::exists(packageJsonPath);
                 return path;
             }
         }
     }
     
-    qDebug() << "❌ Could not find SummerClub_Advanced project in any of these locations:";
-    for (const QString &path : searchPaths) {
-        qDebug() << "  - " << path;
+    qDebug() << "❌ Could not find SummerClub_Advanced project in any location";
+    qDebug() << "🔍 Searched paths:";
+    for (int i = 0; i < qMin(10, searchPaths.size()); ++i) { // Show first 10 for brevity
+        qDebug() << "  - " << searchPaths[i];
+    }
+    if (searchPaths.size() > 10) {
+        qDebug() << "  ... and" << (searchPaths.size() - 10) << "more locations";
     }
     
     return QString();

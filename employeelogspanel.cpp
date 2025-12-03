@@ -10,6 +10,10 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QUuid>
+#include <QDialog>
+#include <QTabWidget>
+#include <QFormLayout>
+#include <QHBoxLayout>
 
 // Static member definitions
 QMutex EmployeeLogsPanel::s_logMutex;
@@ -22,12 +26,12 @@ EmployeeLogsPanel::EmployeeLogsPanel(QWidget *parent)
     : QWidget(parent)
     , m_mainLayout(nullptr)
     , m_mainSplitter(nullptr)
-    , m_timelineViewEnabled(false)
-    , m_autoRefreshEnabled(true)
     , m_currentUserId("admin01") // TODO: Get from authentication system
     , m_currentUserName("System Administrator")
     , m_currentUserRole("Admin")
     , m_currentSessionId(QUuid::createUuid().toString(QUuid::WithoutBraces))
+    , m_timelineViewEnabled(false)
+    , m_autoRefreshEnabled(true)
 {
     setupUI();
     loadLogsFromFile();
@@ -89,11 +93,11 @@ void EmployeeLogsPanel::setupDashboard()
     setCardStyle(m_totalLogsCard, "#3498db");
     QVBoxLayout *totalLayout = new QVBoxLayout(m_totalLogsCard);
     m_totalLogsLabel = new QLabel("0");
-    m_totalLogsLabel->setStyleSheet("font-size: 36px; font-weight: bold; color: #3498db;");
+    m_totalLogsLabel->setStyleSheet("font-size: 28px; font-weight: bold; color: #3498db;");
     m_totalLogsLabel->setAlignment(Qt::AlignCenter);
     totalLayout->addWidget(m_totalLogsLabel);
     QLabel *totalSubLabel = new QLabel("entries logged");
-    totalSubLabel->setStyleSheet("color: #7f8c8d; font-size: 14px;");
+    totalSubLabel->setStyleSheet("color: #7f8c8d; font-size: 12px;");
     totalSubLabel->setAlignment(Qt::AlignCenter);
     totalLayout->addWidget(totalSubLabel);
     
@@ -102,11 +106,11 @@ void EmployeeLogsPanel::setupDashboard()
     setCardStyle(m_todayActivityCard, "#27ae60");
     QVBoxLayout *todayLayout = new QVBoxLayout(m_todayActivityCard);
     m_todayActivityLabel = new QLabel("0");
-    m_todayActivityLabel->setStyleSheet("font-size: 36px; font-weight: bold; color: #27ae60;");
+    m_todayActivityLabel->setStyleSheet("font-size: 28px; font-weight: bold; color: #27ae60;");
     m_todayActivityLabel->setAlignment(Qt::AlignCenter);
     todayLayout->addWidget(m_todayActivityLabel);
     QLabel *todaySubLabel = new QLabel("actions today");
-    todaySubLabel->setStyleSheet("color: #7f8c8d; font-size: 14px;");
+    todaySubLabel->setStyleSheet("color: #7f8c8d; font-size: 12px;");
     todaySubLabel->setAlignment(Qt::AlignCenter);
     todayLayout->addWidget(todaySubLabel);
     
@@ -115,11 +119,11 @@ void EmployeeLogsPanel::setupDashboard()
     setCardStyle(m_riskAlertsCard, "#e74c3c");
     QVBoxLayout *riskLayout = new QVBoxLayout(m_riskAlertsCard);
     m_riskAlertsLabel = new QLabel("0");
-    m_riskAlertsLabel->setStyleSheet("font-size: 36px; font-weight: bold; color: #e74c3c;");
+    m_riskAlertsLabel->setStyleSheet("font-size: 28px; font-weight: bold; color: #e74c3c;");
     m_riskAlertsLabel->setAlignment(Qt::AlignCenter);
     riskLayout->addWidget(m_riskAlertsLabel);
     QLabel *riskSubLabel = new QLabel("high-risk events");
-    riskSubLabel->setStyleSheet("color: #7f8c8d; font-size: 14px;");
+    riskSubLabel->setStyleSheet("color: #7f8c8d; font-size: 12px;");
     riskSubLabel->setAlignment(Qt::AlignCenter);
     riskLayout->addWidget(riskSubLabel);
     
@@ -128,7 +132,7 @@ void EmployeeLogsPanel::setupDashboard()
     setCardStyle(m_lastActivityCard, "#f39c12");
     QVBoxLayout *lastLayout = new QVBoxLayout(m_lastActivityCard);
     m_lastActivityLabel = new QLabel("No activity");
-    m_lastActivityLabel->setStyleSheet("font-size: 18px; font-weight: 500; color: #f39c12;");
+    m_lastActivityLabel->setStyleSheet("font-size: 14px; font-weight: 500; color: #f39c12;");
     m_lastActivityLabel->setAlignment(Qt::AlignCenter);
     m_lastActivityLabel->setWordWrap(true);
     lastLayout->addWidget(m_lastActivityLabel);
@@ -570,6 +574,8 @@ void EmployeeLogsPanel::rotateLogsIfNeeded()
 EmployeeLogsPanel::RiskLevel EmployeeLogsPanel::assessRisk(const QString &action, const QString &entityType, 
                                                           const QString &userId, const QDateTime &timestamp)
 {
+    Q_UNUSED(userId) // Parameter reserved for future use
+    
     // Simple risk assessment logic
     if (action == "DELETE" && entityType == "Employee") {
         return CRITICAL;
@@ -1044,47 +1050,215 @@ QString EmployeeLogsPanel::getRiskIcon(const QString &riskLevel)
 
 void EmployeeLogsPanel::showLogEntryDetails(const AuditLogEntry &entry)
 {
-    QString details = QString(R"(
-        <h2>📋 Audit Log Details</h2>
-        <table style="width: 100%; border-collapse: collapse;">
-        <tr><td style="font-weight: bold;">Log ID:</td><td>%1</td></tr>
-        <tr><td style="font-weight: bold;">Timestamp:</td><td>%2</td></tr>
-        <tr><td style="font-weight: bold;">User:</td><td>%3 (%4)</td></tr>
-        <tr><td style="font-weight: bold;">Action:</td><td>%5 %6</td></tr>
-        <tr><td style="font-weight: bold;">Entity:</td><td>%7 (ID: %8)</td></tr>
-        <tr><td style="font-weight: bold;">Risk Level:</td><td>%9 %10</td></tr>
-        <tr><td style="font-weight: bold;">Status:</td><td>%11</td></tr>
-        <tr><td style="font-weight: bold;">Session ID:</td><td>%12</td></tr>
-        <tr><td style="font-weight: bold;">Description:</td><td>%13</td></tr>
-        </table>
-    )")
-    .arg(entry.logId)
-    .arg(formatTimestamp(entry.timestamp))
-    .arg(entry.userName, entry.userRole)
-    .arg(getActionIcon(entry.action), entry.action)
-    .arg(entry.entityType, entry.entityId)
-    .arg(getRiskIcon(entry.riskLevel), entry.riskLevel)
-    .arg(entry.success ? "✅ Success" : "❌ Failed")
-    .arg(entry.sessionId)
-    .arg(entry.description);
+    // Create a dialog with tab widget
+    QDialog *detailsDialog = new QDialog(this);
+    detailsDialog->setWindowTitle("Audit Log Entry Details");
+    detailsDialog->setMinimumSize(900, 600);
+    detailsDialog->setMaximumSize(1200, 800);
+    detailsDialog->setAttribute(Qt::WA_DeleteOnClose);
     
+    // Create main layout
+    QVBoxLayout *mainLayout = new QVBoxLayout(detailsDialog);
+    mainLayout->setContentsMargins(10, 10, 10, 10);
+    
+    // Create tab widget
+    QTabWidget *tabWidget = new QTabWidget(detailsDialog);
+    tabWidget->setStyleSheet(R"(
+        QTabWidget::pane {
+            border: 1px solid #c0c0c0;
+            background-color: white;
+        }
+        QTabWidget::tab-bar {
+            alignment: left;
+        }
+        QTabBar::tab {
+            background: #f0f0f0;
+            border: 1px solid #c0c0c0;
+            padding: 8px 16px;
+            margin-right: 2px;
+            border-radius: 4px 4px 0px 0px;
+        }
+        QTabBar::tab:selected {
+            background: white;
+            border-bottom-color: white;
+        }
+        QTabBar::tab:hover {
+            background: #e0e0e0;
+        }
+    )");
+    
+    // Create Basic Details tab
+    QWidget *basicDetailsTab = new QWidget();
+    QVBoxLayout *basicLayout = new QVBoxLayout(basicDetailsTab);
+    basicLayout->setSpacing(15);
+    basicLayout->setContentsMargins(20, 20, 20, 20);
+    
+    // Basic details content
+    QLabel *titleLabel = new QLabel("📋 Audit Log Entry Details");
+    titleLabel->setStyleSheet("font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 15px;");
+    titleLabel->setAlignment(Qt::AlignCenter);
+    basicLayout->addWidget(titleLabel);
+    
+    // Create form for basic details
+    QFormLayout *formLayout = new QFormLayout();
+    formLayout->setSpacing(10);
+    formLayout->setLabelAlignment(Qt::AlignRight);
+    
+    QString labelStyle = "font-weight: bold; color: #34495e; padding: 8px;";
+    QString valueStyle = "color: #2c3e50; padding: 8px; background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px;";
+    
+    QLabel *logIdLabel = new QLabel("Log ID:");
+    logIdLabel->setStyleSheet(labelStyle);
+    QLabel *logIdValue = new QLabel(entry.logId);
+    logIdValue->setStyleSheet(valueStyle);
+    formLayout->addRow(logIdLabel, logIdValue);
+    
+    QLabel *timestampLabel = new QLabel("Timestamp:");
+    timestampLabel->setStyleSheet(labelStyle);
+    QLabel *timestampValue = new QLabel(formatTimestamp(entry.timestamp));
+    timestampValue->setStyleSheet(valueStyle);
+    formLayout->addRow(timestampLabel, timestampValue);
+    
+    QLabel *userLabel = new QLabel("User:");
+    userLabel->setStyleSheet(labelStyle);
+    QLabel *userValue = new QLabel(QString("%1 (%2)").arg(entry.userName, entry.userRole));
+    userValue->setStyleSheet(valueStyle);
+    formLayout->addRow(userLabel, userValue);
+    
+    QLabel *actionLabel = new QLabel("Action:");
+    actionLabel->setStyleSheet(labelStyle);
+    QLabel *actionValue = new QLabel(QString("%1 %2").arg(getActionIcon(entry.action), entry.action));
+    actionValue->setStyleSheet(valueStyle);
+    formLayout->addRow(actionLabel, actionValue);
+    
+    QLabel *entityLabel = new QLabel("Entity:");
+    entityLabel->setStyleSheet(labelStyle);
+    QLabel *entityValue = new QLabel(QString("%1 (ID: %2)").arg(entry.entityType, entry.entityId));
+    entityValue->setStyleSheet(valueStyle);
+    formLayout->addRow(entityLabel, entityValue);
+    
+    QLabel *riskLabel = new QLabel("Risk Level:");
+    riskLabel->setStyleSheet(labelStyle);
+    QLabel *riskValue = new QLabel(QString("%1 %2").arg(getRiskIcon(entry.riskLevel), entry.riskLevel));
+    riskValue->setStyleSheet(valueStyle);
+    formLayout->addRow(riskLabel, riskValue);
+    
+    QLabel *statusLabel = new QLabel("Status:");
+    statusLabel->setStyleSheet(labelStyle);
+    QLabel *statusValue = new QLabel(entry.success ? "✅ Success" : "❌ Failed");
+    statusValue->setStyleSheet(valueStyle);
+    formLayout->addRow(statusLabel, statusValue);
+    
+    QLabel *sessionLabel = new QLabel("Session ID:");
+    sessionLabel->setStyleSheet(labelStyle);
+    QLabel *sessionValue = new QLabel(entry.sessionId);
+    sessionValue->setStyleSheet(valueStyle);
+    formLayout->addRow(sessionLabel, sessionValue);
+    
+    QLabel *descLabel = new QLabel("Description:");
+    descLabel->setStyleSheet(labelStyle);
+    QLabel *descValue = new QLabel(entry.description);
+    descValue->setStyleSheet(valueStyle);
+    descValue->setWordWrap(true);
+    formLayout->addRow(descLabel, descValue);
+    
+    basicLayout->addLayout(formLayout);
+    basicLayout->addStretch();
+    
+    tabWidget->addTab(basicDetailsTab, "📋 Basic Details");
+    
+    // Create Data Changes tab (only if there's data to show)
     if (!entry.beforeData.isEmpty() || !entry.afterData.isEmpty()) {
-        details += "<h3>📊 Data Changes</h3>";
+        QWidget *dataChangesTab = new QWidget();
+        QVBoxLayout *dataLayout = new QVBoxLayout(dataChangesTab);
+        dataLayout->setSpacing(15);
+        dataLayout->setContentsMargins(20, 20, 20, 20);
+        
+        QLabel *dataTitle = new QLabel("📊 Data Changes");
+        dataTitle->setStyleSheet("font-size: 18px; font-weight: bold; color: #2c3e50; margin-bottom: 15px;");
+        dataTitle->setAlignment(Qt::AlignCenter);
+        dataLayout->addWidget(dataTitle);
+        
+        // Before data section
         if (!entry.beforeData.isEmpty()) {
-            details += QString("<p><b>Before:</b><br><pre>%1</pre></p>").arg(entry.beforeData);
+            QLabel *beforeLabel = new QLabel("🔴 Before:");
+            beforeLabel->setStyleSheet("font-size: 14px; font-weight: bold; color: #e74c3c; margin-top: 10px;");
+            dataLayout->addWidget(beforeLabel);
+            
+            QTextEdit *beforeText = new QTextEdit();
+            beforeText->setPlainText(entry.beforeData);
+            beforeText->setReadOnly(true);
+            beforeText->setMaximumHeight(200);
+            beforeText->setStyleSheet(R"(
+                QTextEdit {
+                    background-color: #fff5f5;
+                    border: 2px solid #ffcdd2;
+                    border-radius: 6px;
+                    padding: 12px;
+                    font-family: 'Consolas', 'Monaco', monospace;
+                    font-size: 11px;
+                }
+            )");
+            dataLayout->addWidget(beforeText);
         }
+        
+        // After data section
         if (!entry.afterData.isEmpty()) {
-            details += QString("<p><b>After:</b><br><pre>%1</pre></p>").arg(entry.afterData);
+            QLabel *afterLabel = new QLabel("🟢 After:");
+            afterLabel->setStyleSheet("font-size: 14px; font-weight: bold; color: #27ae60; margin-top: 15px;");
+            dataLayout->addWidget(afterLabel);
+            
+            QTextEdit *afterText = new QTextEdit();
+            afterText->setPlainText(entry.afterData);
+            afterText->setReadOnly(true);
+            afterText->setMaximumHeight(200);
+            afterText->setStyleSheet(R"(
+                QTextEdit {
+                    background-color: #f1f8e9;
+                    border: 2px solid #c8e6c9;
+                    border-radius: 6px;
+                    padding: 12px;
+                    font-family: 'Consolas', 'Monaco', monospace;
+                    font-size: 11px;
+                }
+            )");
+            dataLayout->addWidget(afterText);
         }
+        
+        dataLayout->addStretch();
+        tabWidget->addTab(dataChangesTab, "📊 Data Changes");
     }
     
-    QMessageBox msgBox(this);
-    msgBox.setWindowTitle("Audit Log Entry Details");
-    msgBox.setTextFormat(Qt::RichText);
-    msgBox.setText(details);
-    msgBox.setStandardButtons(QMessageBox::Ok);
-    msgBox.setIcon(QMessageBox::Information);
-    msgBox.exec();
+    // Add tab widget to main layout
+    mainLayout->addWidget(tabWidget);
+    
+    // Add close button
+    QHBoxLayout *buttonLayout = new QHBoxLayout();
+    buttonLayout->addStretch();
+    
+    QPushButton *closeButton = new QPushButton("Close");
+    closeButton->setMinimumSize(100, 35);
+    closeButton->setStyleSheet(R"(
+        QPushButton {
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #16a5b3, stop:1 #139aa6);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        QPushButton:hover {
+            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #139aa6, stop:1 #0f858f);
+        }
+    )");
+    
+    connect(closeButton, &QPushButton::clicked, detailsDialog, &QDialog::accept);
+    buttonLayout->addWidget(closeButton);
+    
+    mainLayout->addLayout(buttonLayout);
+    
+    // Show dialog
+    detailsDialog->exec();
 }
 
 void EmployeeLogsPanel::animateCard(QGroupBox *card)

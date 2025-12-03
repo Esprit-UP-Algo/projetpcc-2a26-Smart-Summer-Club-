@@ -70,7 +70,7 @@ struct AuditLogEntry {
     QString description;              // Human-readable description
     
     // Constructor
-    AuditLogEntry() : success(true), riskLevel("LOW") {}
+    AuditLogEntry() : riskLevel("LOW"), success(true) {}
 };
 
 /**

@@ -32,6 +32,8 @@ EmployerAdmin::EmployerAdmin(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::EmployerAdmin)
     , arduino(nullptr)
+    , rfidSystem(nullptr)
+    , rfidPanel(nullptr)
     , employeeManager(nullptr)
     , memberManager(nullptr)
     , activityManager(nullptr)
@@ -40,7 +42,13 @@ EmployerAdmin::EmployerAdmin(QWidget *parent)
 {
     ui->setupUi(this);
 
-    QPixmap pix("C:/Users/khali/OneDrive/Desktop/projetpcc-2a26-vibraclub-integration/assests/VibraClubLogo.png");
+    // Use relative path to logo in current project
+    QString logoPath = QCoreApplication::applicationDirPath() + "/../../assests/VibraClubLogo.png";
+    QPixmap pix(logoPath);
+    if (pix.isNull()) {
+        // Fallback: try current working directory
+        pix.load("./assests/VibraClubLogo.png");
+    }
     ui->logo->setPixmap(pix.scaled(50, 50, Qt::KeepAspectRatio));
 
     // Setup navigation button group
@@ -1458,6 +1466,45 @@ void EmployerAdmin::setArduino(Arduino *ard)
 {
     arduino = ard;
     setupArduinoConnections();
+    
+    // Initialize RFID system if Arduino is available
+    if (arduino && arduino->isConnected()) {
+        qDebug() << "🔧 Initializing RFID Access Control System...";
+        rfidSystem = new RFIDManager(arduino, this);
+        
+        // Connect RFID access control signals
+        connect(rfidSystem, &RFIDManager::accessGranted,
+                this, &EmployerAdmin::onRFIDAccessGranted);
+        
+        connect(rfidSystem, &RFIDManager::accessDenied,
+                this, &EmployerAdmin::onRFIDAccessDenied);
+        
+        // Start the RFID system
+        if (rfidSystem->startRFIDSystem()) {
+            qDebug() << "✅ RFID Access Control System started successfully!";
+        } else {
+            qDebug() << "❌ Failed to start RFID Access Control System";
+        }
+        
+        // Initialize and integrate RFID Panel
+        rfidPanel = new RFIDPanel(this);
+        rfidPanel->setRFIDManager(rfidSystem);
+        
+        // Add RFID panel as a new tab in member tab widget
+        ui->memberTabWidget->addTab(rfidPanel, "🔐 RFID Access");
+        ui->memberTabWidget->setTabIcon(ui->memberTabWidget->count() - 1, QIcon(":/icons/icons/members.png"));
+        qDebug() << "🎨 RFID Dashboard panel added as new tab";
+    } else {
+        qDebug() << "⚠️ RFID system not initialized - Arduino not available";
+        
+        // Still create the panel for viewing existing data
+        rfidPanel = new RFIDPanel(this);
+        
+        // Add RFID panel as new tab (read-only mode)
+        ui->memberTabWidget->addTab(rfidPanel, "🔐 RFID Access (Read-Only)");
+        ui->memberTabWidget->setTabIcon(ui->memberTabWidget->count() - 1, QIcon(":/icons/icons/members.png"));
+        qDebug() << "🎨 RFID Dashboard panel added as new tab (read-only mode)";
+    }
 }
 
 void EmployerAdmin::setupArduinoConnections()
@@ -1608,4 +1655,38 @@ void EmployerAdmin::onOCRDataExtracted(const QString &cin, const QString &firstN
     }
     
     qDebug() << "✅ Member form auto-filled with OCR data successfully!";
+}
+
+// RFID Access Control Implementations
+void EmployerAdmin::onRFIDAccessGranted(const QString &memberName, const QString &rfidUid)
+{
+    qDebug() << "🎉 =========================";
+    qDebug() << "    RFID ACCESS GRANTED";
+    qDebug() << "🎉 =========================";
+    qDebug() << "👤 Welcome:" << memberName;
+    qDebug() << "💳 Card:" << rfidUid;
+    qDebug() << "⏰ Time:" << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+    qDebug() << "🎉 =========================";
+    
+    // You can add UI notifications here like:
+    // QMessageBox::information(this, "Access Granted", 
+    //                         QString("Welcome %1!").arg(memberName));
+    
+    // Or update a status label:
+    // statusBar()->showMessage(QString("Access granted to %1").arg(memberName), 5000);
+}
+
+void EmployerAdmin::onRFIDAccessDenied(const QString &rfidUid, const QString &reason)
+{
+    qDebug() << "❌ =========================";
+    qDebug() << "    RFID ACCESS DENIED";
+    qDebug() << "❌ =========================";
+    qDebug() << "💳 Card:" << rfidUid;
+    qDebug() << "⚠️ Reason:" << reason;
+    qDebug() << "⏰ Time:" << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
+    qDebug() << "❌ =========================";
+    
+    // You can add UI notifications here like:
+    // QMessageBox::warning(this, "Access Denied", 
+    //                     QString("Access denied: %1").arg(reason));
 }

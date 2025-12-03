@@ -4,9 +4,6 @@
       "apiKey": "your_perplexity_api_key_here",
       "baseUrl": "https://api.perplexity.ai/chat/completions",
       "model": "sonar-pro"
-    },
-    "googleGemini": {
-      "apiKey": "your_google_gemini_api_key_here"
     }
   },
   "ocr": {
