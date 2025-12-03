@@ -36,6 +36,7 @@
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
 #include "emailpanel.h"
+#include "ocrinterface.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -166,18 +167,7 @@ public:
     QLabel *employeeSalaryChartPlaceholder;
     QWidget *employeeLogsTab;
     QVBoxLayout *employeeLogsLayout;
-    QFrame *logsFilterFrame;
-    QHBoxLayout *logsFilterLayout;
-    QLabel *filterByActionLabel;
-    QComboBox *actionFilterComboBox;
-    QLabel *filterByDateLabel;
-    QDateEdit *startDateEdit;
-    QLabel *toLabel;
-    QDateEdit *endDateEdit;
-    QPushButton *applyFilterButton;
-    QSpacerItem *logsFilterSpacer;
-    QPushButton *exportLogsButton;
-    QTableWidget *employeeLogsTable;
+    QLabel *employeeLogsPlaceholder;
     QWidget *membersPage;
     QVBoxLayout *verticalLayout;
     QLabel *memberPageTitle;
@@ -259,6 +249,9 @@ public:
     QWidget *memberSMSTab;
     QVBoxLayout *memberSMSTabLayout;
     EmailPanel *emailPanel;
+    QWidget *memberOCRTab;
+    QVBoxLayout *memberOCRTabLayout;
+    OCRInterface *ocrInterface;
     QWidget *equipmentPage;
     QVBoxLayout *equipmentPageLayout;
     QLabel *equipmentPageTitle;
@@ -395,6 +388,9 @@ public:
     QVBoxLayout *activityAgeChartLayout;
     QLabel *activityAgeChartTitle;
     QLabel *activityAgeChartPlaceholder;
+    QWidget *activityCalendarTab;
+    QVBoxLayout *activityCalendarLayout;
+    QLabel *activityCalendarPlaceholder;
     QWidget *paymentsPage;
     QVBoxLayout *paymentsPageLayout;
     QTabWidget *paymentTabWidget;
@@ -1234,94 +1230,12 @@ public:
         employeeLogsTab->setObjectName("employeeLogsTab");
         employeeLogsLayout = new QVBoxLayout(employeeLogsTab);
         employeeLogsLayout->setObjectName("employeeLogsLayout");
-        logsFilterFrame = new QFrame(employeeLogsTab);
-        logsFilterFrame->setObjectName("logsFilterFrame");
-        logsFilterFrame->setStyleSheet(QString::fromUtf8("background-color: rgba(22, 165, 179, 0.02); border: 1px solid rgba(22, 165, 179, 0.1); border-radius: 12px; padding: 8px;"));
-        logsFilterLayout = new QHBoxLayout(logsFilterFrame);
-        logsFilterLayout->setObjectName("logsFilterLayout");
-        filterByActionLabel = new QLabel(logsFilterFrame);
-        filterByActionLabel->setObjectName("filterByActionLabel");
-        filterByActionLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
+        employeeLogsPlaceholder = new QLabel(employeeLogsTab);
+        employeeLogsPlaceholder->setObjectName("employeeLogsPlaceholder");
+        employeeLogsPlaceholder->setStyleSheet(QString::fromUtf8("color:#95a5a6; font-size:16px; padding:50px; border:2px dashed #bdc3c7; border-radius:12px; text-align:center;"));
+        employeeLogsPlaceholder->setAlignment(Qt::AlignmentFlag::AlignCenter);
 
-        logsFilterLayout->addWidget(filterByActionLabel);
-
-        actionFilterComboBox = new QComboBox(logsFilterFrame);
-        actionFilterComboBox->addItem(QString());
-        actionFilterComboBox->addItem(QString());
-        actionFilterComboBox->addItem(QString());
-        actionFilterComboBox->addItem(QString());
-        actionFilterComboBox->addItem(QString());
-        actionFilterComboBox->addItem(QString());
-        actionFilterComboBox->setObjectName("actionFilterComboBox");
-        actionFilterComboBox->setMinimumSize(QSize(120, 0));
-
-        logsFilterLayout->addWidget(actionFilterComboBox);
-
-        filterByDateLabel = new QLabel(logsFilterFrame);
-        filterByDateLabel->setObjectName("filterByDateLabel");
-        filterByDateLabel->setStyleSheet(QString::fromUtf8("font-weight: 600; color: #2c3e50;"));
-
-        logsFilterLayout->addWidget(filterByDateLabel);
-
-        startDateEdit = new QDateEdit(logsFilterFrame);
-        startDateEdit->setObjectName("startDateEdit");
-        startDateEdit->setStyleSheet(QString::fromUtf8("padding: 8px; border: 2px solid #e0e4e7; border-radius: 6px; background-color: white;"));
-        startDateEdit->setCalendarPopup(true);
-
-        logsFilterLayout->addWidget(startDateEdit);
-
-        toLabel = new QLabel(logsFilterFrame);
-        toLabel->setObjectName("toLabel");
-
-        logsFilterLayout->addWidget(toLabel);
-
-        endDateEdit = new QDateEdit(logsFilterFrame);
-        endDateEdit->setObjectName("endDateEdit");
-        endDateEdit->setStyleSheet(QString::fromUtf8("padding: 8px; border: 2px solid #e0e4e7; border-radius: 6px; background-color: white;"));
-        endDateEdit->setCalendarPopup(true);
-
-        logsFilterLayout->addWidget(endDateEdit);
-
-        applyFilterButton = new QPushButton(logsFilterFrame);
-        applyFilterButton->setObjectName("applyFilterButton");
-        applyFilterButton->setIcon(icon6);
-
-        logsFilterLayout->addWidget(applyFilterButton);
-
-        logsFilterSpacer = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
-
-        logsFilterLayout->addItem(logsFilterSpacer);
-
-        exportLogsButton = new QPushButton(logsFilterFrame);
-        exportLogsButton->setObjectName("exportLogsButton");
-        exportLogsButton->setIcon(icon4);
-
-        logsFilterLayout->addWidget(exportLogsButton);
-
-
-        employeeLogsLayout->addWidget(logsFilterFrame);
-
-        employeeLogsTable = new QTableWidget(employeeLogsTab);
-        if (employeeLogsTable->columnCount() < 6)
-            employeeLogsTable->setColumnCount(6);
-        QTableWidgetItem *__qtablewidgetitem7 = new QTableWidgetItem();
-        employeeLogsTable->setHorizontalHeaderItem(0, __qtablewidgetitem7);
-        QTableWidgetItem *__qtablewidgetitem8 = new QTableWidgetItem();
-        employeeLogsTable->setHorizontalHeaderItem(1, __qtablewidgetitem8);
-        QTableWidgetItem *__qtablewidgetitem9 = new QTableWidgetItem();
-        employeeLogsTable->setHorizontalHeaderItem(2, __qtablewidgetitem9);
-        QTableWidgetItem *__qtablewidgetitem10 = new QTableWidgetItem();
-        employeeLogsTable->setHorizontalHeaderItem(3, __qtablewidgetitem10);
-        QTableWidgetItem *__qtablewidgetitem11 = new QTableWidgetItem();
-        employeeLogsTable->setHorizontalHeaderItem(4, __qtablewidgetitem11);
-        QTableWidgetItem *__qtablewidgetitem12 = new QTableWidgetItem();
-        employeeLogsTable->setHorizontalHeaderItem(5, __qtablewidgetitem12);
-        employeeLogsTable->setObjectName("employeeLogsTable");
-        employeeLogsTable->setAlternatingRowColors(true);
-        employeeLogsTable->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
-        employeeLogsTable->setSortingEnabled(true);
-
-        employeeLogsLayout->addWidget(employeeLogsTable);
+        employeeLogsLayout->addWidget(employeeLogsPlaceholder);
 
         employeeTabWidget->addTab(employeeLogsTab, icon5, QString());
 
@@ -1379,26 +1293,26 @@ public:
         memberTable = new QTableWidget(memberListTab);
         if (memberTable->columnCount() < 10)
             memberTable->setColumnCount(10);
+        QTableWidgetItem *__qtablewidgetitem7 = new QTableWidgetItem();
+        memberTable->setHorizontalHeaderItem(0, __qtablewidgetitem7);
+        QTableWidgetItem *__qtablewidgetitem8 = new QTableWidgetItem();
+        memberTable->setHorizontalHeaderItem(1, __qtablewidgetitem8);
+        QTableWidgetItem *__qtablewidgetitem9 = new QTableWidgetItem();
+        memberTable->setHorizontalHeaderItem(2, __qtablewidgetitem9);
+        QTableWidgetItem *__qtablewidgetitem10 = new QTableWidgetItem();
+        memberTable->setHorizontalHeaderItem(3, __qtablewidgetitem10);
+        QTableWidgetItem *__qtablewidgetitem11 = new QTableWidgetItem();
+        memberTable->setHorizontalHeaderItem(4, __qtablewidgetitem11);
+        QTableWidgetItem *__qtablewidgetitem12 = new QTableWidgetItem();
+        memberTable->setHorizontalHeaderItem(5, __qtablewidgetitem12);
         QTableWidgetItem *__qtablewidgetitem13 = new QTableWidgetItem();
-        memberTable->setHorizontalHeaderItem(0, __qtablewidgetitem13);
+        memberTable->setHorizontalHeaderItem(6, __qtablewidgetitem13);
         QTableWidgetItem *__qtablewidgetitem14 = new QTableWidgetItem();
-        memberTable->setHorizontalHeaderItem(1, __qtablewidgetitem14);
+        memberTable->setHorizontalHeaderItem(7, __qtablewidgetitem14);
         QTableWidgetItem *__qtablewidgetitem15 = new QTableWidgetItem();
-        memberTable->setHorizontalHeaderItem(2, __qtablewidgetitem15);
+        memberTable->setHorizontalHeaderItem(8, __qtablewidgetitem15);
         QTableWidgetItem *__qtablewidgetitem16 = new QTableWidgetItem();
-        memberTable->setHorizontalHeaderItem(3, __qtablewidgetitem16);
-        QTableWidgetItem *__qtablewidgetitem17 = new QTableWidgetItem();
-        memberTable->setHorizontalHeaderItem(4, __qtablewidgetitem17);
-        QTableWidgetItem *__qtablewidgetitem18 = new QTableWidgetItem();
-        memberTable->setHorizontalHeaderItem(5, __qtablewidgetitem18);
-        QTableWidgetItem *__qtablewidgetitem19 = new QTableWidgetItem();
-        memberTable->setHorizontalHeaderItem(6, __qtablewidgetitem19);
-        QTableWidgetItem *__qtablewidgetitem20 = new QTableWidgetItem();
-        memberTable->setHorizontalHeaderItem(7, __qtablewidgetitem20);
-        QTableWidgetItem *__qtablewidgetitem21 = new QTableWidgetItem();
-        memberTable->setHorizontalHeaderItem(8, __qtablewidgetitem21);
-        QTableWidgetItem *__qtablewidgetitem22 = new QTableWidgetItem();
-        memberTable->setHorizontalHeaderItem(9, __qtablewidgetitem22);
+        memberTable->setHorizontalHeaderItem(9, __qtablewidgetitem16);
         memberTable->setObjectName("memberTable");
         memberTable->setAlternatingRowColors(true);
         memberTable->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
@@ -1415,7 +1329,7 @@ public:
         memberScrollArea->setWidgetResizable(true);
         memberScrollAreaContents = new QWidget();
         memberScrollAreaContents->setObjectName("memberScrollAreaContents");
-        memberScrollAreaContents->setGeometry(QRect(0, 0, 495, 571));
+        memberScrollAreaContents->setGeometry(QRect(0, 0, 1030, 857));
         memberFormMainLayout = new QVBoxLayout(memberScrollAreaContents);
         memberFormMainLayout->setObjectName("memberFormMainLayout");
         memberFormFrame = new QFrame(memberScrollAreaContents);
@@ -1739,6 +1653,16 @@ public:
         memberSMSTabLayout->addWidget(emailPanel);
 
         memberTabWidget->addTab(memberSMSTab, icon1, QString());
+        memberOCRTab = new QWidget();
+        memberOCRTab->setObjectName("memberOCRTab");
+        memberOCRTabLayout = new QVBoxLayout(memberOCRTab);
+        memberOCRTabLayout->setObjectName("memberOCRTabLayout");
+        ocrInterface = new OCRInterface(memberOCRTab);
+        ocrInterface->setObjectName("ocrInterface");
+
+        memberOCRTabLayout->addWidget(ocrInterface);
+
+        memberTabWidget->addTab(memberOCRTab, icon6, QString());
 
         verticalLayout->addWidget(memberTabWidget);
 
@@ -1796,24 +1720,24 @@ public:
         equipmentTable = new QTableWidget(equipmentListTab);
         if (equipmentTable->columnCount() < 9)
             equipmentTable->setColumnCount(9);
+        QTableWidgetItem *__qtablewidgetitem17 = new QTableWidgetItem();
+        equipmentTable->setHorizontalHeaderItem(0, __qtablewidgetitem17);
+        QTableWidgetItem *__qtablewidgetitem18 = new QTableWidgetItem();
+        equipmentTable->setHorizontalHeaderItem(1, __qtablewidgetitem18);
+        QTableWidgetItem *__qtablewidgetitem19 = new QTableWidgetItem();
+        equipmentTable->setHorizontalHeaderItem(2, __qtablewidgetitem19);
+        QTableWidgetItem *__qtablewidgetitem20 = new QTableWidgetItem();
+        equipmentTable->setHorizontalHeaderItem(3, __qtablewidgetitem20);
+        QTableWidgetItem *__qtablewidgetitem21 = new QTableWidgetItem();
+        equipmentTable->setHorizontalHeaderItem(4, __qtablewidgetitem21);
+        QTableWidgetItem *__qtablewidgetitem22 = new QTableWidgetItem();
+        equipmentTable->setHorizontalHeaderItem(5, __qtablewidgetitem22);
         QTableWidgetItem *__qtablewidgetitem23 = new QTableWidgetItem();
-        equipmentTable->setHorizontalHeaderItem(0, __qtablewidgetitem23);
+        equipmentTable->setHorizontalHeaderItem(6, __qtablewidgetitem23);
         QTableWidgetItem *__qtablewidgetitem24 = new QTableWidgetItem();
-        equipmentTable->setHorizontalHeaderItem(1, __qtablewidgetitem24);
+        equipmentTable->setHorizontalHeaderItem(7, __qtablewidgetitem24);
         QTableWidgetItem *__qtablewidgetitem25 = new QTableWidgetItem();
-        equipmentTable->setHorizontalHeaderItem(2, __qtablewidgetitem25);
-        QTableWidgetItem *__qtablewidgetitem26 = new QTableWidgetItem();
-        equipmentTable->setHorizontalHeaderItem(3, __qtablewidgetitem26);
-        QTableWidgetItem *__qtablewidgetitem27 = new QTableWidgetItem();
-        equipmentTable->setHorizontalHeaderItem(4, __qtablewidgetitem27);
-        QTableWidgetItem *__qtablewidgetitem28 = new QTableWidgetItem();
-        equipmentTable->setHorizontalHeaderItem(5, __qtablewidgetitem28);
-        QTableWidgetItem *__qtablewidgetitem29 = new QTableWidgetItem();
-        equipmentTable->setHorizontalHeaderItem(6, __qtablewidgetitem29);
-        QTableWidgetItem *__qtablewidgetitem30 = new QTableWidgetItem();
-        equipmentTable->setHorizontalHeaderItem(7, __qtablewidgetitem30);
-        QTableWidgetItem *__qtablewidgetitem31 = new QTableWidgetItem();
-        equipmentTable->setHorizontalHeaderItem(8, __qtablewidgetitem31);
+        equipmentTable->setHorizontalHeaderItem(8, __qtablewidgetitem25);
         equipmentTable->setObjectName("equipmentTable");
         equipmentTable->setAlternatingRowColors(true);
         equipmentTable->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
@@ -2059,16 +1983,16 @@ public:
         equipmentCategoryStatsTable = new QTableWidget(equipmentCategoryStatsFrame);
         if (equipmentCategoryStatsTable->columnCount() < 5)
             equipmentCategoryStatsTable->setColumnCount(5);
-        QTableWidgetItem *__qtablewidgetitem32 = new QTableWidgetItem();
-        equipmentCategoryStatsTable->setHorizontalHeaderItem(0, __qtablewidgetitem32);
-        QTableWidgetItem *__qtablewidgetitem33 = new QTableWidgetItem();
-        equipmentCategoryStatsTable->setHorizontalHeaderItem(1, __qtablewidgetitem33);
-        QTableWidgetItem *__qtablewidgetitem34 = new QTableWidgetItem();
-        equipmentCategoryStatsTable->setHorizontalHeaderItem(2, __qtablewidgetitem34);
-        QTableWidgetItem *__qtablewidgetitem35 = new QTableWidgetItem();
-        equipmentCategoryStatsTable->setHorizontalHeaderItem(3, __qtablewidgetitem35);
-        QTableWidgetItem *__qtablewidgetitem36 = new QTableWidgetItem();
-        equipmentCategoryStatsTable->setHorizontalHeaderItem(4, __qtablewidgetitem36);
+        QTableWidgetItem *__qtablewidgetitem26 = new QTableWidgetItem();
+        equipmentCategoryStatsTable->setHorizontalHeaderItem(0, __qtablewidgetitem26);
+        QTableWidgetItem *__qtablewidgetitem27 = new QTableWidgetItem();
+        equipmentCategoryStatsTable->setHorizontalHeaderItem(1, __qtablewidgetitem27);
+        QTableWidgetItem *__qtablewidgetitem28 = new QTableWidgetItem();
+        equipmentCategoryStatsTable->setHorizontalHeaderItem(2, __qtablewidgetitem28);
+        QTableWidgetItem *__qtablewidgetitem29 = new QTableWidgetItem();
+        equipmentCategoryStatsTable->setHorizontalHeaderItem(3, __qtablewidgetitem29);
+        QTableWidgetItem *__qtablewidgetitem30 = new QTableWidgetItem();
+        equipmentCategoryStatsTable->setHorizontalHeaderItem(4, __qtablewidgetitem30);
         equipmentCategoryStatsTable->setObjectName("equipmentCategoryStatsTable");
         equipmentCategoryStatsTable->setAlternatingRowColors(true);
 
@@ -2178,22 +2102,22 @@ public:
         activityTable = new QTableWidget(activityListTab);
         if (activityTable->columnCount() < 8)
             activityTable->setColumnCount(8);
+        QTableWidgetItem *__qtablewidgetitem31 = new QTableWidgetItem();
+        activityTable->setHorizontalHeaderItem(0, __qtablewidgetitem31);
+        QTableWidgetItem *__qtablewidgetitem32 = new QTableWidgetItem();
+        activityTable->setHorizontalHeaderItem(1, __qtablewidgetitem32);
+        QTableWidgetItem *__qtablewidgetitem33 = new QTableWidgetItem();
+        activityTable->setHorizontalHeaderItem(2, __qtablewidgetitem33);
+        QTableWidgetItem *__qtablewidgetitem34 = new QTableWidgetItem();
+        activityTable->setHorizontalHeaderItem(3, __qtablewidgetitem34);
+        QTableWidgetItem *__qtablewidgetitem35 = new QTableWidgetItem();
+        activityTable->setHorizontalHeaderItem(4, __qtablewidgetitem35);
+        QTableWidgetItem *__qtablewidgetitem36 = new QTableWidgetItem();
+        activityTable->setHorizontalHeaderItem(5, __qtablewidgetitem36);
         QTableWidgetItem *__qtablewidgetitem37 = new QTableWidgetItem();
-        activityTable->setHorizontalHeaderItem(0, __qtablewidgetitem37);
+        activityTable->setHorizontalHeaderItem(6, __qtablewidgetitem37);
         QTableWidgetItem *__qtablewidgetitem38 = new QTableWidgetItem();
-        activityTable->setHorizontalHeaderItem(1, __qtablewidgetitem38);
-        QTableWidgetItem *__qtablewidgetitem39 = new QTableWidgetItem();
-        activityTable->setHorizontalHeaderItem(2, __qtablewidgetitem39);
-        QTableWidgetItem *__qtablewidgetitem40 = new QTableWidgetItem();
-        activityTable->setHorizontalHeaderItem(3, __qtablewidgetitem40);
-        QTableWidgetItem *__qtablewidgetitem41 = new QTableWidgetItem();
-        activityTable->setHorizontalHeaderItem(4, __qtablewidgetitem41);
-        QTableWidgetItem *__qtablewidgetitem42 = new QTableWidgetItem();
-        activityTable->setHorizontalHeaderItem(5, __qtablewidgetitem42);
-        QTableWidgetItem *__qtablewidgetitem43 = new QTableWidgetItem();
-        activityTable->setHorizontalHeaderItem(6, __qtablewidgetitem43);
-        QTableWidgetItem *__qtablewidgetitem44 = new QTableWidgetItem();
-        activityTable->setHorizontalHeaderItem(7, __qtablewidgetitem44);
+        activityTable->setHorizontalHeaderItem(7, __qtablewidgetitem38);
         activityTable->setObjectName("activityTable");
         activityTable->setAlternatingRowColors(true);
         activityTable->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
@@ -2518,6 +2442,19 @@ public:
         activityStatisticsLayout->addWidget(activityStatsFrame);
 
         activityTabWidget->addTab(activityStatisticsTab, icon9, QString());
+        activityCalendarTab = new QWidget();
+        activityCalendarTab->setObjectName("activityCalendarTab");
+        activityCalendarLayout = new QVBoxLayout(activityCalendarTab);
+        activityCalendarLayout->setObjectName("activityCalendarLayout");
+        activityCalendarPlaceholder = new QLabel(activityCalendarTab);
+        activityCalendarPlaceholder->setObjectName("activityCalendarPlaceholder");
+        activityCalendarPlaceholder->setAlignment(Qt::AlignmentFlag::AlignCenter);
+
+        activityCalendarLayout->addWidget(activityCalendarPlaceholder);
+
+        QIcon icon10;
+        icon10.addFile(QString::fromUtf8(":/icons/icons/calendar.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+        activityTabWidget->addTab(activityCalendarTab, icon10, QString());
 
         activitiesPageLayout->addWidget(activityTabWidget);
 
@@ -2567,33 +2504,33 @@ public:
         paymentTable = new QTableWidget(listTab_4);
         if (paymentTable->columnCount() < 9)
             paymentTable->setColumnCount(9);
+        QTableWidgetItem *__qtablewidgetitem39 = new QTableWidgetItem();
+        paymentTable->setHorizontalHeaderItem(0, __qtablewidgetitem39);
+        QTableWidgetItem *__qtablewidgetitem40 = new QTableWidgetItem();
+        paymentTable->setHorizontalHeaderItem(1, __qtablewidgetitem40);
+        QTableWidgetItem *__qtablewidgetitem41 = new QTableWidgetItem();
+        paymentTable->setHorizontalHeaderItem(2, __qtablewidgetitem41);
+        QTableWidgetItem *__qtablewidgetitem42 = new QTableWidgetItem();
+        paymentTable->setHorizontalHeaderItem(3, __qtablewidgetitem42);
+        QTableWidgetItem *__qtablewidgetitem43 = new QTableWidgetItem();
+        paymentTable->setHorizontalHeaderItem(4, __qtablewidgetitem43);
+        QTableWidgetItem *__qtablewidgetitem44 = new QTableWidgetItem();
+        paymentTable->setHorizontalHeaderItem(5, __qtablewidgetitem44);
         QTableWidgetItem *__qtablewidgetitem45 = new QTableWidgetItem();
-        paymentTable->setHorizontalHeaderItem(0, __qtablewidgetitem45);
+        paymentTable->setHorizontalHeaderItem(6, __qtablewidgetitem45);
         QTableWidgetItem *__qtablewidgetitem46 = new QTableWidgetItem();
-        paymentTable->setHorizontalHeaderItem(1, __qtablewidgetitem46);
+        paymentTable->setHorizontalHeaderItem(7, __qtablewidgetitem46);
         QTableWidgetItem *__qtablewidgetitem47 = new QTableWidgetItem();
-        paymentTable->setHorizontalHeaderItem(2, __qtablewidgetitem47);
-        QTableWidgetItem *__qtablewidgetitem48 = new QTableWidgetItem();
-        paymentTable->setHorizontalHeaderItem(3, __qtablewidgetitem48);
-        QTableWidgetItem *__qtablewidgetitem49 = new QTableWidgetItem();
-        paymentTable->setHorizontalHeaderItem(4, __qtablewidgetitem49);
-        QTableWidgetItem *__qtablewidgetitem50 = new QTableWidgetItem();
-        paymentTable->setHorizontalHeaderItem(5, __qtablewidgetitem50);
-        QTableWidgetItem *__qtablewidgetitem51 = new QTableWidgetItem();
-        paymentTable->setHorizontalHeaderItem(6, __qtablewidgetitem51);
-        QTableWidgetItem *__qtablewidgetitem52 = new QTableWidgetItem();
-        paymentTable->setHorizontalHeaderItem(7, __qtablewidgetitem52);
-        QTableWidgetItem *__qtablewidgetitem53 = new QTableWidgetItem();
-        paymentTable->setHorizontalHeaderItem(8, __qtablewidgetitem53);
+        paymentTable->setHorizontalHeaderItem(8, __qtablewidgetitem47);
         paymentTable->setObjectName("paymentTable");
         paymentTable->setAlternatingRowColors(true);
         paymentTable->setSelectionBehavior(QAbstractItemView::SelectionBehavior::SelectRows);
 
         paymentListLayout->addWidget(paymentTable);
 
-        QIcon icon10;
-        icon10.addFile(QString::fromUtf8(":/icons/icons/employees.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
-        paymentTabWidget->addTab(listTab_4, icon10, QString());
+        QIcon icon11;
+        icon11.addFile(QString::fromUtf8(":/icons/icons/employees.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+        paymentTabWidget->addTab(listTab_4, icon11, QString());
         addTab_4 = new QWidget();
         addTab_4->setObjectName("addTab_4");
         addPaymentLayout = new QVBoxLayout(addTab_4);
@@ -2733,9 +2670,9 @@ public:
         addPaymentButton = new QPushButton(paymentButtonFrame);
         addPaymentButton->setObjectName("addPaymentButton");
         addPaymentButton->setMinimumSize(QSize(150, 45));
-        QIcon icon11;
-        icon11.addFile(QString::fromUtf8(":/icons/icons/plus.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
-        addPaymentButton->setIcon(icon11);
+        QIcon icon12;
+        icon12.addFile(QString::fromUtf8(":/icons/icons/plus.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+        addPaymentButton->setIcon(icon12);
 
         paymentButtonLayout->addWidget(addPaymentButton);
 
@@ -2743,9 +2680,9 @@ public:
         clearPaymentFormButton->setObjectName("clearPaymentFormButton");
         clearPaymentFormButton->setMinimumSize(QSize(150, 45));
         clearPaymentFormButton->setStyleSheet(QString::fromUtf8("background-color: #f39c12;"));
-        QIcon icon12;
-        icon12.addFile(QString::fromUtf8(":/icons/icons/delete.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
-        clearPaymentFormButton->setIcon(icon12);
+        QIcon icon13;
+        icon13.addFile(QString::fromUtf8(":/icons/icons/delete.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+        clearPaymentFormButton->setIcon(icon13);
 
         paymentButtonLayout->addWidget(clearPaymentFormButton);
 
@@ -2763,7 +2700,7 @@ public:
 
         addPaymentLayout->addWidget(paymentScrollArea);
 
-        paymentTabWidget->addTab(addTab_4, icon11, QString());
+        paymentTabWidget->addTab(addTab_4, icon12, QString());
         statisticsTab_4 = new QWidget();
         statisticsTab_4->setObjectName("statisticsTab_4");
         paymentStatsLayout = new QVBoxLayout(statisticsTab_4);
@@ -2871,14 +2808,14 @@ public:
         paymentMethodStatsTable = new QTableWidget(paymentChartsFrame);
         if (paymentMethodStatsTable->columnCount() < 4)
             paymentMethodStatsTable->setColumnCount(4);
-        QTableWidgetItem *__qtablewidgetitem54 = new QTableWidgetItem();
-        paymentMethodStatsTable->setHorizontalHeaderItem(0, __qtablewidgetitem54);
-        QTableWidgetItem *__qtablewidgetitem55 = new QTableWidgetItem();
-        paymentMethodStatsTable->setHorizontalHeaderItem(1, __qtablewidgetitem55);
-        QTableWidgetItem *__qtablewidgetitem56 = new QTableWidgetItem();
-        paymentMethodStatsTable->setHorizontalHeaderItem(2, __qtablewidgetitem56);
-        QTableWidgetItem *__qtablewidgetitem57 = new QTableWidgetItem();
-        paymentMethodStatsTable->setHorizontalHeaderItem(3, __qtablewidgetitem57);
+        QTableWidgetItem *__qtablewidgetitem48 = new QTableWidgetItem();
+        paymentMethodStatsTable->setHorizontalHeaderItem(0, __qtablewidgetitem48);
+        QTableWidgetItem *__qtablewidgetitem49 = new QTableWidgetItem();
+        paymentMethodStatsTable->setHorizontalHeaderItem(1, __qtablewidgetitem49);
+        QTableWidgetItem *__qtablewidgetitem50 = new QTableWidgetItem();
+        paymentMethodStatsTable->setHorizontalHeaderItem(2, __qtablewidgetitem50);
+        QTableWidgetItem *__qtablewidgetitem51 = new QTableWidgetItem();
+        paymentMethodStatsTable->setHorizontalHeaderItem(3, __qtablewidgetitem51);
         paymentMethodStatsTable->setObjectName("paymentMethodStatsTable");
         paymentMethodStatsTable->setMaximumSize(QSize(16777215, 200));
         paymentMethodStatsTable->setAlternatingRowColors(true);
@@ -2907,16 +2844,16 @@ public:
         recentPaymentsTable = new QTableWidget(recentPaymentsFrame);
         if (recentPaymentsTable->columnCount() < 5)
             recentPaymentsTable->setColumnCount(5);
-        QTableWidgetItem *__qtablewidgetitem58 = new QTableWidgetItem();
-        recentPaymentsTable->setHorizontalHeaderItem(0, __qtablewidgetitem58);
-        QTableWidgetItem *__qtablewidgetitem59 = new QTableWidgetItem();
-        recentPaymentsTable->setHorizontalHeaderItem(1, __qtablewidgetitem59);
-        QTableWidgetItem *__qtablewidgetitem60 = new QTableWidgetItem();
-        recentPaymentsTable->setHorizontalHeaderItem(2, __qtablewidgetitem60);
-        QTableWidgetItem *__qtablewidgetitem61 = new QTableWidgetItem();
-        recentPaymentsTable->setHorizontalHeaderItem(3, __qtablewidgetitem61);
-        QTableWidgetItem *__qtablewidgetitem62 = new QTableWidgetItem();
-        recentPaymentsTable->setHorizontalHeaderItem(4, __qtablewidgetitem62);
+        QTableWidgetItem *__qtablewidgetitem52 = new QTableWidgetItem();
+        recentPaymentsTable->setHorizontalHeaderItem(0, __qtablewidgetitem52);
+        QTableWidgetItem *__qtablewidgetitem53 = new QTableWidgetItem();
+        recentPaymentsTable->setHorizontalHeaderItem(1, __qtablewidgetitem53);
+        QTableWidgetItem *__qtablewidgetitem54 = new QTableWidgetItem();
+        recentPaymentsTable->setHorizontalHeaderItem(2, __qtablewidgetitem54);
+        QTableWidgetItem *__qtablewidgetitem55 = new QTableWidgetItem();
+        recentPaymentsTable->setHorizontalHeaderItem(3, __qtablewidgetitem55);
+        QTableWidgetItem *__qtablewidgetitem56 = new QTableWidgetItem();
+        recentPaymentsTable->setHorizontalHeaderItem(4, __qtablewidgetitem56);
         recentPaymentsTable->setObjectName("recentPaymentsTable");
         recentPaymentsTable->setMaximumSize(QSize(16777215, 300));
         recentPaymentsTable->setAlternatingRowColors(true);
@@ -2931,9 +2868,9 @@ public:
 
         paymentStatsLayout->addWidget(paymentStatsScrollArea);
 
-        QIcon icon13;
-        icon13.addFile(QString::fromUtf8(":/icons/icons/business-plan.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
-        paymentTabWidget->addTab(statisticsTab_4, icon13, QString());
+        QIcon icon14;
+        icon14.addFile(QString::fromUtf8(":/icons/icons/business-plan.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+        paymentTabWidget->addTab(statisticsTab_4, icon14, QString());
 
         paymentsPageLayout->addWidget(paymentTabWidget);
 
@@ -3270,12 +3207,12 @@ public:
 
         retranslateUi(EmployerAdmin);
 
-        stackedWidget->setCurrentIndex(3);
+        stackedWidget->setCurrentIndex(1);
         employeeTabWidget->setCurrentIndex(2);
-        memberTabWidget->setCurrentIndex(3);
+        memberTabWidget->setCurrentIndex(1);
         equipmentTabWidget->setCurrentIndex(1);
         activityTabWidget->setCurrentIndex(0);
-        paymentTabWidget->setCurrentIndex(1);
+        paymentTabWidget->setCurrentIndex(0);
 
 
         QMetaObject::connectSlotsByName(EmployerAdmin);
@@ -3381,56 +3318,36 @@ public:
         employeeSalaryChartTitle->setText(QCoreApplication::translate("EmployerAdmin", "\360\237\222\260 Salary Distribution (Cumulative Curve)", nullptr));
         employeeSalaryChartPlaceholder->setText(QCoreApplication::translate("EmployerAdmin", "ECC Curve Placeholder", nullptr));
         employeeTabWidget->setTabText(employeeTabWidget->indexOf(statisticsTab), QCoreApplication::translate("EmployerAdmin", " Statistics", nullptr));
-        filterByActionLabel->setText(QCoreApplication::translate("EmployerAdmin", "Filter by Action:", nullptr));
-        actionFilterComboBox->setItemText(0, QCoreApplication::translate("EmployerAdmin", "All Actions", nullptr));
-        actionFilterComboBox->setItemText(1, QCoreApplication::translate("EmployerAdmin", "Add Employee", nullptr));
-        actionFilterComboBox->setItemText(2, QCoreApplication::translate("EmployerAdmin", "Edit Employee", nullptr));
-        actionFilterComboBox->setItemText(3, QCoreApplication::translate("EmployerAdmin", "Delete Employee", nullptr));
-        actionFilterComboBox->setItemText(4, QCoreApplication::translate("EmployerAdmin", "Login", nullptr));
-        actionFilterComboBox->setItemText(5, QCoreApplication::translate("EmployerAdmin", "Logout", nullptr));
-
-        filterByDateLabel->setText(QCoreApplication::translate("EmployerAdmin", "Date Range:", nullptr));
-        toLabel->setText(QCoreApplication::translate("EmployerAdmin", "to", nullptr));
-        applyFilterButton->setText(QCoreApplication::translate("EmployerAdmin", "Apply Filter", nullptr));
-        exportLogsButton->setText(QCoreApplication::translate("EmployerAdmin", "Export Logs", nullptr));
-        QTableWidgetItem *___qtablewidgetitem7 = employeeLogsTable->horizontalHeaderItem(0);
-        ___qtablewidgetitem7->setText(QCoreApplication::translate("EmployerAdmin", "Log ID", nullptr));
-        QTableWidgetItem *___qtablewidgetitem8 = employeeLogsTable->horizontalHeaderItem(1);
-        ___qtablewidgetitem8->setText(QCoreApplication::translate("EmployerAdmin", "Timestamp", nullptr));
-        QTableWidgetItem *___qtablewidgetitem9 = employeeLogsTable->horizontalHeaderItem(2);
-        ___qtablewidgetitem9->setText(QCoreApplication::translate("EmployerAdmin", "Action", nullptr));
-        QTableWidgetItem *___qtablewidgetitem10 = employeeLogsTable->horizontalHeaderItem(3);
-        ___qtablewidgetitem10->setText(QCoreApplication::translate("EmployerAdmin", "Employee ID", nullptr));
-        QTableWidgetItem *___qtablewidgetitem11 = employeeLogsTable->horizontalHeaderItem(4);
-        ___qtablewidgetitem11->setText(QCoreApplication::translate("EmployerAdmin", "Employee Name", nullptr));
-        QTableWidgetItem *___qtablewidgetitem12 = employeeLogsTable->horizontalHeaderItem(5);
-        ___qtablewidgetitem12->setText(QCoreApplication::translate("EmployerAdmin", "Performed By", nullptr));
+        employeeLogsPlaceholder->setText(QCoreApplication::translate("EmployerAdmin", "\360\237\223\213 Employee Logs Panel\n"
+"                     \n"
+"This panel will be implemented programmatically in C++\n"
+"Advanced audit logging system with dashboard, filters, and analytics", nullptr));
         employeeTabWidget->setTabText(employeeTabWidget->indexOf(employeeLogsTab), QCoreApplication::translate("EmployerAdmin", " Employee Logs", nullptr));
         memberPageTitle->setText(QCoreApplication::translate("EmployerAdmin", "Member Management", nullptr));
         memberSearchLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Search members...", nullptr));
         memberSearchButton->setText(QCoreApplication::translate("EmployerAdmin", "Search", nullptr));
         memberSortButton->setText(QCoreApplication::translate("EmployerAdmin", "Sort by Join Date", nullptr));
         memberExportButton->setText(QCoreApplication::translate("EmployerAdmin", "Export PDF", nullptr));
-        QTableWidgetItem *___qtablewidgetitem13 = memberTable->horizontalHeaderItem(0);
-        ___qtablewidgetitem13->setText(QCoreApplication::translate("EmployerAdmin", "CIN", nullptr));
-        QTableWidgetItem *___qtablewidgetitem14 = memberTable->horizontalHeaderItem(1);
-        ___qtablewidgetitem14->setText(QCoreApplication::translate("EmployerAdmin", "First Name", nullptr));
-        QTableWidgetItem *___qtablewidgetitem15 = memberTable->horizontalHeaderItem(2);
-        ___qtablewidgetitem15->setText(QCoreApplication::translate("EmployerAdmin", "Last Name", nullptr));
-        QTableWidgetItem *___qtablewidgetitem16 = memberTable->horizontalHeaderItem(3);
-        ___qtablewidgetitem16->setText(QCoreApplication::translate("EmployerAdmin", "Gender", nullptr));
-        QTableWidgetItem *___qtablewidgetitem17 = memberTable->horizontalHeaderItem(4);
-        ___qtablewidgetitem17->setText(QCoreApplication::translate("EmployerAdmin", "Age", nullptr));
-        QTableWidgetItem *___qtablewidgetitem18 = memberTable->horizontalHeaderItem(5);
-        ___qtablewidgetitem18->setText(QCoreApplication::translate("EmployerAdmin", "Email", nullptr));
-        QTableWidgetItem *___qtablewidgetitem19 = memberTable->horizontalHeaderItem(6);
-        ___qtablewidgetitem19->setText(QCoreApplication::translate("EmployerAdmin", "Phone Number", nullptr));
-        QTableWidgetItem *___qtablewidgetitem20 = memberTable->horizontalHeaderItem(7);
-        ___qtablewidgetitem20->setText(QCoreApplication::translate("EmployerAdmin", "Subscription Plan", nullptr));
-        QTableWidgetItem *___qtablewidgetitem21 = memberTable->horizontalHeaderItem(8);
-        ___qtablewidgetitem21->setText(QCoreApplication::translate("EmployerAdmin", "Join Date", nullptr));
-        QTableWidgetItem *___qtablewidgetitem22 = memberTable->horizontalHeaderItem(9);
-        ___qtablewidgetitem22->setText(QCoreApplication::translate("EmployerAdmin", "Actions", nullptr));
+        QTableWidgetItem *___qtablewidgetitem7 = memberTable->horizontalHeaderItem(0);
+        ___qtablewidgetitem7->setText(QCoreApplication::translate("EmployerAdmin", "CIN", nullptr));
+        QTableWidgetItem *___qtablewidgetitem8 = memberTable->horizontalHeaderItem(1);
+        ___qtablewidgetitem8->setText(QCoreApplication::translate("EmployerAdmin", "First Name", nullptr));
+        QTableWidgetItem *___qtablewidgetitem9 = memberTable->horizontalHeaderItem(2);
+        ___qtablewidgetitem9->setText(QCoreApplication::translate("EmployerAdmin", "Last Name", nullptr));
+        QTableWidgetItem *___qtablewidgetitem10 = memberTable->horizontalHeaderItem(3);
+        ___qtablewidgetitem10->setText(QCoreApplication::translate("EmployerAdmin", "Gender", nullptr));
+        QTableWidgetItem *___qtablewidgetitem11 = memberTable->horizontalHeaderItem(4);
+        ___qtablewidgetitem11->setText(QCoreApplication::translate("EmployerAdmin", "Age", nullptr));
+        QTableWidgetItem *___qtablewidgetitem12 = memberTable->horizontalHeaderItem(5);
+        ___qtablewidgetitem12->setText(QCoreApplication::translate("EmployerAdmin", "Email", nullptr));
+        QTableWidgetItem *___qtablewidgetitem13 = memberTable->horizontalHeaderItem(6);
+        ___qtablewidgetitem13->setText(QCoreApplication::translate("EmployerAdmin", "Phone Number", nullptr));
+        QTableWidgetItem *___qtablewidgetitem14 = memberTable->horizontalHeaderItem(7);
+        ___qtablewidgetitem14->setText(QCoreApplication::translate("EmployerAdmin", "Subscription Plan", nullptr));
+        QTableWidgetItem *___qtablewidgetitem15 = memberTable->horizontalHeaderItem(8);
+        ___qtablewidgetitem15->setText(QCoreApplication::translate("EmployerAdmin", "Join Date", nullptr));
+        QTableWidgetItem *___qtablewidgetitem16 = memberTable->horizontalHeaderItem(9);
+        ___qtablewidgetitem16->setText(QCoreApplication::translate("EmployerAdmin", "Actions", nullptr));
         memberTabWidget->setTabText(memberTabWidget->indexOf(memberListTab), QCoreApplication::translate("EmployerAdmin", " List of Members", nullptr));
         memberGenderLabel->setText(QCoreApplication::translate("EmployerAdmin", "Gender:", nullptr));
         memberLastNameLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Enter last name", nullptr));
@@ -3472,29 +3389,30 @@ public:
         memberSubscriptionChartPlaceholder->setText(QCoreApplication::translate("EmployerAdmin", "Histogram Placeholder", nullptr));
         memberTabWidget->setTabText(memberTabWidget->indexOf(memberStatisticsTab), QCoreApplication::translate("EmployerAdmin", " Statistics", nullptr));
         memberTabWidget->setTabText(memberTabWidget->indexOf(memberSMSTab), QCoreApplication::translate("EmployerAdmin", " SMS Communications", nullptr));
+        memberTabWidget->setTabText(memberTabWidget->indexOf(memberOCRTab), QCoreApplication::translate("EmployerAdmin", " ID Card OCR", nullptr));
         equipmentPageTitle->setText(QCoreApplication::translate("EmployerAdmin", "Equipment Management", nullptr));
         equipmentSearchLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Search equipment...", nullptr));
         equipmentSearchButton->setText(QCoreApplication::translate("EmployerAdmin", " Search", nullptr));
         equipmentSortButton->setText(QCoreApplication::translate("EmployerAdmin", "Sort by Name", nullptr));
         equipmentExportButton->setText(QCoreApplication::translate("EmployerAdmin", "Export PDF", nullptr));
-        QTableWidgetItem *___qtablewidgetitem23 = equipmentTable->horizontalHeaderItem(0);
-        ___qtablewidgetitem23->setText(QCoreApplication::translate("EmployerAdmin", "Equipment ID", nullptr));
-        QTableWidgetItem *___qtablewidgetitem24 = equipmentTable->horizontalHeaderItem(1);
-        ___qtablewidgetitem24->setText(QCoreApplication::translate("EmployerAdmin", "Name", nullptr));
-        QTableWidgetItem *___qtablewidgetitem25 = equipmentTable->horizontalHeaderItem(2);
-        ___qtablewidgetitem25->setText(QCoreApplication::translate("EmployerAdmin", "Category", nullptr));
-        QTableWidgetItem *___qtablewidgetitem26 = equipmentTable->horizontalHeaderItem(3);
-        ___qtablewidgetitem26->setText(QCoreApplication::translate("EmployerAdmin", "Total Stock", nullptr));
-        QTableWidgetItem *___qtablewidgetitem27 = equipmentTable->horizontalHeaderItem(4);
-        ___qtablewidgetitem27->setText(QCoreApplication::translate("EmployerAdmin", "Available", nullptr));
-        QTableWidgetItem *___qtablewidgetitem28 = equipmentTable->horizontalHeaderItem(5);
-        ___qtablewidgetitem28->setText(QCoreApplication::translate("EmployerAdmin", "In Use", nullptr));
-        QTableWidgetItem *___qtablewidgetitem29 = equipmentTable->horizontalHeaderItem(6);
-        ___qtablewidgetitem29->setText(QCoreApplication::translate("EmployerAdmin", "Under Maintenance", nullptr));
-        QTableWidgetItem *___qtablewidgetitem30 = equipmentTable->horizontalHeaderItem(7);
-        ___qtablewidgetitem30->setText(QCoreApplication::translate("EmployerAdmin", "Status", nullptr));
-        QTableWidgetItem *___qtablewidgetitem31 = equipmentTable->horizontalHeaderItem(8);
-        ___qtablewidgetitem31->setText(QCoreApplication::translate("EmployerAdmin", "Actions", nullptr));
+        QTableWidgetItem *___qtablewidgetitem17 = equipmentTable->horizontalHeaderItem(0);
+        ___qtablewidgetitem17->setText(QCoreApplication::translate("EmployerAdmin", "Equipment ID", nullptr));
+        QTableWidgetItem *___qtablewidgetitem18 = equipmentTable->horizontalHeaderItem(1);
+        ___qtablewidgetitem18->setText(QCoreApplication::translate("EmployerAdmin", "Name", nullptr));
+        QTableWidgetItem *___qtablewidgetitem19 = equipmentTable->horizontalHeaderItem(2);
+        ___qtablewidgetitem19->setText(QCoreApplication::translate("EmployerAdmin", "Category", nullptr));
+        QTableWidgetItem *___qtablewidgetitem20 = equipmentTable->horizontalHeaderItem(3);
+        ___qtablewidgetitem20->setText(QCoreApplication::translate("EmployerAdmin", "Total Stock", nullptr));
+        QTableWidgetItem *___qtablewidgetitem21 = equipmentTable->horizontalHeaderItem(4);
+        ___qtablewidgetitem21->setText(QCoreApplication::translate("EmployerAdmin", "Available", nullptr));
+        QTableWidgetItem *___qtablewidgetitem22 = equipmentTable->horizontalHeaderItem(5);
+        ___qtablewidgetitem22->setText(QCoreApplication::translate("EmployerAdmin", "In Use", nullptr));
+        QTableWidgetItem *___qtablewidgetitem23 = equipmentTable->horizontalHeaderItem(6);
+        ___qtablewidgetitem23->setText(QCoreApplication::translate("EmployerAdmin", "Under Maintenance", nullptr));
+        QTableWidgetItem *___qtablewidgetitem24 = equipmentTable->horizontalHeaderItem(7);
+        ___qtablewidgetitem24->setText(QCoreApplication::translate("EmployerAdmin", "Status", nullptr));
+        QTableWidgetItem *___qtablewidgetitem25 = equipmentTable->horizontalHeaderItem(8);
+        ___qtablewidgetitem25->setText(QCoreApplication::translate("EmployerAdmin", "Actions", nullptr));
         equipmentTabWidget->setTabText(equipmentTabWidget->indexOf(equipmentListTab), QCoreApplication::translate("EmployerAdmin", " List of Equipment", nullptr));
         equipmentQuantityLabel->setText(QCoreApplication::translate("EmployerAdmin", "Total Quantity:", nullptr));
         equipmentModelLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Enter model number", nullptr));
@@ -3531,16 +3449,16 @@ public:
         maintenanceEquipmentTitle->setText(QCoreApplication::translate("EmployerAdmin", "Under Maintenance", nullptr));
         maintenanceEquipmentNumber->setText(QCoreApplication::translate("EmployerAdmin", "12", nullptr));
         equipmentCategoryStatsTitle->setText(QCoreApplication::translate("EmployerAdmin", "\360\237\223\212 Equipment by Category", nullptr));
-        QTableWidgetItem *___qtablewidgetitem32 = equipmentCategoryStatsTable->horizontalHeaderItem(0);
-        ___qtablewidgetitem32->setText(QCoreApplication::translate("EmployerAdmin", "Category", nullptr));
-        QTableWidgetItem *___qtablewidgetitem33 = equipmentCategoryStatsTable->horizontalHeaderItem(1);
-        ___qtablewidgetitem33->setText(QCoreApplication::translate("EmployerAdmin", "Total Count", nullptr));
-        QTableWidgetItem *___qtablewidgetitem34 = equipmentCategoryStatsTable->horizontalHeaderItem(2);
-        ___qtablewidgetitem34->setText(QCoreApplication::translate("EmployerAdmin", "Available", nullptr));
-        QTableWidgetItem *___qtablewidgetitem35 = equipmentCategoryStatsTable->horizontalHeaderItem(3);
-        ___qtablewidgetitem35->setText(QCoreApplication::translate("EmployerAdmin", "In Use", nullptr));
-        QTableWidgetItem *___qtablewidgetitem36 = equipmentCategoryStatsTable->horizontalHeaderItem(4);
-        ___qtablewidgetitem36->setText(QCoreApplication::translate("EmployerAdmin", "Under Maintenance", nullptr));
+        QTableWidgetItem *___qtablewidgetitem26 = equipmentCategoryStatsTable->horizontalHeaderItem(0);
+        ___qtablewidgetitem26->setText(QCoreApplication::translate("EmployerAdmin", "Category", nullptr));
+        QTableWidgetItem *___qtablewidgetitem27 = equipmentCategoryStatsTable->horizontalHeaderItem(1);
+        ___qtablewidgetitem27->setText(QCoreApplication::translate("EmployerAdmin", "Total Count", nullptr));
+        QTableWidgetItem *___qtablewidgetitem28 = equipmentCategoryStatsTable->horizontalHeaderItem(2);
+        ___qtablewidgetitem28->setText(QCoreApplication::translate("EmployerAdmin", "Available", nullptr));
+        QTableWidgetItem *___qtablewidgetitem29 = equipmentCategoryStatsTable->horizontalHeaderItem(3);
+        ___qtablewidgetitem29->setText(QCoreApplication::translate("EmployerAdmin", "In Use", nullptr));
+        QTableWidgetItem *___qtablewidgetitem30 = equipmentCategoryStatsTable->horizontalHeaderItem(4);
+        ___qtablewidgetitem30->setText(QCoreApplication::translate("EmployerAdmin", "Under Maintenance", nullptr));
         equipmentTabWidget->setTabText(equipmentTabWidget->indexOf(equipmentStatisticsTab), QCoreApplication::translate("EmployerAdmin", " Statistics", nullptr));
         activityPageTitle->setText(QCoreApplication::translate("EmployerAdmin", "Activity Management", nullptr));
         activitySearchLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Search activities...", nullptr));
@@ -3550,22 +3468,22 @@ public:
         activitySortComboBox->setItemText(2, QCoreApplication::translate("EmployerAdmin", "Sort by Activity", nullptr));
 
         activityExportButton->setText(QCoreApplication::translate("EmployerAdmin", "Export PDF", nullptr));
-        QTableWidgetItem *___qtablewidgetitem37 = activityTable->horizontalHeaderItem(0);
-        ___qtablewidgetitem37->setText(QCoreApplication::translate("EmployerAdmin", "Activity ID", nullptr));
-        QTableWidgetItem *___qtablewidgetitem38 = activityTable->horizontalHeaderItem(1);
-        ___qtablewidgetitem38->setText(QCoreApplication::translate("EmployerAdmin", "Type", nullptr));
-        QTableWidgetItem *___qtablewidgetitem39 = activityTable->horizontalHeaderItem(2);
-        ___qtablewidgetitem39->setText(QCoreApplication::translate("EmployerAdmin", "Event Date", nullptr));
-        QTableWidgetItem *___qtablewidgetitem40 = activityTable->horizontalHeaderItem(3);
-        ___qtablewidgetitem40->setText(QCoreApplication::translate("EmployerAdmin", "Time", nullptr));
-        QTableWidgetItem *___qtablewidgetitem41 = activityTable->horizontalHeaderItem(4);
-        ___qtablewidgetitem41->setText(QCoreApplication::translate("EmployerAdmin", "Responsible", nullptr));
-        QTableWidgetItem *___qtablewidgetitem42 = activityTable->horizontalHeaderItem(5);
-        ___qtablewidgetitem42->setText(QCoreApplication::translate("EmployerAdmin", "Age", nullptr));
-        QTableWidgetItem *___qtablewidgetitem43 = activityTable->horizontalHeaderItem(6);
-        ___qtablewidgetitem43->setText(QCoreApplication::translate("EmployerAdmin", "Status", nullptr));
-        QTableWidgetItem *___qtablewidgetitem44 = activityTable->horizontalHeaderItem(7);
-        ___qtablewidgetitem44->setText(QCoreApplication::translate("EmployerAdmin", "Actions", nullptr));
+        QTableWidgetItem *___qtablewidgetitem31 = activityTable->horizontalHeaderItem(0);
+        ___qtablewidgetitem31->setText(QCoreApplication::translate("EmployerAdmin", "Activity ID", nullptr));
+        QTableWidgetItem *___qtablewidgetitem32 = activityTable->horizontalHeaderItem(1);
+        ___qtablewidgetitem32->setText(QCoreApplication::translate("EmployerAdmin", "Type", nullptr));
+        QTableWidgetItem *___qtablewidgetitem33 = activityTable->horizontalHeaderItem(2);
+        ___qtablewidgetitem33->setText(QCoreApplication::translate("EmployerAdmin", "Event Date", nullptr));
+        QTableWidgetItem *___qtablewidgetitem34 = activityTable->horizontalHeaderItem(3);
+        ___qtablewidgetitem34->setText(QCoreApplication::translate("EmployerAdmin", "Time", nullptr));
+        QTableWidgetItem *___qtablewidgetitem35 = activityTable->horizontalHeaderItem(4);
+        ___qtablewidgetitem35->setText(QCoreApplication::translate("EmployerAdmin", "Responsible", nullptr));
+        QTableWidgetItem *___qtablewidgetitem36 = activityTable->horizontalHeaderItem(5);
+        ___qtablewidgetitem36->setText(QCoreApplication::translate("EmployerAdmin", "Age", nullptr));
+        QTableWidgetItem *___qtablewidgetitem37 = activityTable->horizontalHeaderItem(6);
+        ___qtablewidgetitem37->setText(QCoreApplication::translate("EmployerAdmin", "Status", nullptr));
+        QTableWidgetItem *___qtablewidgetitem38 = activityTable->horizontalHeaderItem(7);
+        ___qtablewidgetitem38->setText(QCoreApplication::translate("EmployerAdmin", "Actions", nullptr));
         activityTabWidget->setTabText(activityTabWidget->indexOf(activityListTab), QCoreApplication::translate("EmployerAdmin", " List of Activities", nullptr));
         activityAgeSpinBox->setSuffix(QCoreApplication::translate("EmployerAdmin", " years", nullptr));
         activityConfirmButton->setText(QCoreApplication::translate("EmployerAdmin", " Confirm Add Activity", nullptr));
@@ -3611,28 +3529,33 @@ public:
         activityAgeChartTitle->setText(QCoreApplication::translate("EmployerAdmin", "\360\237\223\212 Age Requirement Distribution", nullptr));
         activityAgeChartPlaceholder->setText(QCoreApplication::translate("EmployerAdmin", "Bar Chart Placeholder", nullptr));
         activityTabWidget->setTabText(activityTabWidget->indexOf(activityStatisticsTab), QCoreApplication::translate("EmployerAdmin", " Statistics", nullptr));
+        activityCalendarPlaceholder->setText(QCoreApplication::translate("EmployerAdmin", "\360\237\223\205 Activity Calendar\n"
+"\n"
+"This interactive calendar will be implemented programmatically in C++\n"
+"Shows activities by date with visual indicators, filters, and detailed views", nullptr));
+        activityTabWidget->setTabText(activityTabWidget->indexOf(activityCalendarTab), QCoreApplication::translate("EmployerAdmin", " Calendar", nullptr));
         paymentSearchLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Search transactions...", nullptr));
         paymentSearchButton->setText(QCoreApplication::translate("EmployerAdmin", "Search", nullptr));
         paymentSortButton->setText(QCoreApplication::translate("EmployerAdmin", "Sort by Date", nullptr));
         paymentExportButton->setText(QCoreApplication::translate("EmployerAdmin", "Export PDF", nullptr));
-        QTableWidgetItem *___qtablewidgetitem45 = paymentTable->horizontalHeaderItem(0);
-        ___qtablewidgetitem45->setText(QCoreApplication::translate("EmployerAdmin", "Transaction ID", nullptr));
-        QTableWidgetItem *___qtablewidgetitem46 = paymentTable->horizontalHeaderItem(1);
-        ___qtablewidgetitem46->setText(QCoreApplication::translate("EmployerAdmin", "Date", nullptr));
-        QTableWidgetItem *___qtablewidgetitem47 = paymentTable->horizontalHeaderItem(2);
-        ___qtablewidgetitem47->setText(QCoreApplication::translate("EmployerAdmin", "Description", nullptr));
-        QTableWidgetItem *___qtablewidgetitem48 = paymentTable->horizontalHeaderItem(3);
-        ___qtablewidgetitem48->setText(QCoreApplication::translate("EmployerAdmin", "Type", nullptr));
-        QTableWidgetItem *___qtablewidgetitem49 = paymentTable->horizontalHeaderItem(4);
-        ___qtablewidgetitem49->setText(QCoreApplication::translate("EmployerAdmin", "Amount", nullptr));
-        QTableWidgetItem *___qtablewidgetitem50 = paymentTable->horizontalHeaderItem(5);
-        ___qtablewidgetitem50->setText(QCoreApplication::translate("EmployerAdmin", "Method", nullptr));
-        QTableWidgetItem *___qtablewidgetitem51 = paymentTable->horizontalHeaderItem(6);
-        ___qtablewidgetitem51->setText(QCoreApplication::translate("EmployerAdmin", "Status", nullptr));
-        QTableWidgetItem *___qtablewidgetitem52 = paymentTable->horizontalHeaderItem(7);
-        ___qtablewidgetitem52->setText(QCoreApplication::translate("EmployerAdmin", "Member ID", nullptr));
-        QTableWidgetItem *___qtablewidgetitem53 = paymentTable->horizontalHeaderItem(8);
-        ___qtablewidgetitem53->setText(QCoreApplication::translate("EmployerAdmin", "Actions", nullptr));
+        QTableWidgetItem *___qtablewidgetitem39 = paymentTable->horizontalHeaderItem(0);
+        ___qtablewidgetitem39->setText(QCoreApplication::translate("EmployerAdmin", "Transaction ID", nullptr));
+        QTableWidgetItem *___qtablewidgetitem40 = paymentTable->horizontalHeaderItem(1);
+        ___qtablewidgetitem40->setText(QCoreApplication::translate("EmployerAdmin", "Date", nullptr));
+        QTableWidgetItem *___qtablewidgetitem41 = paymentTable->horizontalHeaderItem(2);
+        ___qtablewidgetitem41->setText(QCoreApplication::translate("EmployerAdmin", "Description", nullptr));
+        QTableWidgetItem *___qtablewidgetitem42 = paymentTable->horizontalHeaderItem(3);
+        ___qtablewidgetitem42->setText(QCoreApplication::translate("EmployerAdmin", "Type", nullptr));
+        QTableWidgetItem *___qtablewidgetitem43 = paymentTable->horizontalHeaderItem(4);
+        ___qtablewidgetitem43->setText(QCoreApplication::translate("EmployerAdmin", "Amount", nullptr));
+        QTableWidgetItem *___qtablewidgetitem44 = paymentTable->horizontalHeaderItem(5);
+        ___qtablewidgetitem44->setText(QCoreApplication::translate("EmployerAdmin", "Method", nullptr));
+        QTableWidgetItem *___qtablewidgetitem45 = paymentTable->horizontalHeaderItem(6);
+        ___qtablewidgetitem45->setText(QCoreApplication::translate("EmployerAdmin", "Status", nullptr));
+        QTableWidgetItem *___qtablewidgetitem46 = paymentTable->horizontalHeaderItem(7);
+        ___qtablewidgetitem46->setText(QCoreApplication::translate("EmployerAdmin", "Member ID", nullptr));
+        QTableWidgetItem *___qtablewidgetitem47 = paymentTable->horizontalHeaderItem(8);
+        ___qtablewidgetitem47->setText(QCoreApplication::translate("EmployerAdmin", "Actions", nullptr));
         paymentTabWidget->setTabText(paymentTabWidget->indexOf(listTab_4), QCoreApplication::translate("EmployerAdmin", " List of Payments", nullptr));
         paymentDescriptionEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Enter transaction description", nullptr));
         paymentAmountLabel->setText(QCoreApplication::translate("EmployerAdmin", "Date:", nullptr));
@@ -3677,25 +3600,25 @@ public:
         netBalanceLabel->setText(QCoreApplication::translate("EmployerAdmin", "Net Balance", nullptr));
         netBalanceValue->setText(QCoreApplication::translate("EmployerAdmin", "$0.00", nullptr));
         paymentChartsTitle->setText(QCoreApplication::translate("EmployerAdmin", "Payment Method Distribution", nullptr));
-        QTableWidgetItem *___qtablewidgetitem54 = paymentMethodStatsTable->horizontalHeaderItem(0);
-        ___qtablewidgetitem54->setText(QCoreApplication::translate("EmployerAdmin", "Payment Method", nullptr));
-        QTableWidgetItem *___qtablewidgetitem55 = paymentMethodStatsTable->horizontalHeaderItem(1);
-        ___qtablewidgetitem55->setText(QCoreApplication::translate("EmployerAdmin", "Total Transactions", nullptr));
-        QTableWidgetItem *___qtablewidgetitem56 = paymentMethodStatsTable->horizontalHeaderItem(2);
-        ___qtablewidgetitem56->setText(QCoreApplication::translate("EmployerAdmin", "Total Amount", nullptr));
-        QTableWidgetItem *___qtablewidgetitem57 = paymentMethodStatsTable->horizontalHeaderItem(3);
-        ___qtablewidgetitem57->setText(QCoreApplication::translate("EmployerAdmin", "Percentage", nullptr));
+        QTableWidgetItem *___qtablewidgetitem48 = paymentMethodStatsTable->horizontalHeaderItem(0);
+        ___qtablewidgetitem48->setText(QCoreApplication::translate("EmployerAdmin", "Payment Method", nullptr));
+        QTableWidgetItem *___qtablewidgetitem49 = paymentMethodStatsTable->horizontalHeaderItem(1);
+        ___qtablewidgetitem49->setText(QCoreApplication::translate("EmployerAdmin", "Total Transactions", nullptr));
+        QTableWidgetItem *___qtablewidgetitem50 = paymentMethodStatsTable->horizontalHeaderItem(2);
+        ___qtablewidgetitem50->setText(QCoreApplication::translate("EmployerAdmin", "Total Amount", nullptr));
+        QTableWidgetItem *___qtablewidgetitem51 = paymentMethodStatsTable->horizontalHeaderItem(3);
+        ___qtablewidgetitem51->setText(QCoreApplication::translate("EmployerAdmin", "Percentage", nullptr));
         recentPaymentsTitle->setText(QCoreApplication::translate("EmployerAdmin", "Recent Transactions (Last 10)", nullptr));
-        QTableWidgetItem *___qtablewidgetitem58 = recentPaymentsTable->horizontalHeaderItem(0);
-        ___qtablewidgetitem58->setText(QCoreApplication::translate("EmployerAdmin", "Date", nullptr));
-        QTableWidgetItem *___qtablewidgetitem59 = recentPaymentsTable->horizontalHeaderItem(1);
-        ___qtablewidgetitem59->setText(QCoreApplication::translate("EmployerAdmin", "Description", nullptr));
-        QTableWidgetItem *___qtablewidgetitem60 = recentPaymentsTable->horizontalHeaderItem(2);
-        ___qtablewidgetitem60->setText(QCoreApplication::translate("EmployerAdmin", "Type", nullptr));
-        QTableWidgetItem *___qtablewidgetitem61 = recentPaymentsTable->horizontalHeaderItem(3);
-        ___qtablewidgetitem61->setText(QCoreApplication::translate("EmployerAdmin", "Amount", nullptr));
-        QTableWidgetItem *___qtablewidgetitem62 = recentPaymentsTable->horizontalHeaderItem(4);
-        ___qtablewidgetitem62->setText(QCoreApplication::translate("EmployerAdmin", "Status", nullptr));
+        QTableWidgetItem *___qtablewidgetitem52 = recentPaymentsTable->horizontalHeaderItem(0);
+        ___qtablewidgetitem52->setText(QCoreApplication::translate("EmployerAdmin", "Date", nullptr));
+        QTableWidgetItem *___qtablewidgetitem53 = recentPaymentsTable->horizontalHeaderItem(1);
+        ___qtablewidgetitem53->setText(QCoreApplication::translate("EmployerAdmin", "Description", nullptr));
+        QTableWidgetItem *___qtablewidgetitem54 = recentPaymentsTable->horizontalHeaderItem(2);
+        ___qtablewidgetitem54->setText(QCoreApplication::translate("EmployerAdmin", "Type", nullptr));
+        QTableWidgetItem *___qtablewidgetitem55 = recentPaymentsTable->horizontalHeaderItem(3);
+        ___qtablewidgetitem55->setText(QCoreApplication::translate("EmployerAdmin", "Amount", nullptr));
+        QTableWidgetItem *___qtablewidgetitem56 = recentPaymentsTable->horizontalHeaderItem(4);
+        ___qtablewidgetitem56->setText(QCoreApplication::translate("EmployerAdmin", "Status", nullptr));
         paymentTabWidget->setTabText(paymentTabWidget->indexOf(statisticsTab_4), QCoreApplication::translate("EmployerAdmin", " Statistics", nullptr));
         settingsPageTitle->setText(QCoreApplication::translate("EmployerAdmin", "Settings", nullptr));
         userProfileTitle->setText(QCoreApplication::translate("EmployerAdmin", "\360\237\221\244 User Profile", nullptr));

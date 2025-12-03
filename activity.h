@@ -149,6 +149,9 @@ private:
     bool ensureNodeJsScriptsExists() const;
     QString findActualProjectLocation() const;
     bool copyDirectoryRecursively(const QString &sourceDir, const QString &destDir) const;
+    
+    // PDF generation helper
+    bool createPdfWithImage(const QString &imagePath, const QString &pdfPath) const;
 };
 
 #endif // ACTIVITY_H

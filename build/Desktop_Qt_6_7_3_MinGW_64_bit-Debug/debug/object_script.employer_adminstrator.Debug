@@ -15,6 +15,14 @@ debug/totpsetupdialog.o
 debug/totpinputdialog.o
 debug/emailpanel.o
 debug/activitypanel.o
+debug/employeelogspanel.o
+debug/activitycalendar.o
+debug/ocrinterface.o
+debug/rfidservice.o
+debug/rfidcard.o
+debug/rfidmanager.o
+debug/rfidpanel.o
+debug/rfidcarddialog.o
 debug/qrc_resources.o
 debug/moc_connexion_ard.o
 debug/moc_employeradmin.o
@@ -29,3 +37,11 @@ debug/moc_totpsetupdialog.o
 debug/moc_totpinputdialog.o
 debug/moc_emailpanel.o
 debug/moc_activitypanel.o
+debug/moc_employeelogspanel.o
+debug/moc_activitycalendar.o
+debug/moc_ocrinterface.o
+debug/moc_rfidservice.o
+debug/moc_rfidcard.o
+debug/moc_rfidmanager.o
+debug/moc_rfidpanel.o
+debug/moc_rfidcarddialog.o

@@ -20,7 +20,9 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QSpinBox>
-#include <QFileDialog>\n#include <QApplication>\n#include <QProcessEnvironment>
+#include <QFileDialog>
+#include <QApplication>
+#include <QProcessEnvironment>
 
 // ============================================================================
 // CONSTRUCTORS & DESTRUCTOR
@@ -889,7 +891,7 @@ void Activity::onExportActivities()
     
     // Create export configuration dialog
     QDialog dialog(parentWidget);
-    dialog.setWindowTitle("Export Poster Configuration");
+    dialog.setWindowTitle("Export Poster to PDF Configuration");
     dialog.setModal(true);
     dialog.resize(500, 300);
     
@@ -941,7 +943,7 @@ void Activity::onExportActivities()
     
     // Buttons
     QHBoxLayout* btnLayout = new QHBoxLayout();
-    QPushButton* okBtn = new QPushButton("Generate Poster");
+    QPushButton* okBtn = new QPushButton("Generate Poster & PDF");
     QPushButton* cancelBtn = new QPushButton("Cancel");
     btnLayout->addStretch();
     btnLayout->addWidget(okBtn);
@@ -959,7 +961,7 @@ void Activity::onExportActivities()
     
     QObject::connect(outBrowseBtn, &QPushButton::clicked, [&]() {
         QString file = QFileDialog::getSaveFileName(&dialog, "Save Poster As", 
-            "poster_with_qr.png", "PNG Files (*.png)");
+            "poster_with_qr.png", "PNG Files (*.png);;PDF Files (*.pdf)");
         if (!file.isEmpty()) {
             outLineEdit->setText(file);
         }
@@ -1004,6 +1006,16 @@ void Activity::onExportActivities()
         QString absoluteBgImage = QFileInfo(bgImage).absoluteFilePath();
         QString absoluteOutputPath = QFileInfo(outputPath).absoluteFilePath();
         
+        // Check if user wants PDF output directly
+        bool pdfOutput = outputPath.toLower().endsWith(".pdf");
+        QString tempImagePath = absoluteOutputPath;
+        
+        if (pdfOutput) {
+            // If PDF is requested, create a temporary PNG file first
+            tempImagePath = absoluteOutputPath;
+            tempImagePath.replace(".pdf", "_temp.png");
+        }
+        
         // Get the node script path using the same approach as OCR interface
         QString scriptPath = getNodeScriptPath();
         if (scriptPath.isEmpty()) {
@@ -1019,12 +1031,14 @@ void Activity::onExportActivities()
         
         QStringList arguments;
         arguments << scriptInfo.fileName() << absoluteBgImage << QString::number(qrX) 
-                 << QString::number(qrY) << absoluteOutputPath;
+                 << QString::number(qrY) << tempImagePath;
         
         // Debug information
         qDebug() << "Working directory:" << nodeScriptsPath;
         qDebug() << "Background image:" << absoluteBgImage;
-        qDebug() << "Output path:" << absoluteOutputPath;
+        qDebug() << "Temp image path:" << tempImagePath;
+        qDebug() << "Final output path:" << absoluteOutputPath;
+        qDebug() << "PDF output mode:" << pdfOutput;
         qDebug() << "Arguments:" << arguments;
         
         process.start("node", arguments);
@@ -1034,13 +1048,35 @@ void Activity::onExportActivities()
         QString error = process.readAllStandardError();
         
         if (process.exitCode() == 0) {
-            // Check if file actually exists using the absolute path
-            if (QFile::exists(absoluteOutputPath)) {
-                QMessageBox::information(parentWidget, "Success", 
-                    QString("Poster with QR code generated successfully!\n\nSaved to: %1").arg(absoluteOutputPath));
+            // Check if image file was created
+            if (QFile::exists(tempImagePath)) {
+                if (pdfOutput) {
+                    // Create PDF with the generated image
+                    if (createPdfWithImage(tempImagePath, absoluteOutputPath)) {
+                        // Clean up temporary image file
+                        QFile::remove(tempImagePath);
+                        QMessageBox::information(parentWidget, "Success", 
+                            QString("Poster with QR code generated and exported to PDF successfully!\n\nPDF saved to: %1").arg(absoluteOutputPath));
+                    } else {
+                        QMessageBox::warning(parentWidget, "Partial Success", 
+                            QString("Poster image generated successfully but PDF creation failed.\n\nImage saved to: %1").arg(tempImagePath));
+                    }
+                } else {
+                    // PNG output - also create PDF alongside
+                    QString pdfPath = absoluteOutputPath;
+                    pdfPath.replace(".png", ".pdf");
+                    
+                    if (createPdfWithImage(absoluteOutputPath, pdfPath)) {
+                        QMessageBox::information(parentWidget, "Success", 
+                            QString("Poster with QR code generated and exported to PDF successfully!\n\nImage saved to: %1\nPDF saved to: %2").arg(absoluteOutputPath, pdfPath));
+                    } else {
+                        QMessageBox::warning(parentWidget, "Partial Success", 
+                            QString("Poster image generated successfully but PDF creation failed.\n\nImage saved to: %1").arg(absoluteOutputPath));
+                    }
+                }
             } else {
                 QMessageBox::warning(parentWidget, "Warning", 
-                    QString("Process completed but file not found at: %1\n\nWorking dir: %2\nOutput: %3").arg(absoluteOutputPath, nodeScriptsPath, output));
+                    QString("Process completed but file not found at: %1\n\nWorking dir: %2\nOutput: %3").arg(tempImagePath, nodeScriptsPath, output));
             }
         } else {
             QMessageBox::critical(parentWidget, "Error", 
@@ -1418,4 +1454,60 @@ bool Activity::copyDirectoryRecursively(const QString &sourceDir, const QString 
     }
     
     return true;
+}
+
+bool Activity::createPdfWithImage(const QString &imagePath, const QString &pdfPath) const
+{
+    // Check if image file exists
+    if (!QFileInfo::exists(imagePath)) {
+        qDebug() << "❌ Image file does not exist:" << imagePath;
+        return false;
+    }
+    
+    // Create QPrinter for PDF generation
+    QPrinter printer(QPrinter::HighResolution);
+    printer.setOutputFormat(QPrinter::PdfFormat);
+    printer.setOutputFileName(pdfPath);
+    // Use default settings for maximum compatibility
+    printer.setFullPage(false);
+    
+    // Create QTextDocument for PDF content
+    QTextDocument document;
+    // Set page size to A4 dimensions (210x297mm = ~595x842 points)
+    document.setPageSize(QSizeF(595, 842));
+    
+    // Create HTML content with the image
+    QString htmlContent = QString(
+        "<html>"
+        "<head><title>Summer Club Activity Poster</title></head>"
+        "<body style='margin: 0; padding: 25px;'>"
+        "<div style='width: 545px; height: 700px; display: flex; align-items: center; justify-content: center;'>"
+        "<img src='file:///%2' style='max-width: 500px; max-height: 650px; width: auto; height: auto;'/>"
+        "</div>"
+        "<p style='position: absolute; bottom: 10px; right: 10px; font-size: 8px; color: #999; margin: 0;'>%1</p>"
+        "</body>"
+        "</html>"
+    );
+    
+    // Convert Windows paths to URL format
+    QString urlImagePath = imagePath;
+    urlImagePath.replace("\\", "/");
+    
+    htmlContent = htmlContent.arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"), 
+                                  urlImagePath);
+    
+    // Set the HTML content to the document
+    document.setHtml(htmlContent);
+    
+    // Print the document to PDF
+    document.print(&printer);
+    
+    // Verify PDF was created
+    if (QFileInfo::exists(pdfPath)) {
+        qDebug() << "✅ PDF created successfully:" << pdfPath;
+        return true;
+    } else {
+        qDebug() << "❌ Failed to create PDF:" << pdfPath;
+        return false;
+    }
 }

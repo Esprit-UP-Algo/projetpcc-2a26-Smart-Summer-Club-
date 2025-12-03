@@ -15,6 +15,14 @@ release/totpsetupdialog.o
 release/totpinputdialog.o
 release/emailpanel.o
 release/activitypanel.o
+release/employeelogspanel.o
+release/activitycalendar.o
+release/ocrinterface.o
+release/rfidservice.o
+release/rfidcard.o
+release/rfidmanager.o
+release/rfidpanel.o
+release/rfidcarddialog.o
 release/qrc_resources.o
 release/moc_connexion_ard.o
 release/moc_employeradmin.o
@@ -29,3 +37,11 @@ release/moc_totpsetupdialog.o
 release/moc_totpinputdialog.o
 release/moc_emailpanel.o
 release/moc_activitypanel.o
+release/moc_employeelogspanel.o
+release/moc_activitycalendar.o
+release/moc_ocrinterface.o
+release/moc_rfidservice.o
+release/moc_rfidcard.o
+release/moc_rfidmanager.o
+release/moc_rfidpanel.o
+release/moc_rfidcarddialog.o
