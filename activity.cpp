@@ -30,7 +30,7 @@
 // ============================================================================
 // CONSTRUCTORS & DESTRUCTOR
 // ============================================================================
-
+/// bla blalaalla
 Activity::Activity()
     : QObject(nullptr), idA(0), activityType(""), eventDate(QDate::currentDate()),
       eventTime(QTime::currentTime()), responsible(""), ageRequirement(0),
