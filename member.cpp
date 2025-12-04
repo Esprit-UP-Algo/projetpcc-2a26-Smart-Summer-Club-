@@ -1181,6 +1181,8 @@ void Member::loadMemberToForm(Member* member)
 bool Member::exportMemberCertificate(const QString& memberCin, const QString& firstName, const QString& lastName, 
                                       const QString& birthDate, const QString& membershipType, const QString& joinDate)
 {
+    Q_UNUSED(joinDate)  // Parameter reserved for future use
+    
     // Validate input parameters
     if (memberCin.isEmpty() || firstName.isEmpty() || lastName.isEmpty()) {
         QMessageBox::warning(parentWidget, "Error", "Essential member information is missing.");

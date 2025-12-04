@@ -1,7 +1,8 @@
 #include "activitypanel.h"
 #include <QApplication>
 #include <QStandardPaths>
-#include <QFileInfo>\n#include <QProcessEnvironment>
+#include <QFileInfo>
+#include <QProcessEnvironment>
 
 ActivityPanel::ActivityPanel(QWidget *parent)
     : QWidget(parent)

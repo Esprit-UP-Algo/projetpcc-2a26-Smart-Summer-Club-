@@ -33,6 +33,9 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDebug>
+#include <QSerialPort>
+#include <QSerialPortInfo>
+#include <QThread>
 
 // Forward declarations
 class QTableWidget;
@@ -130,6 +133,11 @@ public slots:
     void onRefreshClicked();
     void onExportClicked();
 
+    // Arduino LCD communication slots
+    void onArduinoConnectClicked();
+    void onArduinoDisconnectClicked();
+    void onSerialErrorOccurred(QSerialPort::SerialPortError error);
+
 private slots:
     void onActivityDoubleClicked(const QDate &date);
     void onActivityActionTriggered();
@@ -163,6 +171,13 @@ private:
     void duplicateActivity(int activityId);
     void viewActivityDetails(int activityId);
     
+    // Arduino LCD communication methods
+    void initializeArduinoConnection();
+    void sendActivityToArduino(const QDate &date);
+    void sendActivityDataToArduino(const ActivityCalendarItem &activity);
+    void sendNoActivityToArduino();
+    void disconnectArduino();
+    
     // Statistics and analytics
     void updateMonthlyStatistics();
     void calculateCapacityStats();
@@ -186,6 +201,9 @@ private:
     QPushButton *m_addActivityButton;
     QPushButton *m_refreshButton;
     QPushButton *m_exportButton;
+    QPushButton *m_arduinoConnectButton;
+    QPushButton *m_arduinoDisconnectButton;
+    QLabel *m_arduinoStatusLabel;
     
     // Calendar Section
     QFrame *m_calendarFrame;
@@ -230,6 +248,11 @@ private:
     
     // Auto-refresh timer
     QTimer *m_refreshTimer;
+    
+    // Arduino LCD communication
+    QSerialPort *m_serialPort;
+    bool m_arduinoConnected;
+    QString m_lastSentActivityData;
 };
 
 #endif // ACTIVITYCALENDAR_H

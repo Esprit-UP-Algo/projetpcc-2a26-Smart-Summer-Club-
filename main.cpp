@@ -14,20 +14,24 @@ int main(int argc, char *argv[])
     // Print available SQL drivers (useful to verify QODBC is available)
     qDebug() << "Available Qt SQL drivers:" << QSqlDatabase::drivers();
 
-    // Initialize Arduino connection
+    // Initialize Arduino connection (DISABLED - using ActivityCalendar LCD integration instead)
     Arduino* arduino = new Arduino(&a);
-    qDebug() << "\n=== Initializing Arduino Connection ===";
-    int connectionResult = arduino->connect_arduino();
+    qDebug() << "\n=== Arduino Connection Available (Not Auto-Connecting) ===";
+    qDebug() << "Note: Arduino connection is managed through ActivityCalendar LCD interface";
+    qDebug() << "Use the 'Connect LCD' button in the calendar to connect to Arduino";
     
-    if (connectionResult == 0) {
-        qDebug() << "Arduino connected successfully on port:" << arduino->getarduino_port_name();
-    } else if (connectionResult == -1) {
-        qDebug() << "ERROR: Arduino device not found. Application will continue without Arduino support.";
-        qDebug() << "Error:" << arduino->getLastError();
-    } else {
-        qDebug() << "ERROR: Failed to open Arduino port. Application will continue without Arduino support.";
-        qDebug() << "Error:" << arduino->getLastError();
-    }
+    // Auto-connection disabled to prevent port conflicts with LCD system
+    // int connectionResult = arduino->connect_arduino();
+    
+    // if (connectionResult == 0) {
+    //     qDebug() << "Arduino connected successfully on port:" << arduino->getarduino_port_name();
+    // } else if (connectionResult == -1) {
+    //     qDebug() << "ERROR: Arduino device not found. Application will continue without Arduino support.";
+    //     qDebug() << "Error:" << arduino->getLastError();
+    // } else {
+    //     qDebug() << "ERROR: Failed to open Arduino port. Application will continue without Arduino support.";
+    //     qDebug() << "Error:" << arduino->getLastError();
+    // }
 
     // Try to open database connection once via the Connection singleton and log the result
     Connection* connexion = Connection::getInstance();

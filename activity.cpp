@@ -6,6 +6,9 @@
 #include <QTextDocument>
 #include <QPrinter>
 #include <QPageLayout>
+#include <QPageSize>
+#include <QPainter>
+#include <QImage>
 #include <QFile>
 #include <QPushButton>
 #include <QHBoxLayout>
@@ -1283,131 +1286,19 @@ bool Activity::ensureNodeJsScriptsExists() const
 
 QString Activity::findActualProjectLocation() const
 {
-    qDebug() << "🔍 Starting comprehensive project location search...";
-    qDebug() << "🏠 Current user home path:" << QDir::homePath();
-    qDebug() << "👤 Current username:" << qgetenv("USERNAME");
+    // Simply use the current working directory - the project is already where we are!
+    QString currentDir = QDir::currentPath();
+    qDebug() << "Current working directory:" << currentDir;
     
-    // Get current username for dynamic path construction
-    QString currentUser = qgetenv("USERNAME");
-    if (currentUser.isEmpty()) {
-        currentUser = qgetenv("USER"); // For Unix-like systems
+    // Check if nodeJsScripts exists in current directory
+    QString nodeScriptsPath = currentDir + "/nodeJsScripts";
+    if (QDir(nodeScriptsPath).exists()) {
+        qDebug() << "✅ Found nodeJsScripts in current directory:" << currentDir;
+        return currentDir;
     }
     
-    QStringList searchPaths;
-    
-    // 1. Common user-specific paths with current username
-    if (!currentUser.isEmpty()) {
-        searchPaths << QString("C:/Users/%1/Desktop/ProjetC++/SummerClub_Advanced").arg(currentUser);
-        searchPaths << QString("C:/Users/%1/Desktop/SummerClub_Advanced").arg(currentUser);
-        searchPaths << QString("C:/Users/%1/OneDrive/Desktop/ProjetC++/SummerClub_Advanced").arg(currentUser);
-        searchPaths << QString("C:/Users/%1/OneDrive/Desktop/SummerClub_Advanced").arg(currentUser);
-        searchPaths << QString("C:/Users/%1/Documents/ProjetC++/SummerClub_Advanced").arg(currentUser);
-        searchPaths << QString("C:/Users/%1/Documents/SummerClub_Advanced").arg(currentUser);
-        searchPaths << QString("C:/Users/%1/Downloads/SummerClub_Advanced").arg(currentUser);
-    }
-    
-    // 2. Qt-based home directory paths (cross-platform)
-    searchPaths << QDir::homePath() + "/Desktop/ProjetC++/SummerClub_Advanced";
-    searchPaths << QDir::homePath() + "/Desktop/SummerClub_Advanced"; 
-    searchPaths << QDir::homePath() + "/OneDrive/Desktop/ProjetC++/SummerClub_Advanced";
-    searchPaths << QDir::homePath() + "/OneDrive/Desktop/SummerClub_Advanced";
-    searchPaths << QDir::homePath() + "/Documents/ProjetC++/SummerClub_Advanced";
-    searchPaths << QDir::homePath() + "/Documents/SummerClub_Advanced";
-    searchPaths << QDir::homePath() + "/Downloads/SummerClub_Advanced";
-    
-    // 3. Known specific user paths (for backwards compatibility)
-    searchPaths << "C:/Users/Khalil/Desktop/ProjetC++/SummerClub_Advanced";
-    searchPaths << "C:/Users/Khalil/Desktop/SummerClub_Advanced";
-    searchPaths << "C:/Users/khali/OneDrive/Desktop/SummerClub_Advanced";
-    
-    // 4. Root drive locations
-    searchPaths << "C:/ProjetC++/SummerClub_Advanced";
-    searchPaths << "C:/SummerClub_Advanced";
-    searchPaths << "D:/ProjetC++/SummerClub_Advanced";
-    searchPaths << "D:/SummerClub_Advanced";
-    searchPaths << "E:/ProjetC++/SummerClub_Advanced";
-    searchPaths << "E:/SummerClub_Advanced";
-    
-    // 5. Dynamic search in common base locations
-    QStringList baseSearchLocations = {
-        QDir::homePath() + "/OneDrive/Desktop",
-        QDir::homePath() + "/Desktop",
-        QDir::homePath() + "/Documents", 
-        QDir::homePath() + "/Downloads",
-        "C:/Users/" + currentUser + "/Desktop",
-        "C:/Users/" + currentUser + "/OneDrive/Desktop",
-        "C:/Users/" + currentUser + "/Documents",
-        "C:/", "D:/", "E:/", "F:/"
-    };
-    
-    qDebug() << "🔍 Searching for SummerClub* folders in common locations...";
-    for (const QString &basePath : baseSearchLocations) {
-        QDir baseDir(basePath);
-        if (baseDir.exists()) {
-            // Look for any folder containing "SummerClub" (case insensitive)
-            QStringList filters;
-            filters << "*SummerClub*" << "*summerclub*" << "*SUMMERCLUB*" << "*ProjetC++*" << "*projetc++*";
-            
-            QStringList subdirs = baseDir.entryList(filters, QDir::Dirs);
-            for (const QString &subdir : subdirs) {
-                QString fullPath = basePath + "/" + subdir;
-                searchPaths.append(fullPath);
-                
-                // Also check subdirectories for nested projects
-                QDir subDirObj(fullPath);
-                QStringList nestedDirs = subDirObj.entryList(QStringList() << "*SummerClub*", QDir::Dirs);
-                for (const QString &nestedDir : nestedDirs) {
-                    searchPaths.append(fullPath + "/" + nestedDir);
-                }
-            }
-        }
-    }
-    
-    // Remove duplicates and sort by most likely paths first
-    searchPaths.removeDuplicates();
-    
-    qDebug() << "🔍 Total search paths to check:" << searchPaths.size();
-    
-    // Check each potential path
-    for (const QString &path : searchPaths) {
-        QDir projectDir(path);
-        if (projectDir.exists()) {
-            // Verify it's our project by checking for key files
-            QString nodeScriptsPath = path + "/nodeJsScripts";
-            QString qrScriptPath = nodeScriptsPath + "/qr_adder.js";
-            QString packageJsonPath = nodeScriptsPath + "/package.json";
-            QString activityFile = path + "/activity.cpp";
-            QString activityHeader = path + "/activity.h";
-            QString employerAdminFile = path + "/employeradmin.cpp";
-            
-            // Check for multiple indicators to ensure it's the right project
-            bool hasNodeScripts = QFileInfo::exists(nodeScriptsPath);
-            bool hasQRScript = QFileInfo::exists(qrScriptPath);
-            bool hasActivityFiles = QFileInfo::exists(activityFile) && QFileInfo::exists(activityHeader);
-            bool hasMainProject = QFileInfo::exists(employerAdminFile);
-            
-            // Must have at least nodeJsScripts folder AND either QR script or activity files
-            if (hasNodeScripts && (hasQRScript || (hasActivityFiles && hasMainProject))) {
-                qDebug() << "✅ Found actual project at:" << path;
-                qDebug() << "  ✅ NodeJs scripts folder:" << hasNodeScripts;
-                qDebug() << "  ✅ QR script exists:" << hasQRScript;
-                qDebug() << "  ✅ Activity files:" << hasActivityFiles;
-                qDebug() << "  ✅ Main project files:" << hasMainProject;
-                qDebug() << "  📄 Package.json exists:" << QFileInfo::exists(packageJsonPath);
-                return path;
-            }
-        }
-    }
-    
-    qDebug() << "❌ Could not find SummerClub_Advanced project in any location";
-    qDebug() << "🔍 Searched paths:";
-    for (int i = 0; i < qMin(10, searchPaths.size()); ++i) { // Show first 10 for brevity
-        qDebug() << "  - " << searchPaths[i];
-    }
-    if (searchPaths.size() > 10) {
-        qDebug() << "  ... and" << (searchPaths.size() - 10) << "more locations";
-    }
-    
+    // If not found, return empty - no need for complex searching
+    qDebug() << "❌ nodeJsScripts not found in current directory";
     return QString();
 }
 
@@ -1458,51 +1349,56 @@ bool Activity::copyDirectoryRecursively(const QString &sourceDir, const QString 
 
 bool Activity::createPdfWithImage(const QString &imagePath, const QString &pdfPath) const
 {
-    // Check if image file exists
+    // 1) Vérifier que le fichier existe
     if (!QFileInfo::exists(imagePath)) {
         qDebug() << "❌ Image file does not exist:" << imagePath;
         return false;
     }
-    
-    // Create QPrinter for PDF generation
+
+    // 2) Charger l'image
+    QImage image(imagePath);
+    if (image.isNull()) {
+        qDebug() << "❌ Failed to load image:" << imagePath;
+        return false;
+    }
+
+    // 3) Configurer l'imprimante PDF (Qt 6 API)
     QPrinter printer(QPrinter::HighResolution);
     printer.setOutputFormat(QPrinter::PdfFormat);
     printer.setOutputFileName(pdfPath);
-    // Use default settings for maximum compatibility
-    printer.setFullPage(false);
-    
-    // Create QTextDocument for PDF content
-    QTextDocument document;
-    // Set page size to A4 dimensions (210x297mm = ~595x842 points)
-    document.setPageSize(QSizeF(595, 842));
-    
-    // Create HTML content with the image
-    QString htmlContent = QString(
-        "<html>"
-        "<head><title>Summer Club Activity Poster</title></head>"
-        "<body style='margin: 0; padding: 25px;'>"
-        "<div style='width: 545px; height: 700px; display: flex; align-items: center; justify-content: center;'>"
-        "<img src='file:///%2' style='max-width: 500px; max-height: 650px; width: auto; height: auto;'/>"
-        "</div>"
-        "<p style='position: absolute; bottom: 10px; right: 10px; font-size: 8px; color: #999; margin: 0;'>%1</p>"
-        "</body>"
-        "</html>"
+    printer.setFullPage(true);
+
+    // Set page layout to A4 Landscape
+    QPageLayout pageLayout(QPageSize(QPageSize::A4), QPageLayout::Landscape, QMarginsF(0, 0, 0, 0));
+    printer.setPageLayout(pageLayout);
+
+    // 4) Dessiner l'image sur la page
+    QPainter painter(&printer);
+    if (!painter.isActive()) {
+        qDebug() << "❌ Painter is not active";
+        return false;
+    }
+
+    // Rectangle de la page imprimable (device pixels in Qt 6)
+    QRectF pageRectF = printer.pageRect(QPrinter::DevicePixel);
+    QRect pageRect = pageRectF.toRect();
+
+    // Taille de l'image redimensionnée en gardant le ratio
+    QSize targetSize = image.size();
+    targetSize.scale(pageRect.size(), Qt::KeepAspectRatio);
+
+    // Centrer l'image
+    QPoint topLeft(
+        (pageRect.width()  - targetSize.width())  / 2,
+        (pageRect.height() - targetSize.height()) / 2
     );
-    
-    // Convert Windows paths to URL format
-    QString urlImagePath = imagePath;
-    urlImagePath.replace("\\", "/");
-    
-    htmlContent = htmlContent.arg(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"), 
-                                  urlImagePath);
-    
-    // Set the HTML content to the document
-    document.setHtml(htmlContent);
-    
-    // Print the document to PDF
-    document.print(&printer);
-    
-    // Verify PDF was created
+    QRect targetRect(topLeft, targetSize);
+
+    // Dessin
+    painter.drawImage(targetRect, image);
+    painter.end();
+
+    // 5) Vérifier que le PDF a bien été créé
     if (QFileInfo::exists(pdfPath)) {
         qDebug() << "✅ PDF created successfully:" << pdfPath;
         return true;

@@ -245,6 +245,8 @@ ActivityCalendar::ActivityCalendar(QWidget *parent)
     , m_upcomingActivitiesCount(0)
     , m_conflictsCount(0)
     , m_avgAttendanceRate(0.0)
+    , m_serialPort(nullptr)
+    , m_arduinoConnected(false)
 {
     setupUI();
     connectSignals();
@@ -276,12 +278,20 @@ ActivityCalendar::ActivityCalendar(QWidget *parent)
     m_refreshTimer = new QTimer(this);
     connect(m_refreshTimer, &QTimer::timeout, this, &ActivityCalendar::loadActivitiesFromDatabase);
     m_refreshTimer->start(300000); // 5 minutes
+    
+    // Initialize Arduino communication
+    initializeArduinoConnection();
 }
 
 ActivityCalendar::~ActivityCalendar()
 {
     if (m_refreshTimer) {
         m_refreshTimer->stop();
+    }
+    
+    // Cleanup Arduino connection
+    if (m_serialPort && m_serialPort->isOpen()) {
+        m_serialPort->close();
     }
 }
 
@@ -376,6 +386,17 @@ void ActivityCalendar::setupControlsSection()
     m_exportButton = new QPushButton("📥 Export", this);
     m_exportButton->setMinimumWidth(100);
     
+    // Arduino LCD buttons
+    m_arduinoConnectButton = new QPushButton("🔌 Connect LCD", this);
+    m_arduinoConnectButton->setMinimumWidth(120);
+    m_arduinoDisconnectButton = new QPushButton("🔌 Disconnect", this);
+    m_arduinoDisconnectButton->setMinimumWidth(120);
+    m_arduinoDisconnectButton->setEnabled(false);
+    
+    // Arduino status label
+    m_arduinoStatusLabel = new QLabel("LCD: Disconnected", this);
+    m_arduinoStatusLabel->setStyleSheet("color: #e74c3c; font-weight: bold;");
+    
     // Layout controls
     m_topControlsLayout->addWidget(m_previousButton);
     m_topControlsLayout->addWidget(m_todayButton);
@@ -400,6 +421,14 @@ void ActivityCalendar::setupControlsSection()
     m_topControlsLayout->addWidget(m_addActivityButton);
     m_topControlsLayout->addWidget(m_refreshButton);
     m_topControlsLayout->addWidget(m_exportButton);
+    
+    m_topControlsLayout->addSpacing(20);
+    
+    // Arduino LCD controls
+    m_topControlsLayout->addWidget(new QLabel("📺 LCD:"));
+    m_topControlsLayout->addWidget(m_arduinoStatusLabel);
+    m_topControlsLayout->addWidget(m_arduinoConnectButton);
+    m_topControlsLayout->addWidget(m_arduinoDisconnectButton);
     
     m_mainLayout->addWidget(m_controlsFrame);
 }
@@ -623,6 +652,8 @@ void ActivityCalendar::applyStyles()
     m_addActivityButton->setStyleSheet(buttonStyle);
     m_refreshButton->setStyleSheet(buttonStyle);
     m_exportButton->setStyleSheet(buttonStyle);
+    m_arduinoConnectButton->setStyleSheet(buttonStyle);
+    m_arduinoDisconnectButton->setStyleSheet(buttonStyle);
     
     // Style combo boxes
     QString comboStyle = 
@@ -673,6 +704,10 @@ void ActivityCalendar::connectSignals()
     connect(m_addActivityButton, &QPushButton::clicked, this, &ActivityCalendar::onAddActivityClicked);
     connect(m_refreshButton, &QPushButton::clicked, this, &ActivityCalendar::onRefreshClicked);
     connect(m_exportButton, &QPushButton::clicked, this, &ActivityCalendar::onExportClicked);
+    
+    // Arduino LCD buttons
+    connect(m_arduinoConnectButton, &QPushButton::clicked, this, &ActivityCalendar::onArduinoConnectClicked);
+    connect(m_arduinoDisconnectButton, &QPushButton::clicked, this, &ActivityCalendar::onArduinoDisconnectClicked);
 }
 
 void ActivityCalendar::loadActivitiesFromDatabase()
@@ -690,9 +725,7 @@ void ActivityCalendar::loadActivitiesFromDatabase()
     try {
         QSqlQuery query;
         
-        // Calculate date range for current view (current month ± 2 months for better coverage)
-        QDate startDate = QDate(m_currentDate.year(), m_currentDate.month(), 1).addMonths(-2);
-        QDate endDate = QDate(m_currentDate.year(), m_currentDate.month(), 1).addMonths(3).addDays(-1);
+        // Load all activities from database (no date filtering for now)
         
         // Query to load actual activities from database
         query.prepare(
@@ -806,6 +839,11 @@ void ActivityCalendar::onDateSelected(const QDate &date)
         loadActivitiesFromDatabase();
     } else {
         updateSelectedDateActivities(date);
+    }
+    
+    // Send selected date activities to Arduino LCD
+    if (m_arduinoConnected) {
+        sendActivityToArduino(date);
     }
 }
 
@@ -1300,5 +1338,317 @@ void ActivityCalendar::onActivityActionTriggered()
             // TODO: Implement view activity details
             QMessageBox::information(this, "View Activity", "View activity details functionality will be implemented here.");
         }
+    }
+}
+
+// ============================================================================
+// ARDUINO LCD COMMUNICATION METHODS
+// ============================================================================
+
+void ActivityCalendar::initializeArduinoConnection()
+{
+    m_serialPort = new QSerialPort(this);
+    m_arduinoConnected = false;
+    
+    // Connect error handling
+    connect(m_serialPort, &QSerialPort::errorOccurred, this, &ActivityCalendar::onSerialErrorOccurred);
+    
+    qDebug() << "🔌 Arduino communication initialized";
+}
+
+void ActivityCalendar::onArduinoConnectClicked()
+{
+    if (m_serialPort && m_serialPort->isOpen()) {
+        m_serialPort->close();
+    }
+    
+    qDebug() << "=== Initializing Arduino Connection ===";
+    qDebug() << "=== Scanning for Arduino Devices ===";
+    
+    // Find available Arduino ports
+    QList<QSerialPortInfo> availablePorts = QSerialPortInfo::availablePorts();
+    QString selectedPort;
+    
+    qDebug() << "Available ports found:" << availablePorts.size();
+    
+    // Look for Arduino (common VID/PID or description)
+    for (const QSerialPortInfo &info : availablePorts) {
+        QString description = info.description();
+        QString manufacturer = info.manufacturer();
+        
+        qDebug() << "  Port:" << QString("\"%1\"").arg(info.portName());
+        qDebug() << "    Description:" << QString("\"%1\"").arg(description);
+        if (!manufacturer.isEmpty()) {
+            qDebug() << "    Manufacturer:" << QString("\"%1\"").arg(manufacturer);
+        }
+        qDebug() << "    VID:" << info.vendorIdentifier() << "PID:" << info.productIdentifier();
+        
+        // Check if this is an Arduino
+        if (description.toLower().contains("arduino") || 
+            manufacturer.toLower().contains("arduino") ||
+            description.toLower().contains("ch340") ||
+            description.toLower().contains("cp2102") ||
+            info.vendorIdentifier() == 0x2341 || // Arduino VID
+            info.vendorIdentifier() == 0x1A86) { // CH340 VID
+            selectedPort = info.portName();
+            qDebug() << "    >>> ARDUINO FOUND! <<<";
+        }
+    }
+    
+    // If no Arduino found automatically, try first available port
+    if (selectedPort.isEmpty() && !availablePorts.isEmpty()) {
+        selectedPort = availablePorts.first().portName();
+        qDebug() << "⚠️ No Arduino detected, trying first available port:" << selectedPort;
+    }
+    
+    if (selectedPort.isEmpty()) {
+        QMessageBox::warning(this, "Arduino Connection", 
+            "No serial ports available. Please check Arduino connection and drivers.");
+        return;
+    }
+    
+    qDebug() << "\n=== Testing Port Availability ===";
+    QSerialPort testPort;
+    testPort.setPortName(selectedPort);
+    
+    // Configure test port settings first
+    testPort.setBaudRate(QSerialPort::Baud9600);
+    testPort.setDataBits(QSerialPort::Data8);
+    testPort.setParity(QSerialPort::NoParity);
+    testPort.setStopBits(QSerialPort::OneStop);
+    testPort.setFlowControl(QSerialPort::NoFlowControl);
+    
+    if (!testPort.open(QIODevice::WriteOnly)) {
+        QSerialPort::SerialPortError error = testPort.error();
+        QString errorMsg = testPort.errorString();
+        qDebug() << "❌ Port test failed. Error code:" << error << "Message:" << errorMsg;
+        
+        // Provide specific error messages based on error code
+        switch (error) {
+            case QSerialPort::PermissionError:
+                QMessageBox::warning(this, "Port Access Error", 
+                    QString("Cannot access %1: Port is being used by another program.\n\n"
+                           "Please close:\n"
+                           "• Arduino IDE Serial Monitor\n"
+                           "• Any other serial terminal programs\n"
+                           "• PuTTY or other terminal emulators\n"
+                           "• Previous instances of this application\n\n"
+                           "Then try connecting again.").arg(selectedPort));
+                break;
+            case QSerialPort::DeviceNotFoundError:
+                QMessageBox::warning(this, "Arduino Connection", 
+                    QString("Arduino not found on port %1.\n"
+                           "Please check:\n"
+                           "• Arduino is properly connected\n"
+                           "• USB cable is working\n"
+                           "• Arduino drivers are installed").arg(selectedPort));
+                break;
+            case QSerialPort::OpenError:
+                QMessageBox::warning(this, "Connection Error", 
+                    QString("Cannot open port %1.\n"
+                           "Error: %2\n\n"
+                           "Try:\n"
+                           "• Disconnect and reconnect Arduino\n"
+                           "• Use a different USB port\n"
+                           "• Check Device Manager for conflicts").arg(selectedPort, errorMsg));
+                break;
+            default:
+                QMessageBox::warning(this, "Connection Error", 
+                    QString("Failed to access port %1.\n"
+                           "Error: %2\n"
+                           "Code: %3").arg(selectedPort, errorMsg).arg(error));
+                break;
+        }
+        return;
+    }
+    
+    testPort.close();
+    qDebug() << "✅ Port availability test passed";
+    
+    // Configure serial port
+    m_serialPort->setPortName(selectedPort);
+    m_serialPort->setBaudRate(QSerialPort::Baud9600);
+    m_serialPort->setDataBits(QSerialPort::Data8);
+    m_serialPort->setParity(QSerialPort::NoParity);
+    m_serialPort->setStopBits(QSerialPort::OneStop);
+    m_serialPort->setFlowControl(QSerialPort::NoFlowControl);
+    
+    qDebug() << "\n=== Configuring Serial Connection ===";
+    qDebug() << "Port:" << QString("\"%1\"").arg(selectedPort) << "opened successfully";
+    qDebug() << "Baud Rate: 9600, Data Bits: 8, Parity: None, Stop Bits: 1";
+    
+    if (m_serialPort->open(QIODevice::WriteOnly)) {
+        m_arduinoConnected = true;
+        m_arduinoConnectButton->setEnabled(false);
+        m_arduinoDisconnectButton->setEnabled(true);
+        m_arduinoStatusLabel->setText("LCD: Connected");
+        m_arduinoStatusLabel->setStyleSheet("color: #27ae60; font-weight: bold;");
+        
+        qDebug() << "✅ Arduino LCD connected on port:" << selectedPort;
+        qDebug() << "Connection successful - sending initial data...";
+        
+        // Give Arduino time to initialize
+        QThread::msleep(2000);
+        
+        // Send current selected date activities
+        sendActivityToArduino(m_selectedDate);
+        
+        QMessageBox::information(this, "Arduino Connection", 
+            QString("Successfully connected to Arduino LCD on port %1\n\n"
+                   "The LCD should now display activity information when you select dates on the calendar.").arg(selectedPort));
+    } else {
+        QSerialPort::SerialPortError error = m_serialPort->error();
+        QString errorMsg = m_serialPort->errorString();
+        
+        qDebug() << "❌ Failed to connect to Arduino. Error code:" << error << "Message:" << errorMsg;
+        
+        QMessageBox::critical(this, "Arduino Connection Failed", 
+            QString("Failed to connect to Arduino on port %1\n\n"
+                   "Error: %2\n"
+                   "Error Code: %3\n\n"
+                   "This should not happen since the port test passed.\n"
+                   "Please try again or restart the application.")
+            .arg(selectedPort, errorMsg).arg(error));
+    }
+}
+
+void ActivityCalendar::onArduinoDisconnectClicked()
+{
+    disconnectArduino();
+    QMessageBox::information(this, "Arduino Connection", "Arduino LCD disconnected.");
+}
+
+void ActivityCalendar::disconnectArduino()
+{
+    if (m_serialPort && m_serialPort->isOpen()) {
+        // Send clear command before disconnecting
+        m_serialPort->write("CLEAR\\n");
+        m_serialPort->flush();
+        QThread::msleep(100); // Give time for the command to be processed
+        
+        m_serialPort->close();
+    }
+    
+    m_arduinoConnected = false;
+    m_arduinoConnectButton->setEnabled(true);
+    m_arduinoDisconnectButton->setEnabled(false);
+    m_arduinoStatusLabel->setText("LCD: Disconnected");
+    m_arduinoStatusLabel->setStyleSheet("color: #e74c3c; font-weight: bold;");
+    
+    qDebug() << "🔌 Arduino LCD disconnected";
+}
+
+void ActivityCalendar::onSerialErrorOccurred(QSerialPort::SerialPortError error)
+{
+    if (error != QSerialPort::NoError) {
+        qDebug() << "❌ Arduino serial error:" << error;
+        
+        if (m_arduinoConnected) {
+            m_arduinoConnected = false;
+            m_arduinoConnectButton->setEnabled(true);
+            m_arduinoDisconnectButton->setEnabled(false);
+            m_arduinoStatusLabel->setText("LCD: Error");
+            m_arduinoStatusLabel->setStyleSheet("color: #e74c3c; font-weight: bold;");
+            
+            QString errorMsg = "Arduino connection error occurred.";
+            switch (error) {
+                case QSerialPort::DeviceNotFoundError:
+                    errorMsg = "Arduino device not found. Please check connection.";
+                    break;
+                case QSerialPort::PermissionError:
+                    errorMsg = "Permission error. Port may be in use by another application.";
+                    break;
+                case QSerialPort::WriteError:
+                    errorMsg = "Failed to write data to Arduino.";
+                    break;
+                default:
+                    errorMsg = QString("Arduino connection error: %1").arg(m_serialPort->errorString());
+                    break;
+            }
+            
+            QMessageBox::warning(this, "Arduino Error", errorMsg);
+        }
+    }
+}
+
+void ActivityCalendar::sendActivityToArduino(const QDate &date)
+{
+    if (!m_arduinoConnected || !m_serialPort || !m_serialPort->isOpen()) {
+        return;
+    }
+    
+    qDebug() << "📺 Sending activities for date" << date.toString() << "to Arduino LCD";
+    
+    if (m_activities.contains(date) && !m_activities[date].isEmpty()) {
+        const auto &dayActivities = m_activities[date];
+        
+        // Send first activity (for simplicity, LCD can only show one at a time)
+        const ActivityCalendarItem &firstActivity = dayActivities.first();
+        sendActivityDataToArduino(firstActivity);
+        
+        // If multiple activities, could cycle through them or show count
+        if (dayActivities.size() > 1) {
+            qDebug() << "📺 Multiple activities found (" << dayActivities.size() << "), showing first one";
+        }
+    } else {
+        sendNoActivityToArduino();
+    }
+}
+
+void ActivityCalendar::sendActivityDataToArduino(const ActivityCalendarItem &activity)
+{
+    if (!m_serialPort || !m_serialPort->isOpen()) return;
+    
+    // Protocol: ACTIVITY:date|time|type|responsible|participants|capacity|status
+    QString activityData = QString("ACTIVITY:%1|%2|%3|%4|%5|%6|%7\\n")
+        .arg(activity.startTime.date().toString("yyyy-MM-dd"))
+        .arg(activity.startTime.time().toString("hh:mm"))
+        .arg(activity.type)
+        .arg(activity.instructor.isEmpty() ? activity.responsible : activity.instructor)
+        .arg(activity.currentParticipants)
+        .arg(activity.maxCapacity)
+        .arg(activity.status);
+    
+    // Avoid sending the same data repeatedly
+    if (activityData == m_lastSentActivityData) {
+        return;
+    }
+    
+    qDebug() << "📺 Sending to Arduino:" << activityData.trimmed();
+    
+    QByteArray data = activityData.toUtf8();
+    qint64 bytesWritten = m_serialPort->write(data);
+    
+    if (bytesWritten == -1) {
+        qDebug() << "❌ Failed to write to Arduino:" << m_serialPort->errorString();
+    } else {
+        m_serialPort->flush(); // Ensure data is sent immediately
+        m_lastSentActivityData = activityData;
+        qDebug() << "✅ Sent" << bytesWritten << "bytes to Arduino LCD";
+    }
+}
+
+void ActivityCalendar::sendNoActivityToArduino()
+{
+    if (!m_serialPort || !m_serialPort->isOpen()) return;
+    
+    QString noActivityMsg = "NO_ACTIVITY\\n";
+    
+    // Avoid sending the same message repeatedly
+    if (noActivityMsg == m_lastSentActivityData) {
+        return;
+    }
+    
+    qDebug() << "📺 Sending 'No Activity' message to Arduino";
+    
+    QByteArray data = noActivityMsg.toUtf8();
+    qint64 bytesWritten = m_serialPort->write(data);
+    
+    if (bytesWritten == -1) {
+        qDebug() << "❌ Failed to write to Arduino:" << m_serialPort->errorString();
+    } else {
+        m_serialPort->flush();
+        m_lastSentActivityData = noActivityMsg;
+        qDebug() << "✅ Sent 'No Activity' message to Arduino LCD";
     }
 }
