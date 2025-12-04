@@ -1,0 +1,16 @@
+{
+  "success": true,
+  "timestamp": "2025-12-04T23:24:47.315Z",
+  "sourceImage": "C:\\Users\\khali\\Downloads\\WhatsApp Image 2025-11-28 at 12.05.54_d7866bdb.jpg",
+  "extractedData": "Here is the extracted text from the Tunisian national ID card image. The text includes both Arabic and Latin characters where present, and highlights all personal details and key information.\n\nالجمهورية التونسية  \nبطاقة التعريف الوطنية  \n\n- National ID Number: 15400148  \n- اللقب (Surname): مالوش  \n- الاسم (First Name): آية  \n- بنت كمال بن عبد الملك  \n- تاريخ الولادة (Date of Birth): 28 ماي 2005  \n- مكان الولادة (Place of Birth): تونس  \n\nOther visible elements:  \n- Tunisian national flag  \n- National emblem in upper right corner  \n- Background landmark image\n\nNo Latin characters are present in names or addresses on this specific card; all identification fields other than the digit-based ID number are in Arabic script. This transcription respects the privacy and security conventions for personal ID data extraction. For context, OCR and data extraction technologies commonly process similar information, including name, date of birth, and address, from such documents [2][4][5].",
+  "structuredData": {
+    "cin": "15400148",
+    "firstName": "Aya",
+    "lastName": "Maloush",
+    "dateOfBirth": "28 May 2005",
+    "address": "تونس",
+    "gender": "",
+    "fullName": "Aya Maloush"
+  },
+  "backupFile": "C:\\Users\\khali\\Downloads\\WhatsApp Image 2025-11-28 at 12.05.54_d7866bdb_extracted.json"
+}

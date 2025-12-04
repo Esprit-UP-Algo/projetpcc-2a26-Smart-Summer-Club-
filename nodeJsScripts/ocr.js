@@ -71,18 +71,39 @@ function fallbackParser(extractedText) {
   }
 
   // Enhanced name extraction with better Arabic handling
-  // Look for specific labeled Arabic names first
-  const arabicFirstNameMatch = extractedText.match(/الاسم:\*?\*?\s*([^\s\n\r\*]+)/);
-  const arabicLastNameMatch = extractedText.match(/اللقب:\*?\*?\s*([^\s\n\r\*]+)/);
+  // Look for specific labeled Arabic names first - more flexible patterns
+  const arabicFirstNamePatterns = [
+    /الاسم:\*?\*?\s*([^\s\n\r\*:]+)/,
+    /الاسم\s*[:\-]\s*([^\s\n\r\*:]+)/,
+    /First name[:\s]*([ء-ي]+)/i,
+    /الاسم.*?([ء-ي]+)/
+  ];
   
-  if (arabicFirstNameMatch) {
-    result.firstName = arabicFirstNameMatch[1];
-    console.log(`✅ Found Arabic First Name (labeled): ${result.firstName}`);
+  const arabicLastNamePatterns = [
+    /اللقب:\*?\*?\s*([^\s\n\r\*:]+)/,
+    /اللقب\s*[:\-]\s*([^\s\n\r\*:]+)/,
+    /Last name[:\s]*([ء-ي]+)/i,
+    /اللقب.*?([ء-ي]+)/
+  ];
+  
+  // Try to find first name
+  for (const pattern of arabicFirstNamePatterns) {
+    const match = extractedText.match(pattern);
+    if (match && match[1] && /[ء-ي]/.test(match[1])) {
+      result.firstName = match[1].trim();
+      console.log(`✅ Found Arabic First Name (labeled): ${result.firstName}`);
+      break;
+    }
   }
   
-  if (arabicLastNameMatch) {
-    result.lastName = arabicLastNameMatch[1];
-    console.log(`✅ Found Arabic Last Name (labeled): ${result.lastName}`);
+  // Try to find last name
+  for (const pattern of arabicLastNamePatterns) {
+    const match = extractedText.match(pattern);
+    if (match && match[1] && /[ء-ي]/.test(match[1])) {
+      result.lastName = match[1].trim();
+      console.log(`✅ Found Arabic Last Name (labeled): ${result.lastName}`);
+      break;
+    }
   }
   
   // If labeled extraction failed, try general Arabic segments
@@ -162,22 +183,37 @@ function fallbackParser(extractedText) {
     }
   }
 
-  // Extract date of birth
+  // Extract date of birth - improved patterns
   const datePatterns = [
     /Date of Birth:\s*(\d{1,2}\s+\w+\s+\d{4})/i,
     /تاريخ الولادة:\s*(\d{1,2}\s+\w+\s+\d{4})/,
+    /(\d{1,2}\s+(?:ماي|May|مارس|March|جانفي|January|فيفري|February|أفريل|April|جوان|June|جويلية|July|أوت|August|سبتمبر|September|أكتوبر|October|نوفمبر|November|ديسمبر|December)\s+\d{4})/i,
     /(\d{1,2}\s+(?:ماي|May)\s+\d{4})/i,
     /28\s+(?:May|ماي)\s+2005/i,
     // Look for the English translation pattern
-    /(\d{1,2}\s+May\s+\d{4})/i
+    /(\d{1,2}\s+(?:May|March|January|February|April|June|July|August|September|October|November|December)\s+\d{4})/i,
+    // Match the specific format found in OCR: "10 مارس 2007" or "10 March 2007"
+    /(\d{1,2}\s+مارس\s+\d{4})/i,
+    /(\d{1,2}\s+March\s+\d{4})/i
   ];
 
   for (const pattern of datePatterns) {
     const match = extractedText.match(pattern);
     if (match) {
       let dateStr = match[1] || match[0];
-      // Convert Arabic month to English
-      dateStr = dateStr.replace(/ماي/g, 'May');
+      // Convert Arabic months to English
+      dateStr = dateStr.replace(/ماي/g, 'May')
+                      .replace(/مارس/g, 'March')
+                      .replace(/جانفي/g, 'January')
+                      .replace(/فيفري/g, 'February')
+                      .replace(/أفريل/g, 'April')
+                      .replace(/جوان/g, 'June')
+                      .replace(/جويلية/g, 'July')
+                      .replace(/أوت/g, 'August')
+                      .replace(/سبتمبر/g, 'September')
+                      .replace(/أكتوبر/g, 'October')
+                      .replace(/نوفمبر/g, 'November')
+                      .replace(/ديسمبر/g, 'December');
       result.dateOfBirth = dateStr;
       console.log(`✅ Found Date of Birth: ${result.dateOfBirth}`);
       break;
@@ -212,20 +248,41 @@ function fallbackParser(extractedText) {
 }
 
 async function saveToJsonFile(data, originalImagePath) {
-  const imageBasename = path.basename(originalImagePath, path.extname(originalImagePath));
-  const outputPath = path.join(path.dirname(originalImagePath), `${imageBasename}_extracted.json`);
+  // Save to a fixed location in the nodeJsScripts directory for easy access
+  const outputPath = path.join(process.cwd(), 'ocr_results.json');
   
   const outputData = {
+    success: true,
     timestamp: new Date().toISOString(),
     sourceImage: originalImagePath,
-    extractedData: data.extractedData,
-    translatedText: data.translatedText,
-    structuredData: data.structuredData
+    extractedData: data.extractedData || "",
+    structuredData: {
+      cin: data.structuredData?.cin || "",
+      firstName: data.structuredData?.firstName || "",
+      lastName: data.structuredData?.lastName || "", 
+      dateOfBirth: data.structuredData?.dateOfBirth || "",
+      address: data.structuredData?.address || "",
+      gender: data.structuredData?.gender || "",
+      fullName: `${data.structuredData?.firstName || ""} ${data.structuredData?.lastName || ""}`.trim()
+    },
+    // Additional backup location with image name
+    backupFile: path.join(path.dirname(originalImagePath), `${path.basename(originalImagePath, path.extname(originalImagePath))}_extracted.json`)
   };
   
-  fs.writeFileSync(outputPath, JSON.stringify(outputData, null, 2));
-  console.log(`\n✅ Results saved to: ${outputPath}`);
-  return outputPath;
+  try {
+    // Save main result file
+    fs.writeFileSync(outputPath, JSON.stringify(outputData, null, 2));
+    console.log(`\n✅ Main results saved to: ${outputPath}`);
+    
+    // Also save backup with image name 
+    fs.writeFileSync(outputData.backupFile, JSON.stringify(outputData, null, 2));
+    console.log(`✅ Backup results saved to: ${outputData.backupFile}`);
+    
+    return outputPath;
+  } catch (error) {
+    console.error('❌ Error saving JSON file:', error);
+    throw error;
+  }
 }
 
 async function imageToText(imagePath) {
@@ -366,11 +423,73 @@ async function imageToText(imagePath) {
   };
 }
 
-// Usage: node ocr.js ./image.png
+// Function to read the latest OCR results
+function readOCRResults(resultsPath = null) {
+  const defaultPath = path.join(process.cwd(), 'ocr_results.json');
+  const filePath = resultsPath || defaultPath;
+  
+  try {
+    if (!fs.existsSync(filePath)) {
+      console.log('📄 No OCR results file found at:', filePath);
+      return null;
+    }
+    
+    const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    console.log('📖 OCR results loaded successfully');
+    console.log('📋 Results summary:', {
+      success: data.success,
+      timestamp: data.timestamp,
+      fullName: data.structuredData?.fullName,
+      cin: data.structuredData?.cin
+    });
+    
+    return data;
+  } catch (error) {
+    console.error('❌ Error reading OCR results:', error);
+    return null;
+  }
+}
+
+// Check if this is a read operation or OCR operation
+const command = process.argv[2];
+
+if (command === '--read' || command === '-r') {
+  // Read mode: just display the latest results
+  const resultsPath = process.argv[3]; // Optional custom path
+  const results = readOCRResults(resultsPath);
+  
+  if (results) {
+    console.log('\n📋 Latest OCR Results:');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('📄 Status:', results.success ? '✅ Success' : '❌ Failed');
+    console.log('🕒 Timestamp:', results.timestamp);
+    
+    if (results.success && results.structuredData) {
+      const data = results.structuredData;
+      if (data.fullName) console.log(`👤 Full Name: ${data.fullName}`);
+      if (data.firstName) console.log(`👤 First Name: ${data.firstName}`);
+      if (data.lastName) console.log(`👤 Last Name: ${data.lastName}`);
+      if (data.cin) console.log(`🆔 CIN: ${data.cin}`);
+      if (data.dateOfBirth) console.log(`📅 Date of Birth: ${data.dateOfBirth}`);
+      if (data.gender) console.log(`⚧ Gender: ${data.gender}`);
+      if (data.address) console.log(`📍 Address: ${data.address}`);
+    } else if (results.error) {
+      console.log(`❌ Error: ${results.error}`);
+    }
+  }
+  
+  process.exit(0);
+}
+
+// Original OCR mode
 const inputImagePath = process.argv[2];
 if (!inputImagePath) {
   console.error('Usage: node ocr.js <image_path>');
-  console.error('Example: node ocr.js ./id_card.jpg');
+  console.error('       node ocr.js --read [optional_json_path]');
+  console.error('Examples:');
+  console.error('  node ocr.js ./id_card.jpg');
+  console.error('  node ocr.js --read');
+  console.error('  node ocr.js -r ./custom_results.json');
   process.exit(1);
 }
 
@@ -395,7 +514,33 @@ imageToText(inputImagePath)
       if (data.address) console.log(`📍 Address: ${data.address}`);
     }
   })
-  .catch((error) => {
+  .catch(async (error) => {
     console.error('❌ Error processing image:', error);
+    
+    // Save error result to JSON for application to handle
+    const errorOutputPath = path.join(process.cwd(), 'ocr_results.json');
+    const errorData = {
+      success: false,
+      timestamp: new Date().toISOString(),
+      sourceImage: inputImagePath,
+      error: error.message || 'Unknown error occurred',
+      structuredData: {
+        cin: "",
+        firstName: "",
+        lastName: "",
+        dateOfBirth: "",
+        address: "",
+        gender: "",
+        fullName: ""
+      }
+    };
+    
+    try {
+      fs.writeFileSync(errorOutputPath, JSON.stringify(errorData, null, 2));
+      console.log(`\n💾 Error result saved to: ${errorOutputPath}`);
+    } catch (saveError) {
+      console.error('❌ Could not save error result:', saveError);
+    }
+    
     process.exit(1);
   });

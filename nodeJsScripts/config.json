@@ -1,7 +1,7 @@
 {
   "apis": {
     "perplexity": {
-      "apiKey": "your_perplexity_api_key_here",
+      "apiKey": "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",
       "baseUrl": "https://api.perplexity.ai/chat/completions",
       "model": "sonar-pro"
     }

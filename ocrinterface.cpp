@@ -711,33 +711,28 @@ void OCRInterface::processOCRFinished(int exitCode, QProcess::ExitStatus exitSta
         qDebug() << "📤 STDERR:" << stderrOutput;
     }
 
-    // Check if we have JSON output in stdout (even with non-zero exit code)
-    if (!stdoutOutput.isEmpty() && stdoutOutput.contains("PARSED_RESULTS_START")) {
-        qDebug() << "📋 Parsing structured JSON output from OCR script...";
-        parseStructuredOCRResults(stdoutOutput);
+    // For exit code 0 (success) or 1 (with output), read from JSON file
+    if ((exitStatus == QProcess::NormalExit && exitCode == 0) || 
+        (exitStatus == QProcess::NormalExit && exitCode == 1 && !stdoutOutput.isEmpty())) {
         
-        // Use queued connection to prevent immediate crash
-        QMetaObject::invokeMethod(this, [this]() {
-            emit ocrProcessingFinished(true);
-        }, Qt::QueuedConnection);
-        return;
-    }
-    // Check if we have JSON output in stdout (legacy format)
-    else if (!stdoutOutput.isEmpty() && stdoutOutput.trimmed().startsWith("{")) {
-        qDebug() << "📋 Parsing JSON output from OCR script...";
-        parseOCRResults(stdoutOutput.trimmed());
+        qDebug() << "📋 OCR script finished, reading results from JSON file...";
         
-        // Use queued connection to prevent immediate crash
-        QMetaObject::invokeMethod(this, [this]() {
-            emit ocrProcessingFinished(true);
-        }, Qt::QueuedConnection);
+        // Give the script a moment to finish writing the JSON file
+        QTimer::singleShot(500, this, [this]() {
+            readOCRResultsFromJsonFile();
+            
+            // Use queued connection to prevent immediate crash
+            QMetaObject::invokeMethod(this, [this]() {
+                emit ocrProcessingFinished(true);
+            }, Qt::QueuedConnection);
+        });
         return;
     }
     
-    // Check if we have text-based output from ocr.js (successful extraction)
-    if (exitStatus == QProcess::NormalExit && exitCode == 0 && !stdoutOutput.isEmpty()) {
-        qDebug() << "📋 Parsing text-based output from OCR script...";
-        parseTextBasedOCRResults(stdoutOutput);
+    // Legacy fallback: Check if we have structured output in stdout
+    if (!stdoutOutput.isEmpty() && stdoutOutput.contains("PARSED_RESULTS_START")) {
+        qDebug() << "📋 Using legacy structured JSON parsing from stdout...";
+        parseStructuredOCRResults(stdoutOutput);
         
         // Use queued connection to prevent immediate crash
         QMetaObject::invokeMethod(this, [this]() {
@@ -1104,6 +1099,146 @@ void OCRInterface::parseStructuredOCRResults(const QString &outputText)
     qDebug() << "📋 Structured parsing completed successfully!";
 }
 
+void OCRInterface::readOCRResultsFromJsonFile()
+{
+    qDebug() << "📖 Reading OCR results from JSON file...";
+    
+    // Get the path to the OCR results JSON file
+    QString scriptPath = getNodeScriptPath();
+    QFileInfo scriptInfo(scriptPath);
+    QString jsonFilePath = scriptInfo.absolutePath() + "/ocr_results.json";
+    
+    qDebug() << "📁 Looking for JSON file at:" << jsonFilePath;
+    
+    // Check if JSON file exists
+    if (!QFileInfo::exists(jsonFilePath)) {
+        qDebug() << "❌ OCR results JSON file not found:" << jsonFilePath;
+        if (m_progressLabel) {
+            m_progressLabel->setText("❌ OCR results file not found");
+            m_progressLabel->setStyleSheet(
+                "QLabel {"
+                "    font-size: 13px;"
+                "    color: #e74c3c;"
+                "    font-weight: bold;"
+                "    padding: 5px;"
+                "    background-color: #fadbd8;"
+                "    border-radius: 4px;"
+                "}"
+            );
+        }
+        return;
+    }
+    
+    // Read the JSON file
+    QFile jsonFile(jsonFilePath);
+    if (!jsonFile.open(QIODevice::ReadOnly)) {
+        qDebug() << "❌ Could not open JSON file for reading:" << jsonFilePath;
+        return;
+    }
+    
+    QByteArray jsonData = jsonFile.readAll();
+    jsonFile.close();
+    
+    // Parse the JSON
+    QJsonParseError error;
+    QJsonDocument doc = QJsonDocument::fromJson(jsonData, &error);
+    
+    if (error.error != QJsonParseError::NoError) {
+        qDebug() << "❌ JSON parse error:" << error.errorString();
+        if (m_progressLabel) {
+            m_progressLabel->setText("❌ Invalid JSON format in results file");
+            m_progressLabel->setStyleSheet(
+                "QLabel {"
+                "    font-size: 13px;"
+                "    color: #e74c3c;"
+                "    font-weight: bold;"
+                "    padding: 5px;"
+                "    background-color: #fadbd8;"
+                "    border-radius: 4px;"
+                "}"
+            );
+        }
+        return;
+    }
+    
+    QJsonObject jsonObj = doc.object();
+    
+    // Check if the operation was successful
+    bool success = jsonObj["success"].toBool();
+    if (!success) {
+        QString errorMsg = jsonObj["error"].toString();
+        qDebug() << "❌ OCR process reported error:" << errorMsg;
+        if (m_progressLabel) {
+            m_progressLabel->setText("❌ OCR process failed: " + errorMsg);
+            m_progressLabel->setStyleSheet(
+                "QLabel {"
+                "    font-size: 13px;"
+                "    color: #e74c3c;"
+                "    font-weight: bold;"
+                "    padding: 5px;"
+                "    background-color: #fadbd8;"
+                "    border-radius: 4px;"
+                "}"
+            );
+        }
+        return;
+    }
+    
+    // Extract structured data
+    QJsonObject structuredData = jsonObj["structuredData"].toObject();
+    
+    m_extractedCIN = structuredData["cin"].toString();
+    m_extractedFirstName = structuredData["firstName"].toString();
+    m_extractedLastName = structuredData["lastName"].toString();
+    m_extractedDateOfBirth = structuredData["dateOfBirth"].toString();
+    QString fullName = structuredData["fullName"].toString();
+    QString address = structuredData["address"].toString();
+    
+    qDebug() << "✅ Successfully read OCR results from JSON:";
+    qDebug() << "   Success:" << success;
+    qDebug() << "   Timestamp:" << jsonObj["timestamp"].toString();
+    qDebug() << "   CIN:" << m_extractedCIN;
+    qDebug() << "   Full Name:" << fullName;
+    qDebug() << "   First Name:" << m_extractedFirstName;
+    qDebug() << "   Last Name:" << m_extractedLastName;
+    qDebug() << "   Date of Birth:" << m_extractedDateOfBirth;
+    qDebug() << "   Address:" << address;
+    
+    // Update UI components
+    if (m_cinLineEdit) {
+        m_cinLineEdit->setText(m_extractedCIN);
+    }
+    if (m_firstNameLineEdit) {
+        // Use fullName if available, otherwise combine first and last name
+        QString displayName = fullName.isEmpty() ? 
+                              (m_extractedFirstName + " " + m_extractedLastName).trimmed() : 
+                              fullName;
+        m_firstNameLineEdit->setText(displayName);
+    }
+    if (m_dobLineEdit) {
+        m_dobLineEdit->setText(m_extractedDateOfBirth);
+    }
+    
+    // Update progress label with success message
+    if (m_progressLabel) {
+        QString successMsg = QString("✅ OCR completed! Extracted: %1")
+                            .arg(!fullName.isEmpty() ? fullName : "No name found");
+        m_progressLabel->setText(successMsg);
+        m_progressLabel->setStyleSheet(
+            "QLabel {"
+            "    font-size: 13px;"
+            "    color: #27ae60;"
+            "    font-weight: bold;"
+            "    padding: 5px;"
+            "    background-color: #d5f4e6;"
+            "    border-radius: 4px;"
+            "}"
+        );
+    }
+    
+    qDebug() << "📋 JSON file reading completed successfully!";
+}
+
 void OCRInterface::clearResults()
 {
     m_extractedCIN.clear();
@@ -1139,7 +1274,16 @@ void OCRInterface::updatePreviewImage()
 
 QString OCRInterface::getNodeScriptPath()
 {
-    // Use Qt workspace location (where files are copied)
+    // First try the actual project location where the script was updated
+    QString actualProjectPath = "C:/Users/khali/OneDrive/Desktop/ProjetC++/SummerClub_Arduino";
+    QString actualScriptPath = actualProjectPath + "/nodeJsScripts/ocr.js";
+    
+    if (QFileInfo::exists(actualScriptPath)) {
+        qDebug() << "✅ Using OCR script from actual project location:" << actualScriptPath;
+        return actualScriptPath;
+    }
+    
+    // Fallback: Use Qt workspace location (where files might be copied)
     QString buildDir = QApplication::applicationDirPath();
     QDir dir(buildDir);
     

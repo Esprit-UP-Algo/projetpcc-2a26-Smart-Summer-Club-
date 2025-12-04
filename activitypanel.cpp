@@ -334,7 +334,41 @@ void ActivityPanel::onSyncData()
     qDebug() << "📁 node_modules exists:" << nodeModulesDir.exists();
     
     if (packageJsonInfo.exists() && !nodeModulesDir.exists()) {
-        qDebug() << "⚠️ Warning: package.json exists but node_modules missing. Run 'npm install' in" << nodeScriptsDir;
+        qDebug() << "⚠️ Warning: package.json exists but node_modules missing. Installing dependencies...";
+        
+        // Try to install dependencies automatically
+        QProcess npmProcess;
+        npmProcess.setWorkingDirectory(nodeScriptsDir);
+        npmProcess.start("npm", QStringList() << "install");
+        
+        if (npmProcess.waitForFinished(30000)) { // 30 second timeout
+            qDebug() << "✅ npm install completed";
+        } else {
+            qDebug() << "⚠️ npm install timed out or failed. Manual installation may be required.";
+        }
+    }
+    
+    // Check for required Google APIs dependencies
+    QString googleApisPath = nodeModulesPath + "/googleapis";
+    QString localAuthPath = nodeModulesPath + "/@google-cloud";
+    
+    if (!QDir(googleApisPath).exists() || !QDir(localAuthPath).exists()) {
+        qDebug() << "⚠️ Missing Google APIs dependencies. Installing...";
+        
+        QProcess googleDepsProcess;
+        googleDepsProcess.setWorkingDirectory(nodeScriptsDir);
+        googleDepsProcess.start("npm", QStringList() << "install" << "googleapis" << "@google-cloud/local-auth");
+        
+        if (googleDepsProcess.waitForFinished(30000)) {
+            qDebug() << "✅ Google APIs dependencies installed";
+        } else {
+            qDebug() << "⚠️ Failed to install Google APIs dependencies";
+            showSyncStatus("Missing required dependencies. Please run 'npm install googleapis @google-cloud/local-auth' in the nodeJsScripts folder.", false);
+            m_syncButton->setEnabled(true);
+            m_syncButton->setText("🔄 Sync Data");
+            m_syncProgressBar->setVisible(false);
+            return;
+        }
     }
     
     QStringList arguments;
@@ -353,8 +387,8 @@ void ActivityPanel::onSyncData()
     qDebug() << "📁 Node.js working directory set to:" << nodeScriptsDir;
     qDebug() << "📁 Working directory exists:" << QDir(nodeScriptsDir).exists();
     
-    // Capture both stdout and stderr
-    m_nodeProcess->setProcessChannelMode(QProcess::MergedChannels);
+    // Capture stdout and stderr separately for better error handling
+    m_nodeProcess->setProcessChannelMode(QProcess::SeparateChannels);
     
     m_nodeProcess->start("node", arguments);
     
@@ -370,6 +404,17 @@ void ActivityPanel::onSyncData()
 void ActivityPanel::onNodeJSFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
     qDebug() << "📋 Node.js process finished with exit code:" << exitCode;
+    
+    // Capture and log any error output
+    QByteArray errorOutput = m_nodeProcess->readAllStandardError();
+    QByteArray standardOutput = m_nodeProcess->readAllStandardOutput();
+    
+    if (!errorOutput.isEmpty()) {
+        qDebug() << "❌ Node.js stderr:" << errorOutput;
+    }
+    if (!standardOutput.isEmpty()) {
+        qDebug() << "📋 Node.js stdout:" << standardOutput;
+    }
     
     // Re-enable sync button
     m_syncButton->setEnabled(true);
@@ -395,7 +440,15 @@ void ActivityPanel::onNodeJSFinished(int exitCode, QProcess::ExitStatus exitStat
         
     } else {
         qDebug() << "❌ Node.js script failed";
-        showSyncStatus("Sync failed. Check your internet connection and try again.", false);
+        QString errorMsg = "Sync failed. ";
+        if (!errorOutput.isEmpty()) {
+            errorMsg += QString("Error: %1").arg(QString::fromUtf8(errorOutput));
+        } else if (!standardOutput.isEmpty()) {
+            errorMsg += QString("Output: %1").arg(QString::fromUtf8(standardOutput));
+        } else {
+            errorMsg += "Check your internet connection and Google Sheets access permissions.";
+        }
+        showSyncStatus(errorMsg, false);
     }
 }
 

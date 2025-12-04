@@ -20,6 +20,8 @@
 #include <QProcess>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QFile>
+#include <QFileInfo>
 #include <QDebug>
 #include <QStandardPaths>
 #include <QDir>
@@ -102,6 +104,7 @@ private:
     void parseOCRResults(const QString &jsonOutput);
     void parseTextBasedOCRResults(const QString &textOutput);
     void parseStructuredOCRResults(const QString &outputText);
+    void readOCRResultsFromJsonFile();
     QString getNodeScriptPath();
     bool ensureNodeJsScriptsExists();
     QString findActualProjectLocation();

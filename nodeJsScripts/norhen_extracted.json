@@ -1,0 +1,16 @@
+{
+  "success": true,
+  "timestamp": "2025-12-04T23:22:50.116Z",
+  "sourceImage": "./norhen.jpg",
+  "extractedData": "Here is a structured extraction of all visible text from the Tunisian ID card in the image. The information is given in both Arabic and Latin characters (if present):\n\n## Arabic Text\n- الجمهورية التونسية  \n- بطاقة التعريف الوطنية  \n- اللقب: الحيدري  \n- الاسم: نورهان  \n- بنت الهادي بن محمد  \n- تاريخ الولادة: 10 مارس 2007  \n- مكانها: تونس  \n\n## Latin and Numeric Text\n- 15403804 (ID Number)\n\n## Important Personal Information Extracted\n- Surname (اللقب): الحيدري\n- First name (الاسم): نورهان\n- Parentage (بنت): الهادي بن محمد\n- Date of birth (تاريخ الولادة): 10 مارس 2007 (10 March 2007)\n- Place of birth (مكانها): تونس (Tunis)\n- ID number: 15403804\n\nNo address information or Latin character rendering of the names was present in the visible text on the card. All information has been transcribed as shown on the card image.",
+  "structuredData": {
+    "cin": "15403804",
+    "firstName": "Nourhan",
+    "lastName": "Al-Haidari",
+    "dateOfBirth": "10 March 2007",
+    "address": "تونس  \n\n",
+    "gender": "",
+    "fullName": "Nourhan Al-Haidari"
+  },
+  "backupFile": "norhen_extracted.json"
+}
