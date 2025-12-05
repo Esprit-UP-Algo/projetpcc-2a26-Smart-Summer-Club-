@@ -249,7 +249,10 @@ void EmployerAdmin::setupConnections()
     // Payment management buttons
     connect(ui->addPaymentButton, &QPushButton::clicked, paymentManager, &Payment::onAddPayment);
     connect(ui->clearPaymentFormButton, &QPushButton::clicked, paymentManager, &Payment::onClearPaymentForm);
+    connect(ui->paymentSearchButton, &QPushButton::clicked, paymentManager, &Payment::loadPaymentsFromDatabase);
     connect(ui->paymentSearchLineEdit, &QLineEdit::textChanged, paymentManager, &Payment::onPaymentSearchTextChanged);
+    connect(ui->paymentSortButton, &QPushButton::clicked, paymentManager, &Payment::onSortByDate);
+    connect(ui->paymentExportButton, &QPushButton::clicked, paymentManager, &Payment::onExportToPDF);
     
     // Settings page buttons
     connect(ui->settingsButton, &QPushButton::clicked, this, &EmployerAdmin::onSettingsButtonClicked);

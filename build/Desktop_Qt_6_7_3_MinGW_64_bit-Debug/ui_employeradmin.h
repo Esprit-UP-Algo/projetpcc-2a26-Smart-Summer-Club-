@@ -399,8 +399,8 @@ public:
     QFrame *paymentSearchFrame;
     QHBoxLayout *paymentSearchLayout;
     QLineEdit *paymentSearchLineEdit;
-    QPushButton *paymentSearchButton;
     QSpacerItem *paymentSearchSpacer;
+    QPushButton *paymentSearchButton;
     QPushButton *paymentSortButton;
     QPushButton *paymentExportButton;
     QTableWidget *paymentTable;
@@ -822,7 +822,7 @@ public:
         scrollArea->setWidgetResizable(true);
         scrollAreaWidgetContents = new QWidget();
         scrollAreaWidgetContents->setObjectName("scrollAreaWidgetContents");
-        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 536, 631));
+        scrollAreaWidgetContents->setGeometry(QRect(0, 0, 636, 663));
         formMainLayout = new QVBoxLayout(scrollAreaWidgetContents);
         formMainLayout->setObjectName("formMainLayout");
         formFrame = new QFrame(scrollAreaWidgetContents);
@@ -1329,7 +1329,7 @@ public:
         memberScrollArea->setWidgetResizable(true);
         memberScrollAreaContents = new QWidget();
         memberScrollAreaContents->setObjectName("memberScrollAreaContents");
-        memberScrollAreaContents->setGeometry(QRect(0, 0, 1030, 857));
+        memberScrollAreaContents->setGeometry(QRect(0, 0, 1022, 844));
         memberFormMainLayout = new QVBoxLayout(memberScrollAreaContents);
         memberFormMainLayout->setObjectName("memberFormMainLayout");
         memberFormFrame = new QFrame(memberScrollAreaContents);
@@ -1754,7 +1754,7 @@ public:
         equipmentScrollArea->setWidgetResizable(true);
         equipmentScrollAreaContents = new QWidget();
         equipmentScrollAreaContents->setObjectName("equipmentScrollAreaContents");
-        equipmentScrollAreaContents->setGeometry(QRect(0, 0, 1030, 857));
+        equipmentScrollAreaContents->setGeometry(QRect(0, 0, 671, 386));
         equipmentFormMainLayout = new QVBoxLayout(equipmentScrollAreaContents);
         equipmentFormMainLayout->setObjectName("equipmentFormMainLayout");
         equipmentFormFrame = new QFrame(equipmentScrollAreaContents);
@@ -2134,7 +2134,7 @@ public:
         activityScrollArea->setWidgetResizable(true);
         activityScrollAreaContents = new QWidget();
         activityScrollAreaContents->setObjectName("activityScrollAreaContents");
-        activityScrollAreaContents->setGeometry(QRect(0, 0, 1030, 857));
+        activityScrollAreaContents->setGeometry(QRect(0, 0, 777, 519));
         activityFormMainLayout = new QVBoxLayout(activityScrollAreaContents);
         activityFormMainLayout->setObjectName("activityFormMainLayout");
         activityFormFrame = new QFrame(activityScrollAreaContents);
@@ -2478,15 +2478,15 @@ public:
 
         paymentSearchLayout->addWidget(paymentSearchLineEdit);
 
+        paymentSearchSpacer = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
+
+        paymentSearchLayout->addItem(paymentSearchSpacer);
+
         paymentSearchButton = new QPushButton(paymentSearchFrame);
         paymentSearchButton->setObjectName("paymentSearchButton");
         paymentSearchButton->setIcon(icon6);
 
         paymentSearchLayout->addWidget(paymentSearchButton);
-
-        paymentSearchSpacer = new QSpacerItem(40, 20, QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Minimum);
-
-        paymentSearchLayout->addItem(paymentSearchSpacer);
 
         paymentSortButton = new QPushButton(paymentSearchFrame);
         paymentSortButton->setObjectName("paymentSortButton");
@@ -2540,7 +2540,7 @@ public:
         paymentScrollArea->setWidgetResizable(true);
         paymentScrollContent = new QWidget();
         paymentScrollContent->setObjectName("paymentScrollContent");
-        paymentScrollContent->setGeometry(QRect(0, 0, 573, 422));
+        paymentScrollContent->setGeometry(QRect(0, 0, 1022, 908));
         paymentFormMainLayout = new QVBoxLayout(paymentScrollContent);
         paymentFormMainLayout->setObjectName("paymentFormMainLayout");
         paymentFormFrame = new QFrame(paymentScrollContent);
@@ -2710,7 +2710,7 @@ public:
         paymentStatsScrollArea->setWidgetResizable(true);
         paymentStatsScrollContent = new QWidget();
         paymentStatsScrollContent->setObjectName("paymentStatsScrollContent");
-        paymentStatsScrollContent->setGeometry(QRect(0, 0, 629, 536));
+        paymentStatsScrollContent->setGeometry(QRect(0, 0, 1022, 908));
         paymentStatsContentLayout = new QVBoxLayout(paymentStatsScrollContent);
         paymentStatsContentLayout->setObjectName("paymentStatsContentLayout");
         paymentSummaryFrame = new QFrame(paymentStatsScrollContent);
@@ -2890,7 +2890,7 @@ public:
         settingsScrollArea->setWidgetResizable(true);
         settingsScrollAreaContents = new QWidget();
         settingsScrollAreaContents->setObjectName("settingsScrollAreaContents");
-        settingsScrollAreaContents->setGeometry(QRect(0, 0, 642, 2011));
+        settingsScrollAreaContents->setGeometry(QRect(0, 0, 664, 2074));
         settingsMainLayout = new QVBoxLayout(settingsScrollAreaContents);
         settingsMainLayout->setSpacing(20);
         settingsMainLayout->setObjectName("settingsMainLayout");
@@ -3207,7 +3207,7 @@ public:
 
         retranslateUi(EmployerAdmin);
 
-        stackedWidget->setCurrentIndex(1);
+        stackedWidget->setCurrentIndex(4);
         employeeTabWidget->setCurrentIndex(2);
         memberTabWidget->setCurrentIndex(1);
         equipmentTabWidget->setCurrentIndex(1);
@@ -3535,7 +3535,7 @@ public:
 "Shows activities by date with visual indicators, filters, and detailed views", nullptr));
         activityTabWidget->setTabText(activityTabWidget->indexOf(activityCalendarTab), QCoreApplication::translate("EmployerAdmin", " Calendar", nullptr));
         paymentSearchLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Search transactions...", nullptr));
-        paymentSearchButton->setText(QCoreApplication::translate("EmployerAdmin", "Search", nullptr));
+        paymentSearchButton->setText(QCoreApplication::translate("EmployerAdmin", "Load", nullptr));
         paymentSortButton->setText(QCoreApplication::translate("EmployerAdmin", "Sort by Date", nullptr));
         paymentExportButton->setText(QCoreApplication::translate("EmployerAdmin", "Export PDF", nullptr));
         QTableWidgetItem *___qtablewidgetitem39 = paymentTable->horizontalHeaderItem(0);

@@ -369,7 +369,7 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>1</number>
+             <number>4</number>
             </property>
             <widget class="QWidget" name="employeePage">
              <layout class="QVBoxLayout" name="employeePageLayout">
@@ -514,8 +514,8 @@ QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>536</width>
-                       <height>631</height>
+                       <width>636</width>
+                       <height>663</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="formMainLayout">
@@ -1381,8 +1381,8 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>1030</width>
-                       <height>857</height>
+                       <width>1022</width>
+                       <height>844</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="memberFormMainLayout">
@@ -2070,8 +2070,8 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>1030</width>
-                       <height>857</height>
+                       <width>671</width>
+                       <height>386</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="equipmentFormMainLayout">
@@ -2704,8 +2704,8 @@ QComboBox QAbstractItemView {
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>1030</width>
-                       <height>857</height>
+                       <width>777</width>
+                       <height>519</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="activityFormMainLayout">
@@ -3299,17 +3299,6 @@ Shows activities by date with visual indicators, filters, and detailed views</st
                       </widget>
                      </item>
                      <item>
-                      <widget class="QPushButton" name="paymentSearchButton">
-                       <property name="text">
-                        <string>Search</string>
-                       </property>
-                       <property name="icon">
-                        <iconset resource="resources.qrc">
-                         <normaloff>:/icons/icons/search.png</normaloff>:/icons/icons/search.png</iconset>
-                       </property>
-                      </widget>
-                     </item>
-                     <item>
                       <spacer name="paymentSearchSpacer">
                        <property name="orientation">
                         <enum>Qt::Orientation::Horizontal</enum>
@@ -3321,6 +3310,17 @@ Shows activities by date with visual indicators, filters, and detailed views</st
                         </size>
                        </property>
                       </spacer>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="paymentSearchButton">
+                       <property name="text">
+                        <string>Load</string>
+                       </property>
+                       <property name="icon">
+                        <iconset resource="resources.qrc">
+                         <normaloff>:/icons/icons/search.png</normaloff>:/icons/icons/search.png</iconset>
+                       </property>
+                      </widget>
                      </item>
                      <item>
                       <widget class="QPushButton" name="paymentSortButton">
@@ -3415,8 +3415,8 @@ Shows activities by date with visual indicators, filters, and detailed views</st
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>573</width>
-                       <height>422</height>
+                       <width>1022</width>
+                       <height>908</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="paymentFormMainLayout">
@@ -3753,8 +3753,8 @@ Shows activities by date with visual indicators, filters, and detailed views</st
                       <rect>
                        <x>0</x>
                        <y>0</y>
-                       <width>629</width>
-                       <height>536</height>
+                       <width>1022</width>
+                       <height>908</height>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="paymentStatsContentLayout">
@@ -4079,8 +4079,8 @@ Shows activities by date with visual indicators, filters, and detailed views</st
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>642</width>
-                   <height>2011</height>
+                   <width>664</width>
+                   <height>2074</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="settingsMainLayout">
