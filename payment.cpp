@@ -8,6 +8,23 @@
 #include <QDateTime>
 #include <QSqlQueryModel>
 #include <QSqlRecord>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QSqlDatabase>
+#include <QHBoxLayout>
+#include <QPushButton>
+#include <QBrush>
+#include <QColor>
+#include <QTextDocument>
+#include <QTextCursor>
+#include <QTextTable>
+#include <QPrinter>
+#include <QPrintDialog>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QDateTime>
+#include <QTimer>
+#include <QDebug>
 
 Payment::Payment(Ui::EmployerAdmin *ui, QWidget *parent)
     : QObject(parent), ui(ui), parentWidget(parent), memberIdValid(false),
@@ -77,26 +94,123 @@ void Payment::setupPaymentTable()
 
 void Payment::loadPaymentsFromDatabase()
 {
+    // Ensure database is open; if not, try to open or retry shortly
+    QSqlDatabase db = QSqlDatabase::database();
+    if (!db.isOpen()) {
+        if (!db.open()) {
+            qDebug() << "Payment::loadPaymentsFromDatabase: DB not open yet; retrying shortly";
+            QTimer::singleShot(300, this, &Payment::loadPaymentsFromDatabase);
+            return;
+        }
+    }
+
+    qDebug() << "Starting to load payments from database...";
+
+    // Test database connection and table structure
+    QSqlQuery structureQuery;
+    if (structureQuery.exec("SELECT column_name FROM user_tab_columns WHERE table_name = 'TRANSACTIONS' ORDER BY column_id")) {
+        qDebug() << "TRANSACTIONS table columns:";
+        while (structureQuery.next()) {
+            qDebug() << "  -" << structureQuery.value(0).toString();
+        }
+    }
+
+    // First, let's test if there's any data in the transactions table at all
+    QSqlQuery testQuery;
+    testQuery.exec("SELECT COUNT(*) FROM SUMMERCLUB.TRANSACTIONS");
+    if (testQuery.next()) {
+        int totalRecords = testQuery.value(0).toInt();
+        qDebug() << "Total records in SUMMERCLUB.TRANSACTIONS table:" << totalRecords;
+    } else {
+        qDebug() << "Failed to execute test query:" << testQuery.lastError().text();
+        // Try without schema prefix as fallback
+        testQuery.exec("SELECT COUNT(*) FROM TRANSACTIONS");
+        if (testQuery.next()) {
+            int totalRecords = testQuery.value(0).toInt();
+            qDebug() << "Total records in TRANSACTIONS table (no schema):" << totalRecords;
+        } else {
+            qDebug() << "Failed to execute fallback test query:" << testQuery.lastError().text();
+        }
+    }
+
     QSqlQueryModel* model = paymentModel->getAllPayments();
     QTableWidget* paymentTable = ui->paymentTable;
 
+    // Check if model is valid
+    if (!model) {
+        qDebug() << "Error: Failed to get payments model from database";
+        return;
+    }
+
+    // Ensure the model fetches all available rows before inspecting rowCount
+    while (model->canFetchMore()) model->fetchMore();
+
+    qDebug() << "Model retrieved successfully. Row count:" << model->rowCount();
+
+    // If no rows from model, try direct query as fallback
+    if (model->rowCount() == 0) {
+        qDebug() << "No rows from PaymentModel, trying direct SQL query...";
+        QSqlQuery directQuery;
+        // Try with schema prefix first
+        directQuery.exec("SELECT TRANSACTION_ID, PAYMENT_DATE, DESCRIPTION, PAYMENT_TYPE, AMOUNT, PAYMENT_METHOD, STATUS, MEMBER_ID FROM SUMMERCLUB.TRANSACTIONS ORDER BY PAYMENT_DATE DESC");
+        
+        int directCount = 0;
+        while (directQuery.next()) {
+            directCount++;
+        }
+        
+        if (directCount == 0) {
+            // Try without schema prefix as fallback
+            directQuery.exec("SELECT TRANSACTION_ID, PAYMENT_DATE, DESCRIPTION, PAYMENT_TYPE, AMOUNT, PAYMENT_METHOD, STATUS, MEMBER_ID FROM TRANSACTIONS ORDER BY PAYMENT_DATE DESC");
+            while (directQuery.next()) {
+                directCount++;
+            }
+        }
+        
+        qDebug() << "Direct query found" << directCount << "records";
+        
+        if (directCount > 0) {
+            qDebug() << "Data exists but PaymentModel::getAllPayments() returned empty. Check PaymentModel implementation.";
+        }
+    }
+
     paymentTable->setRowCount(0);
 
+    // Load existing transactions with error handling
+    int loadedCount = 0;
     for (int i = 0; i < model->rowCount(); ++i) {
-        QString transactionId = model->record(i).value("transaction_id").toString();
-        QString date = model->record(i).value("payment_date").toString();
-        QString description = model->record(i).value("description").toString();
-        QString type = model->record(i).value("payment_type").toString();
-        QString amount = QString("$%1").arg(model->record(i).value("amount").toDouble(), 0, 'f', 2);
-        QString method = model->record(i).value("payment_method").toString();
-        QString status = model->record(i).value("status").toString();
-        QString memberId = model->record(i).value("member_id").toString();
+        try {
+            QSqlRecord record = model->record(i);
+            
+            // Validate record data before processing
+            if (record.isEmpty()) {
+                qDebug() << "Warning: Empty record at row" << i << "- skipping";
+                continue;
+            }
+            
+            QString transactionId = record.value("transaction_id").toString();
+            QString date = record.value("payment_date").toString();
+            QString description = record.value("description").toString();
+            QString type = record.value("payment_type").toString();
+            QString amount = QString("$%1").arg(record.value("amount").toDouble(), 0, 'f', 2);
+            QString method = record.value("payment_method").toString();
+            QString status = record.value("status").toString();
+            QString memberId = record.value("member_id").toString();
+            
+            // Validate essential fields
+            if (transactionId.isEmpty()) {
+                qDebug() << "Warning: Transaction with empty ID at row" << i << "- skipping";
+                continue;
+            }
 
-        // Add new row to table
-        int newRow = paymentTable->rowCount();
-        paymentTable->insertRow(newRow);
+            // Debug the loaded data
+            qDebug() << "Loading payment row" << i << ":" << transactionId << date << description << type << amount;
 
-        QStringList paymentData = {transactionId, date, description, type, amount, method, status, memberId};
+            // Add new row to table
+            int newRow = paymentTable->rowCount();
+            paymentTable->insertRow(newRow);
+
+            QStringList paymentData = {transactionId, date, description, type, amount, method, status, memberId};
 
         // Add data to table
         for (int j = 0; j < paymentData.size(); ++j) {
@@ -156,9 +270,145 @@ void Payment::loadPaymentsFromDatabase()
         actionLayout->addWidget(editButton);
         actionLayout->addWidget(deleteButton);
         paymentTable->setCellWidget(newRow, 8, actionWidget);
+        
+        loadedCount++;
+        
+        } catch (const std::exception& e) {
+            qDebug() << "Error loading payment record at row" << i << ":" << e.what();
+            continue;
+        } catch (...) {
+            qDebug() << "Unknown error loading payment record at row" << i;
+            continue;
+        }
     }
 
+    // If no transactions loaded, try direct SQL fallback
+    if (loadedCount == 0) {
+        qDebug() << "No data loaded via PaymentModel, attempting direct SQL fallback...";
+        
+        QSqlQuery fallbackQuery;
+        // Try with schema prefix first
+        fallbackQuery.prepare("SELECT TRANSACTION_ID, PAYMENT_DATE, DESCRIPTION, PAYMENT_TYPE, AMOUNT, PAYMENT_METHOD, STATUS, MEMBER_ID, CIN FROM SUMMERCLUB.TRANSACTIONS ORDER BY PAYMENT_DATE DESC");
+        
+        if (!fallbackQuery.exec()) {
+            // Try without schema prefix as fallback
+            qDebug() << "Schema query failed, trying without schema:" << fallbackQuery.lastError().text();
+            fallbackQuery.prepare("SELECT TRANSACTION_ID, PAYMENT_DATE, DESCRIPTION, PAYMENT_TYPE, AMOUNT, PAYMENT_METHOD, STATUS, MEMBER_ID, CIN FROM TRANSACTIONS ORDER BY PAYMENT_DATE DESC");
+        }
+        
+        if (fallbackQuery.exec()) {
+            while (fallbackQuery.next()) {
+                QString transactionId = fallbackQuery.value("TRANSACTION_ID").toString();
+                QString date = fallbackQuery.value("PAYMENT_DATE").toString();
+                QString description = fallbackQuery.value("DESCRIPTION").toString();
+                QString type = fallbackQuery.value("PAYMENT_TYPE").toString();
+                QString amount = QString("$%1").arg(fallbackQuery.value("AMOUNT").toDouble(), 0, 'f', 2);
+                QString method = fallbackQuery.value("PAYMENT_METHOD").toString();
+                QString status = fallbackQuery.value("STATUS").toString();
+                QString memberId = fallbackQuery.value("MEMBER_ID").toString();
+                
+                // Debug each loaded record
+                qDebug() << "Fallback loading:" << transactionId << date << description << type << amount;
+                
+                // Add new row to table
+                int newRow = paymentTable->rowCount();
+                paymentTable->insertRow(newRow);
+                
+                QStringList paymentData = {transactionId, date, description, type, amount, method, status, memberId};
+                
+                // Add data to table
+                for (int j = 0; j < paymentData.size(); ++j) {
+                    QTableWidgetItem* item = new QTableWidgetItem(paymentData[j]);
+                    
+                    // Color coding for amount
+                    if (j == 4) { // Amount column
+                        if (type == "Income") {
+                            item->setForeground(QBrush(QColor("#2ecc71")));
+                        } else {
+                            item->setForeground(QBrush(QColor("#e74c3c")));
+                        }
+                        item->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+                    }
+                    
+                    // Color coding for status
+                    if (j == 6) { // Status column
+                        if (status == "Completed") {
+                            item->setForeground(QBrush(QColor("#2ecc71")));
+                        } else if (status == "Pending") {
+                            item->setForeground(QBrush(QColor("#f39c12")));
+                        } else if (status == "Failed") {
+                            item->setForeground(QBrush(QColor("#e74c3c")));
+                        }
+                    }
+                    
+                    paymentTable->setItem(newRow, j, item);
+                }
+                
+                // Create action buttons (simplified version)
+                QWidget* actionWidget = new QWidget();
+                QHBoxLayout* actionLayout = new QHBoxLayout(actionWidget);
+                actionLayout->setContentsMargins(5, 0, 5, 0);
+                actionLayout->setSpacing(5);
+
+                QPushButton* editButton = new QPushButton("Edit");
+                QPushButton* deleteButton = new QPushButton("Delete");
+
+                editButton->setStyleSheet("QPushButton { background-color: rgba(22, 165, 179, 0.10); color: #2c3e50; border: 1.5px solid rgba(22, 165, 179, 0.65); padding: 5px 10px; border-radius: 4px; font-size: 12px; } QPushButton:hover { background-color: #e67e22; }");
+                deleteButton->setStyleSheet("QPushButton { background-color: rgba(22, 165, 179, 0.10); color: #2c3e50; border: 1.5px solid rgba(22, 165, 179, 0.65); padding: 5px 10px; border-radius: 4px; font-size: 12px; } QPushButton:hover { background-color: #c0392b; }");
+
+                connect(editButton, &QPushButton::clicked, [this, paymentData]() {
+                    onEditPayment(paymentData);
+                });
+
+                connect(deleteButton, &QPushButton::clicked, [this, paymentData, newRow]() {
+                    onDeletePayment(paymentData, newRow);
+                });
+
+                actionLayout->addWidget(editButton);
+                actionLayout->addWidget(deleteButton);
+                paymentTable->setCellWidget(newRow, 8, actionWidget);
+                
+                loadedCount++;
+            }
+            qDebug() << "Fallback SQL loaded" << loadedCount << "payment transactions";
+        } else {
+            qDebug() << "Fallback SQL query failed:" << fallbackQuery.lastError().text();
+        }
+        
+        // If still no data loaded and table is empty, offer to create sample data
+        if (loadedCount == 0) {
+            qDebug() << "No transaction data found. Table might be empty or there might be a connection issue.";
+            qDebug() << "Consider adding some sample transactions to test the loading functionality.";
+            
+            // Try to insert a test record to verify the connection works
+            QSqlQuery testInsert;
+            testInsert.prepare("INSERT INTO SUMMERCLUB.TRANSACTIONS (TRANSACTION_ID, PAYMENT_DATE, DESCRIPTION, PAYMENT_TYPE, AMOUNT, PAYMENT_METHOD, STATUS, MEMBER_ID) VALUES (?, SYSDATE, ?, ?, ?, ?, ?, ?)");
+            testInsert.addBindValue("TEST001");
+            testInsert.addBindValue("Test Transaction - Loading Check");
+            testInsert.addBindValue("Income");
+            testInsert.addBindValue(100.00);
+            testInsert.addBindValue("Cash");
+            testInsert.addBindValue("Completed");
+            testInsert.addBindValue("11111111");
+            
+            if (testInsert.exec()) {
+                qDebug() << "Successfully inserted test transaction. Database connection is working.";
+                // Remove the test record
+                QSqlQuery cleanup;
+                cleanup.prepare("DELETE FROM SUMMERCLUB.TRANSACTIONS WHERE TRANSACTION_ID = 'TEST001'");
+                cleanup.exec();
+            } else {
+                qDebug() << "Failed to insert test transaction:" << testInsert.lastError().text();
+            }
+        }
+    }
+
+    // Log successful loading
+    qDebug() << "Successfully loaded" << loadedCount << "payment transactions from database";
+    qDebug() << "Total table rows after loading:" << paymentTable->rowCount();
+    
     populatePaymentStatistics();
+    
     delete model;
 }
 
@@ -167,7 +417,10 @@ QString Payment::generateTransactionId()
     QSqlQuery query;
 
     // Get the maximum existing transaction_id from TRANSACTIONS table
-    query.exec("SELECT MAX(TO_NUMBER(REGEXP_SUBSTR(transaction_id, '[0-9]+'))) FROM transactions WHERE transaction_id LIKE 'TXN%'");
+    if (!query.exec("SELECT MAX(TO_NUMBER(REGEXP_SUBSTR(TRANSACTION_ID, '[0-9]+'))) FROM SUMMERCLUB.TRANSACTIONS WHERE TRANSACTION_ID LIKE 'TXN%'")) {
+        // Try without schema as fallback
+        query.exec("SELECT MAX(TO_NUMBER(REGEXP_SUBSTR(TRANSACTION_ID, '[0-9]+'))) FROM TRANSACTIONS WHERE TRANSACTION_ID LIKE 'TXN%'");
+    }
 
     int maxId = 0;
     if (query.next() && !query.value(0).isNull()) {
@@ -377,30 +630,6 @@ void Payment::onUpdatePayment()
 void Payment::refreshPaymentTable()
 {
     loadPaymentsFromDatabase();
-}
-
-
-void Payment::onPaymentSearchTextChanged()
-{
-    QString searchText = ui->paymentSearchLineEdit->text().trimmed().toLower();
-    QTableWidget* paymentTable = ui->paymentTable;
-
-    for (int i = 0; i < paymentTable->rowCount(); ++i) {
-        bool shouldShow = false;
-
-        // Search in relevant columns (Transaction ID, Description, Member ID)
-        QList<int> searchColumns = {0, 2, 7}; // Transaction ID, Description, Member ID
-
-        for (int col : searchColumns) {
-            QTableWidgetItem* item = paymentTable->item(i, col);
-            if (item && item->text().toLower().contains(searchText)) {
-                shouldShow = true;
-                break;
-            }
-        }
-
-        paymentTable->setRowHidden(i, !shouldShow);
-    }
 }
 
 void Payment::onEditPayment(const QStringList &paymentData)
@@ -774,4 +1003,408 @@ bool Payment::isValidMemberId(const QString &memberId)
 
     qDebug() << "Member ID validation query failed:" << query.lastError().text();
     return false;
+}
+
+void Payment::onSortByDate()
+{
+    QTableWidget* paymentTable = ui->paymentTable;
+
+    // Toggle sorting order
+    static bool ascending = true;
+
+    // Sort by date column (index 1)
+    paymentTable->sortItems(1, ascending ? Qt::AscendingOrder : Qt::DescendingOrder);
+
+    // Toggle for next click
+    ascending = !ascending;
+
+    // Update button text to show current sort order
+    QString buttonText = ascending ? "Sort by Date (↑)" : "Sort by Date (↓)";
+    ui->paymentSortButton->setText(buttonText);
+}
+
+void Payment::onPaymentSearchTextChanged(const QString &searchText)
+{
+    if (!ui->paymentTable) return;
+
+    // For QTableWidget, we need to manually hide/show rows
+    for (int row = 0; row < ui->paymentTable->rowCount(); ++row) {
+        bool matchFound = false;
+
+        // Check each column in this row for the search text
+        for (int col = 0; col < ui->paymentTable->columnCount(); ++col) {
+            QTableWidgetItem *item = ui->paymentTable->item(row, col);
+            if (item && item->text().contains(searchText, Qt::CaseInsensitive)) {
+                matchFound = true;
+                break;
+            }
+        }
+
+        // Show or hide the row based on search match
+        ui->paymentTable->setRowHidden(row, !matchFound && !searchText.isEmpty());
+    }
+
+    // Visual feedback on search field
+    if (ui->paymentSearchLineEdit) {
+        int visibleRows = 0;
+        for (int row = 0; row < ui->paymentTable->rowCount(); ++row) {
+            if (!ui->paymentTable->isRowHidden(row)) {
+                visibleRows++;
+            }
+        }
+
+        if (searchText.isEmpty()) {
+            ui->paymentSearchLineEdit->setStyleSheet("");
+            ui->paymentSearchLineEdit->setToolTip(QString("Total payments: %1").arg(ui->paymentTable->rowCount()));
+        } else if (visibleRows == 0) {
+            ui->paymentSearchLineEdit->setStyleSheet("QLineEdit { border: 2px solid #e74c3c; background-color: #fdf2f2; }");
+            ui->paymentSearchLineEdit->setToolTip("No payments found matching your search");
+        } else {
+            ui->paymentSearchLineEdit->setStyleSheet("QLineEdit { border: 2px solid #27ae60; background-color: #f2fdf2; }");
+            ui->paymentSearchLineEdit->setToolTip(QString("Found %1 of %2 payments").arg(visibleRows).arg(ui->paymentTable->rowCount()));
+        }
+    }
+}
+void Payment::onExportToPDF()
+{
+    QString fileName = QFileDialog::getSaveFileName(
+        nullptr,
+        "Export Payments to PDF",
+        QDir::homePath() + "/payments_report_" + QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss") + ".pdf",
+        "PDF Files (*.pdf)"
+        );
+
+    if (fileName.isEmpty()) {
+        return;
+    }
+
+    QPrinter printer(QPrinter::HighResolution);
+    printer.setOutputFormat(QPrinter::PdfFormat);
+    printer.setOutputFileName(fileName);
+
+    QTextDocument document;
+    QTextCursor cursor(&document);
+
+    // Get table model
+    QAbstractItemModel *model = ui->paymentTable->model();
+    if (!model) {
+        QMessageBox::warning(nullptr, "Error", "No data to export!");
+        return;
+    }
+
+    int rowCount = model->rowCount();
+    int columnCount = model->columnCount();
+
+    if (rowCount == 0) {
+        QMessageBox::warning(nullptr, "Error", "No payments data to export!");
+        return;
+    }
+
+    // Identify columns
+    int amountColumn = -1;
+    int typeColumn = -1;
+    int categoryColumn = -1;
+    int descriptionColumn = -1;
+    int dateColumn = -1;
+
+    for (int col = 0; col < columnCount; ++col) {
+        QString header = model->headerData(col, Qt::Horizontal).toString().toLower();
+
+        if (header.contains("amount") || header.contains("price") || header.contains("total")) {
+            amountColumn = col;
+        }
+        else if (header.contains("type") || header.contains("payment_type")) {
+            typeColumn = col;
+        }
+        else if (header.contains("category")) {
+            categoryColumn = col;
+        }
+        else if (header.contains("description") || header.contains("note")) {
+            descriptionColumn = col;
+        }
+        else if (header.contains("date")) {
+            dateColumn = col;
+        }
+    }
+
+    qDebug() << "Identified columns - Amount:" << amountColumn << "Type:" << typeColumn
+             << "Category:" << categoryColumn << "Description:" << descriptionColumn;
+
+    // Calculate totals
+    double totalIncome = 0.0;
+    double totalExpenses = 0.0;
+    int incomeCount = 0;
+    int expenseCount = 0;
+
+    // Lists to store transactions for detailed breakdown
+    QList<QStringList> incomeTransactions;
+    QList<QStringList> expenseTransactions;
+
+    for (int row = 0; row < rowCount; ++row) {
+        if (amountColumn != -1) {
+            QString amountStr = model->index(row, amountColumn).data().toString();
+            QString cleanAmount = amountStr.replace("$", "").replace(",", "").replace("€", "").replace(" ", "").trimmed();
+
+            bool ok;
+            double amount = cleanAmount.toDouble(&ok);
+
+            if (ok && amount != 0) {
+                // Determine if this is income or expense
+                bool isIncome = false;
+                bool isExpense = false;
+                QString transactionType = "Unknown";
+                QString description = "";
+
+                // Get description if available
+                if (descriptionColumn != -1) {
+                    description = model->index(row, descriptionColumn).data().toString();
+                }
+
+                // Method 1: Check type column first
+                if (typeColumn != -1) {
+                    QString type = model->index(row, typeColumn).data().toString().toLower();
+                    if (type.contains("income") || type.contains("revenue") || type.contains("payment") ||
+                        type.contains("subscription") || type.contains("fee") || type.contains("membership") ||
+                        type.contains("deposit")) {
+                        isIncome = true;
+                        transactionType = "Income";
+                    }
+                    else if (type.contains("expense") || type.contains("purchase") || type.contains("bill") ||
+                             type.contains("salary") || type.contains("maintenance") || type.contains("cost") ||
+                             type.contains("withdrawal") || type.contains("refund")) {
+                        isExpense = true;
+                        transactionType = "Expense";
+                    }
+                }
+
+                // Method 2: Check category column
+                if (categoryColumn != -1 && !isIncome && !isExpense) {
+                    QString category = model->index(row, categoryColumn).data().toString().toLower();
+                    if (category.contains("membership") || category.contains("subscription") ||
+                        category.contains("class") || category.contains("training") || category.contains("session") ||
+                        category.contains("fee") || category.contains("payment")) {
+                        isIncome = true;
+                        transactionType = "Income (" + category + ")";
+                    }
+                    else if (category.contains("equipment") || category.contains("salary") ||
+                             category.contains("maintenance") || category.contains("utility") ||
+                             category.contains("rent") || category.contains("supply") || category.contains("tax")) {
+                        isExpense = true;
+                        transactionType = "Expense (" + category + ")";
+                    }
+                }
+
+                // Method 3: Check description for clues
+                if (!isIncome && !isExpense && !description.isEmpty()) {
+                    QString descLower = description.toLower();
+                    if (descLower.contains("membership") || descLower.contains("subscription") ||
+                        descLower.contains("payment") || descLower.contains("fee")) {
+                        isIncome = true;
+                        transactionType = "Income";
+                    }
+                    else if (descLower.contains("purchase") || descLower.contains("buy") ||
+                             descLower.contains("salary") || descLower.contains("bill") ||
+                             descLower.contains("maintenance") || descLower.contains("repair")) {
+                        isExpense = true;
+                        transactionType = "Expense";
+                    }
+                }
+
+                // Method 4: Default based on amount sign
+                if (!isIncome && !isExpense) {
+                    if (amount > 0) {
+                        isIncome = true;
+                        transactionType = "Income (Assumed)";
+                    } else {
+                        isExpense = true;
+                        amount = -amount; // Convert to positive for expense total
+                        transactionType = "Expense (Assumed)";
+                    }
+                }
+
+                // Add to appropriate total and list
+                if (isIncome) {
+                    totalIncome += amount;
+                    incomeCount++;
+
+                    // Store income transaction details
+                    QStringList incomeDetails;
+                    incomeDetails << QString::number(amount, 'f', 2);
+                    if (dateColumn != -1) incomeDetails << model->index(row, dateColumn).data().toString();
+                    incomeDetails << description;
+                    incomeDetails << transactionType;
+                    incomeTransactions.append(incomeDetails);
+                }
+                else if (isExpense) {
+                    totalExpenses += amount;
+                    expenseCount++;
+
+                    // Store expense transaction details
+                    QStringList expenseDetails;
+                    expenseDetails << QString::number(amount, 'f', 2);
+                    if (dateColumn != -1) expenseDetails << model->index(row, dateColumn).data().toString();
+                    expenseDetails << description;
+                    expenseDetails << transactionType;
+                    expenseTransactions.append(expenseDetails);
+                }
+            }
+        }
+    }
+
+    double netAmount = totalIncome - totalExpenses;
+
+    // Add title and header
+    QTextCharFormat titleFormat;
+    titleFormat.setFontPointSize(16);
+    titleFormat.setFontWeight(QFont::Bold);
+    titleFormat.setForeground(Qt::darkBlue);
+    cursor.insertText("Financial Report - Income vs Expenses\n", titleFormat);
+
+    QTextCharFormat dateFormat;
+    dateFormat.setFontPointSize(10);
+    dateFormat.setForeground(Qt::darkGray);
+    cursor.insertText("Generated on: " + QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss") + "\n\n", dateFormat);
+
+    // Create main table for all transactions
+    QTextTableFormat tableFormat;
+    tableFormat.setHeaderRowCount(1);
+    tableFormat.setBorderStyle(QTextFrameFormat::BorderStyle_Solid);
+    tableFormat.setBorder(1);
+    tableFormat.setCellSpacing(0);
+    tableFormat.setCellPadding(4);
+    tableFormat.setWidth(QTextLength(QTextLength::PercentageLength, 100));
+
+    QTextTable *table = cursor.insertTable(rowCount + 1, columnCount, tableFormat);
+
+    // Add headers
+    QTextCharFormat headerFormat;
+    headerFormat.setBackground(QColor(240, 240, 240));
+    headerFormat.setFontWeight(QFont::Bold);
+
+    for (int col = 0; col < columnCount; ++col) {
+        QString header = model->headerData(col, Qt::Horizontal).toString();
+        QTextTableCell cell = table->cellAt(0, col);
+        QTextCursor cellCursor = cell.firstCursorPosition();
+        cellCursor.insertText(header, headerFormat);
+    }
+
+    // Add data rows
+    for (int row = 0; row < rowCount; ++row) {
+        for (int col = 0; col < columnCount; ++col) {
+            QModelIndex index = model->index(row, col);
+            QString data = model->data(index).toString();
+
+            QTextTableCell cell = table->cellAt(row + 1, col);
+            QTextCursor cellCursor = cell.firstCursorPosition();
+            cellCursor.insertText(data);
+        }
+    }
+
+    // Add detailed financial summary
+    cursor.movePosition(QTextCursor::End);
+    cursor.insertText("\n\n");
+
+    QTextCharFormat summaryTitleFormat;
+    summaryTitleFormat.setFontPointSize(14);
+    summaryTitleFormat.setFontWeight(QFont::Bold);
+    summaryTitleFormat.setForeground(QColor(0, 51, 102));
+    cursor.insertText("FINANCIAL SUMMARY\n\n", summaryTitleFormat);
+
+    // Income section
+    QTextCharFormat incomeTitleFormat;
+    incomeTitleFormat.setFontWeight(QFont::Bold);
+    incomeTitleFormat.setForeground(QColor(0, 128, 0)); // Green
+    cursor.insertText("INCOME:\n", incomeTitleFormat);
+    cursor.insertText(QString("• Total Income: $%1\n").arg(QString::number(totalIncome, 'f', 2)));
+    cursor.insertText(QString("• Income Transactions: %1\n").arg(incomeCount));
+
+    if (!incomeTransactions.isEmpty()) {
+        cursor.insertText("• Recent Income Transactions:\n");
+        for (int i = 0; i < qMin(5, incomeTransactions.size()); ++i) {
+            QStringList details = incomeTransactions[i];
+            cursor.insertText(QString("  - $%1: %2\n").arg(details[0]).arg(details[2]));
+        }
+    }
+    cursor.insertText("\n");
+
+    // Expenses section
+    QTextCharFormat expenseTitleFormat;
+    expenseTitleFormat.setFontWeight(QFont::Bold);
+    expenseTitleFormat.setForeground(QColor(220, 0, 0)); // Red
+    cursor.insertText("EXPENSES:\n", expenseTitleFormat);
+    cursor.insertText(QString("• Total Expenses: $%1\n").arg(QString::number(totalExpenses, 'f', 2)));
+    cursor.insertText(QString("• Expense Transactions: %1\n").arg(expenseCount));
+
+    if (!expenseTransactions.isEmpty()) {
+        cursor.insertText("• Recent Expense Transactions:\n");
+        for (int i = 0; i < qMin(5, expenseTransactions.size()); ++i) {
+            QStringList details = expenseTransactions[i];
+            cursor.insertText(QString("  - $%1: %2\n").arg(details[0]).arg(details[2]));
+        }
+    }
+    cursor.insertText("\n");
+
+    // Net amount section
+    QTextCharFormat netFormat;
+    netFormat.setFontWeight(QFont::Bold);
+    netFormat.setFontPointSize(12);
+
+    if (netAmount > 0) {
+        netFormat.setForeground(QColor(0, 128, 0)); // Green for profit
+        cursor.insertText(QString("NET PROFIT: $%1\n").arg(QString::number(netAmount, 'f', 2)), netFormat);
+    } else if (netAmount < 0) {
+        netFormat.setForeground(QColor(220, 0, 0)); // Red for loss
+        cursor.insertText(QString("NET LOSS: $%1\n").arg(QString::number(-netAmount, 'f', 2)), netFormat);
+    } else {
+        netFormat.setForeground(Qt::blue); // Blue for break-even
+        cursor.insertText("BREAK-EVEN: $0.00\n", netFormat);
+    }
+
+    // Additional statistics
+    cursor.insertText("\n");
+    QTextCharFormat statsFormat;
+    statsFormat.setFontWeight(QFont::Bold);
+    statsFormat.setForeground(Qt::darkBlue);
+    cursor.insertText("STATISTICS:\n", statsFormat);
+
+    if (rowCount > 0) {
+        double incomePercentage = (totalIncome / (totalIncome + totalExpenses)) * 100;
+        double expensePercentage = (totalExpenses / (totalIncome + totalExpenses)) * 100;
+
+        cursor.insertText(QString("• Income/Expense Ratio: %1% / %2%\n")
+                              .arg(QString::number(incomePercentage, 'f', 1))
+                              .arg(QString::number(expensePercentage, 'f', 1)));
+
+        if (incomeCount > 0) {
+            cursor.insertText(QString("• Average Income per Transaction: $%1\n")
+                                  .arg(QString::number(totalIncome / incomeCount, 'f', 2)));
+        }
+
+        if (expenseCount > 0) {
+            cursor.insertText(QString("• Average Expense per Transaction: $%1\n")
+                                  .arg(QString::number(totalExpenses / expenseCount, 'f', 2)));
+        }
+    }
+
+    cursor.insertText(QString("• Total Transactions: %1\n").arg(rowCount));
+
+    // Print to PDF
+    document.print(&printer);
+
+    // Success message with financial summary
+    QString successMsg = QString("Financial report exported successfully!\n\n"
+                                 "File: %1\n"
+                                 "Total Transactions: %2\n\n"
+                                 "INCOME: $%3 (%4 transactions)\n"
+                                 "EXPENSES: $%5 (%6 transactions)\n"
+                                 "NET: $%7")
+                             .arg(fileName)
+                             .arg(rowCount)
+                             .arg(QString::number(totalIncome, 'f', 2))
+                             .arg(incomeCount)
+                             .arg(QString::number(totalExpenses, 'f', 2))
+                             .arg(expenseCount)
+                             .arg(QString::number(netAmount, 'f', 2));
+
+    QMessageBox::information(nullptr, "Success", successMsg);
 }

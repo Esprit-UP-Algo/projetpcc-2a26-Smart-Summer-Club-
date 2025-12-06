@@ -152,6 +152,10 @@ private:
     
     // PDF generation helper
     bool createPdfWithImage(const QString &imagePath, const QString &pdfPath) const;
+    
+    // Activity JSON file creation for QR code generation
+    bool createActivityJsonFile(const QString &nodeScriptsPath) const;
+    bool writeActivityToJsonFile(Activity* activity, const QString &filePath) const;
 };
 
 #endif // ACTIVITY_H

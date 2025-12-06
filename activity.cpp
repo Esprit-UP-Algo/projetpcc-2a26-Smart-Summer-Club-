@@ -1036,6 +1036,12 @@ void Activity::onExportActivities()
         arguments << scriptInfo.fileName() << absoluteBgImage << QString::number(qrX) 
                  << QString::number(qrY) << tempImagePath;
         
+        // Create activity JSON file with current selected activity data
+        if (!createActivityJsonFile(nodeScriptsPath)) {
+            QMessageBox::critical(parentWidget, "Error", "Failed to create activity data file!");
+            return;
+        }
+        
         // Debug information
         qDebug() << "Working directory:" << nodeScriptsPath;
         qDebug() << "Background image:" << absoluteBgImage;
@@ -1345,6 +1351,81 @@ bool Activity::copyDirectoryRecursively(const QString &sourceDir, const QString 
     }
     
     return true;
+}
+
+bool Activity::createActivityJsonFile(const QString &nodeScriptsPath) const
+{
+    if (!ui) return false;
+    
+    // Get currently selected activity from table
+    QModelIndexList selected = ui->activityTable->selectionModel()->selectedRows();
+    if (selected.isEmpty()) {
+        QMessageBox::information(parentWidget, "Info", "Please select an activity to export, or the first activity will be used.");
+        // Use first activity if none selected
+        if (ui->activityTable->rowCount() == 0) {
+            return false;
+        }
+        
+        // Get data from first row
+        int idA = ui->activityTable->item(0, 0)->text().toInt();
+        Activity* activity = Activity::rechercherParId(idA);
+        if (!activity) return false;
+        
+        QString jsonFilePath = nodeScriptsPath + "/sample_activity.json";
+        return writeActivityToJsonFile(activity, jsonFilePath);
+    } else {
+        // Get data from selected row
+        int row = selected.first().row();
+        int idA = ui->activityTable->item(row, 0)->text().toInt();
+        Activity* activity = Activity::rechercherParId(idA);
+        if (!activity) return false;
+        
+        QString jsonFilePath = nodeScriptsPath + "/sample_activity.json";
+        bool result = writeActivityToJsonFile(activity, jsonFilePath);
+        delete activity;
+        return result;
+    }
+}
+
+bool Activity::writeActivityToJsonFile(Activity* activity, const QString &filePath) const
+{
+    if (!activity) return false;
+    
+    QJsonObject activityJson;
+    activityJson["activityId"] = activity->getIdA();
+    activityJson["title"] = activity->getActivityType();
+    activityJson["type"] = activity->getActivityType();
+    activityJson["date"] = activity->getEventDate().toString("yyyy-MM-dd");
+    activityJson["startTime"] = activity->getEventTime().toString("HH:mm");
+    activityJson["endTime"] = activity->getEventTime().addSecs(3600).toString("HH:mm"); // Add 1 hour as default
+    activityJson["location"] = "Summer Club"; // Default location
+    activityJson["instructor"] = activity->getResponsible();
+    activityJson["responsible"] = activity->getResponsible();
+    activityJson["currentParticipants"] = 0; // Default
+    activityJson["maxCapacity"] = activity->getCapacity();
+    activityJson["priority"] = "Medium"; // Default priority
+    activityJson["status"] = activity->getStatus();
+    activityJson["description"] = activity->getDescription();
+    // Create a dynamic registration URL based on the activity
+    QString dynamicUrl = QString("https://docs.google.com/forms/d/e/1FAIpQLSekepqj1qV4n0eMj9_52NBH8EOJpO4ys6IsIcHjYutrSUFlgg/viewform?usp=sharing&entry.123456=%1&entry.789012=%2")
+                          .arg(activity->getIdA())
+                          .arg(QString(activity->getActivityType()).replace(" ", "+"));
+    activityJson["registrationUrl"] = dynamicUrl;
+    
+    QJsonDocument doc(activityJson);
+    
+    QFile file(filePath);
+    if (file.open(QIODevice::WriteOnly)) {
+        file.write(doc.toJson());
+        file.close();
+        qDebug() << "✅ Activity JSON file created:" << filePath;
+        qDebug() << "🔗 Registration URL:" << activityJson["registrationUrl"].toString();
+        qDebug() << "📄 Activity data:" << doc.toJson(QJsonDocument::Compact);
+        return true;
+    } else {
+        qDebug() << "❌ Failed to create activity JSON file:" << filePath;
+        return false;
+    }
 }
 
 bool Activity::createPdfWithImage(const QString &imagePath, const QString &pdfPath) const

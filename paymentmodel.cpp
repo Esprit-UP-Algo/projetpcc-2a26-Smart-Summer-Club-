@@ -3,6 +3,7 @@
 #include <QDebug>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QSqlError>
 
 PaymentModel::PaymentModel(QObject *parent)
     : QObject(parent)
@@ -48,8 +49,8 @@ bool PaymentModel::addPayment(const QString &transactionId,
 {
     QSqlQuery query;
 
-    query.prepare("INSERT INTO transactions (ID_TR, transaction_id, payment_date, description, "
-                  "payment_type, amount, payment_method, status, member_id) "
+    query.prepare("INSERT INTO SUMMERCLUB.TRANSACTIONS (ID_TR, TRANSACTION_ID, PAYMENT_DATE, DESCRIPTION, "
+                  "PAYMENT_TYPE, AMOUNT, PAYMENT_METHOD, STATUS, MEMBER_ID) "
                   "VALUES (TRANSACTION_ID_SEQ.NEXTVAL, :transaction_id, TO_DATE(:payment_date, 'YYYY-MM-DD'), "
                   ":description, :payment_type, :amount, :payment_method, :status, :member_id)");
 
@@ -99,11 +100,11 @@ bool PaymentModel::updatePayment(const QString &transactionId,
 {
     QSqlQuery query;
 
-    query.prepare("UPDATE transactions SET payment_date = TO_DATE(:payment_date, 'YYYY-MM-DD'), "
-                  "description = :description, payment_type = :payment_type, "
-                  "amount = :amount, payment_method = :payment_method, "
-                  "status = :status, member_id = :member_id "
-                  "WHERE transaction_id = :transaction_id");
+    query.prepare("UPDATE SUMMERCLUB.TRANSACTIONS SET PAYMENT_DATE = TO_DATE(:payment_date, 'YYYY-MM-DD'), "
+                  "DESCRIPTION = :description, PAYMENT_TYPE = :payment_type, "
+                  "AMOUNT = :amount, PAYMENT_METHOD = :payment_method, "
+                  "STATUS = :status, MEMBER_ID = :member_id "
+                  "WHERE TRANSACTION_ID = :transaction_id");
 
     query.bindValue(":transaction_id", transactionId);
     query.bindValue(":payment_date", date.toString("yyyy-MM-dd"));
@@ -145,22 +146,22 @@ bool PaymentModel::deletePayment(const QString &transactionId)
     // Get payment data before deletion for logging
     QJsonObject beforeData;
     QSqlQuery selectQuery;
-    selectQuery.prepare("SELECT * FROM transactions WHERE transaction_id = :transaction_id");
+    selectQuery.prepare("SELECT * FROM SUMMERCLUB.TRANSACTIONS WHERE TRANSACTION_ID = :transaction_id");
     selectQuery.bindValue(":transaction_id", transactionId);
     
     if (selectQuery.exec() && selectQuery.next()) {
-        beforeData["transaction_id"] = selectQuery.value("transaction_id").toString();
-        beforeData["payment_date"] = selectQuery.value("payment_date").toString();
-        beforeData["description"] = selectQuery.value("description").toString();
-        beforeData["payment_type"] = selectQuery.value("payment_type").toString();
-        beforeData["amount"] = selectQuery.value("amount").toString();
-        beforeData["payment_method"] = selectQuery.value("payment_method").toString();
-        beforeData["status"] = selectQuery.value("status").toString();
-        beforeData["member_id"] = selectQuery.value("member_id").toString();
+        beforeData["transaction_id"] = selectQuery.value("TRANSACTION_ID").toString();
+        beforeData["payment_date"] = selectQuery.value("PAYMENT_DATE").toString();
+        beforeData["description"] = selectQuery.value("DESCRIPTION").toString();
+        beforeData["payment_type"] = selectQuery.value("PAYMENT_TYPE").toString();
+        beforeData["amount"] = selectQuery.value("AMOUNT").toString();
+        beforeData["payment_method"] = selectQuery.value("PAYMENT_METHOD").toString();
+        beforeData["status"] = selectQuery.value("STATUS").toString();
+        beforeData["member_id"] = selectQuery.value("MEMBER_ID").toString();
     }
     
     QSqlQuery query;
-    query.prepare("DELETE FROM transactions WHERE transaction_id = :transaction_id");
+    query.prepare("DELETE FROM SUMMERCLUB.TRANSACTIONS WHERE TRANSACTION_ID = :transaction_id");
     query.bindValue(":transaction_id", transactionId);
 
     bool success = query.exec();
@@ -182,22 +183,47 @@ bool PaymentModel::deletePayment(const QString &transactionId)
 QSqlQueryModel* PaymentModel::getAllPayments()
 {
     QSqlQueryModel *model = new QSqlQueryModel();
-    model->setQuery("SELECT transaction_id, payment_date, description, "
-                    "payment_type, amount, payment_method, status, member_id "
-                    "FROM transactions ORDER BY payment_date DESC");
+    QSqlDatabase db = getDatabase();
 
-    if (model->lastError().isValid())
-        qDebug() << "Get all payments error:" << model->lastError().text();
+    if (!db.isOpen()) {
+        if (!db.open()) {
+            qDebug() << "GetAllPayments: database not open:" << db.lastError().text();
+        }
+    }
+    
+    // Try with schema prefix first
+    model->setQuery("SELECT TRANSACTION_ID, PAYMENT_DATE, DESCRIPTION, "
+                    "PAYMENT_TYPE, AMOUNT, PAYMENT_METHOD, STATUS, MEMBER_ID "
+                    "FROM SUMMERCLUB.TRANSACTIONS ORDER BY PAYMENT_DATE DESC");
 
+    if (model->lastError().isValid()) {
+        qDebug() << "Get all payments error with schema:" << model->lastError().text();
+        // Try without schema prefix as fallback
+        model->setQuery("SELECT TRANSACTION_ID, PAYMENT_DATE, DESCRIPTION, "
+                        "PAYMENT_TYPE, AMOUNT, PAYMENT_METHOD, STATUS, MEMBER_ID "
+                        "FROM TRANSACTIONS ORDER BY PAYMENT_DATE DESC");
+        
+        if (model->lastError().isValid()) {
+            qDebug() << "Get all payments error without schema:" << model->lastError().text();
+        } else {
+            qDebug() << "Successfully loaded payments without schema prefix";
+            while (model->canFetchMore()) model->fetchMore();
+        }
+    } else {
+        qDebug() << "Successfully loaded payments with schema prefix";
+        while (model->canFetchMore()) model->fetchMore();
+    }
+    
+    qDebug() << "PaymentModel::getAllPayments() returning" << model->rowCount() << "rows";
     return model;
 }
 
 QSqlQueryModel* PaymentModel::getPaymentById(const QString &transactionId)
 {
     QSqlQueryModel *model = new QSqlQueryModel();
-    QString queryString = QString("SELECT transaction_id, payment_date, description, "
-                                  "payment_type, amount, payment_method, status, member_id "
-                                  "FROM transactions WHERE transaction_id = '%1'")
+    QString queryString = QString("SELECT TRANSACTION_ID, PAYMENT_DATE, DESCRIPTION, "
+                                  "PAYMENT_TYPE, AMOUNT, PAYMENT_METHOD, STATUS, MEMBER_ID "
+                                  "FROM SUMMERCLUB.TRANSACTIONS WHERE TRANSACTION_ID = '%1'")
                               .arg(transactionId);
 
     model->setQuery(queryString);
@@ -211,7 +237,7 @@ QSqlQueryModel* PaymentModel::getPaymentById(const QString &transactionId)
 bool PaymentModel::paymentExists(const QString &transactionId)
 {
     QSqlQuery query;
-    query.prepare("SELECT COUNT(*) FROM transactions WHERE transaction_id = :transaction_id");
+    query.prepare("SELECT COUNT(*) FROM SUMMERCLUB.TRANSACTIONS WHERE TRANSACTION_ID = :transaction_id");
     query.bindValue(":transaction_id", transactionId);
 
     if (query.exec() && query.next())

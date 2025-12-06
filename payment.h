@@ -43,8 +43,10 @@ public slots:
     void onUpdatePayment();
     void onDeletePayment(const QStringList &paymentData, int row);
     void onEditPayment(const QStringList &paymentData);
-    void onPaymentSearchTextChanged();
     void validateMemberId();
+    void onSortByDate();
+    void onExportToPDF();
+    void onPaymentSearchTextChanged(const QString &searchText);
 
 private:
     Ui::EmployerAdmin *ui;

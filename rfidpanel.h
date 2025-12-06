@@ -52,6 +52,10 @@ private slots:
     void onSearchTextChanged();
     void onStatusFilterChanged();
     
+    // Arduino connection
+    void onConnectArduinoClicked();
+    void updateConnectionStatus(bool connected);
+    
     // Activity feed
     void refreshActivityFeed();
     void onAutoRefreshToggled();
@@ -81,6 +85,10 @@ private:
     QPushButton *m_editCardButton;
     QPushButton *m_deleteCardButton;
     QPushButton *m_toggleStatusButton;
+    
+    // Arduino connection components
+    QPushButton *m_connectArduinoButton;
+    QLabel *m_connectionStatusLabel;
     
     // UI Components - Activity Feed Section
     QGroupBox *m_activityGroup;

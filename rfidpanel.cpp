@@ -21,6 +21,9 @@ RFIDPanel::RFIDPanel(QWidget *parent)
     // Initial data load
     refreshAll();
     
+    // Initialize connection status as disconnected
+    updateConnectionStatus(false);
+    
     qDebug() << "🎨 RFIDPanel: Dashboard interface created successfully";
 }
 
@@ -53,6 +56,21 @@ void RFIDPanel::setupCardManagementSection()
 {
     m_cardManagementGroup = new QGroupBox("💳 Manage RFID Cards", this);
     QVBoxLayout *cardLayout = new QVBoxLayout(m_cardManagementGroup);
+    
+    // Connection status and controls row
+    QHBoxLayout *connectionLayout = new QHBoxLayout();
+    
+    m_connectArduinoButton = new QPushButton("🔌 Connect Arduino");
+    m_connectArduinoButton->setStyleSheet("QPushButton { background-color: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 4px; font-weight: bold; }");
+    connectionLayout->addWidget(m_connectArduinoButton);
+    
+    m_connectionStatusLabel = new QLabel("❌ Arduino Disconnected");
+    m_connectionStatusLabel->setStyleSheet("QLabel { color: #F44336; font-weight: bold; padding: 8px; background-color: #ffebee; border: 1px solid #ffcdd2; border-radius: 4px; }");
+    connectionLayout->addWidget(m_connectionStatusLabel);
+    
+    connectionLayout->addStretch();
+    
+    cardLayout->addLayout(connectionLayout);
     
     // Search and filter row
     QHBoxLayout *searchLayout = new QHBoxLayout();
@@ -304,6 +322,9 @@ void RFIDPanel::connectSignals()
         m_activityTextEdit->clear();
         addActivityEntry("Activity feed cleared", true);
     });
+    
+    // Arduino connection
+    connect(m_connectArduinoButton, &QPushButton::clicked, this, &RFIDPanel::onConnectArduinoClicked);
 }
 
 void RFIDPanel::setRFIDManager(RFIDManager *manager)
@@ -314,6 +335,14 @@ void RFIDPanel::setRFIDManager(RFIDManager *manager)
         // Connect RFID manager signals for real-time updates
         connect(m_rfidManager, &RFIDManager::accessGranted, this, &RFIDPanel::onRFIDAccessGranted);
         connect(m_rfidManager, &RFIDManager::accessDenied, this, &RFIDPanel::onRFIDAccessDenied);
+        
+        // Connect Arduino connection status monitoring
+        Arduino* arduino = m_rfidManager->getArduino();
+        if (arduino) {
+            connect(arduino, &Arduino::connectionStatusChanged, this, &RFIDPanel::updateConnectionStatus);
+            // Update initial status
+            updateConnectionStatus(arduino->isConnected());
+        }
         
         qDebug() << "🔗 RFIDPanel connected to RFIDManager";
     }
@@ -655,4 +684,76 @@ void RFIDPanel::onRFIDAccessGranted(const QString &memberName, const QString &rf
 void RFIDPanel::onRFIDAccessDenied(const QString &rfidUid, const QString &reason)
 {
     addActivityEntry(QString("Unknown accessed via %1 - ❌ DENIED (%2)").arg(rfidUid, reason), false);
+}
+
+void RFIDPanel::onConnectArduinoClicked()
+{
+    if (!m_rfidManager) {
+        QMessageBox::warning(this, "Error", "RFID Manager not initialized!");
+        return;
+    }
+    
+    addActivityEntry("🔌 Attempting to connect to Arduino...", true);
+    
+    // Disable button during connection attempt
+    m_connectArduinoButton->setEnabled(false);
+    m_connectArduinoButton->setText("🔄 Connecting...");
+    
+    try {
+        // Try to start the RFID system (which includes Arduino connection)
+        bool success = m_rfidManager->startRFIDSystem();
+        
+        if (success) {
+            addActivityEntry("✅ Arduino connected successfully!", true);
+            updateConnectionStatus(true);
+            
+            // Show success message with port info
+            Arduino* arduino = m_rfidManager->getArduino();
+            if (arduino) {
+                QString portInfo = QString("Arduino connected on port: %1").arg(arduino->getarduino_port_name());
+                QMessageBox::information(this, "Connection Success", portInfo);
+            }
+        } else {
+            addActivityEntry("❌ Failed to connect to Arduino. Check connection and try again.", false);
+            updateConnectionStatus(false);
+            
+            // Show detailed error message
+            QString errorDetails = "Failed to connect to Arduino RFID reader.\n\nPossible solutions:\n"
+                                  "• Check USB cable connection\n"
+                                  "• Verify Arduino is powered on\n" 
+                                  "• Close other applications using the serial port\n"
+                                  "• Try a different USB port\n"
+                                  "• Reset the Arduino and try again\n"
+                                  "• Check if Arduino drivers are installed";
+            
+            QMessageBox::warning(this, "Arduino Connection Failed", errorDetails);
+        }
+    } catch (const std::exception& e) {
+        addActivityEntry(QString("❌ Connection error: %1").arg(e.what()), false);
+        updateConnectionStatus(false);
+        QMessageBox::critical(this, "Connection Error", QString("An error occurred: %1").arg(e.what()));
+    }
+    
+    // Re-enable button
+    m_connectArduinoButton->setEnabled(true);
+    m_connectArduinoButton->setText("🔌 Connect Arduino");
+}
+
+void RFIDPanel::updateConnectionStatus(bool connected)
+{
+    if (connected) {
+        m_connectionStatusLabel->setText("✅ Arduino Connected");
+        m_connectionStatusLabel->setStyleSheet("QLabel { color: #4CAF50; font-weight: bold; padding: 8px; background-color: #e8f5e8; border: 1px solid #c8e6c9; border-radius: 4px; }");
+        m_connectArduinoButton->setText("🔌 Reconnect Arduino");
+        
+        // Enable RFID functionality when connected
+        m_addCardButton->setEnabled(true);
+    } else {
+        m_connectionStatusLabel->setText("❌ Arduino Disconnected");
+        m_connectionStatusLabel->setStyleSheet("QLabel { color: #F44336; font-weight: bold; padding: 8px; background-color: #ffebee; border: 1px solid #ffcdd2; border-radius: 4px; }");
+        m_connectArduinoButton->setText("🔌 Connect Arduino");
+        
+        // Optionally disable some functionality when disconnected
+        // m_addCardButton->setEnabled(false);
+    }
 }

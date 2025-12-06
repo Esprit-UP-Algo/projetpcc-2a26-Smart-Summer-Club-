@@ -98,18 +98,8 @@ class QRCodeAdder {
      * Create QR data from activity information
      */
     createQRDataFromActivity(activityData) {
-        const qrData = {
-            activityId: activityData.activityId,
-            title: activityData.title,
-            type: activityData.type,
-            date: activityData.date,
-            time: `${activityData.startTime} - ${activityData.endTime}`,
-            location: activityData.location,
-            instructor: activityData.instructor,
-            registrationUrl: activityData.registrationUrl || `https://summerclub.com/register/${activityData.activityId}`
-        };
-        
-        return JSON.stringify(qrData);
+        // Return only the registration URL
+        return activityData.registrationUrl || `https://summerclub.com/register/${activityData.activityId}`;
     }
 
     /**
