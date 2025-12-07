@@ -42,14 +42,43 @@ EmployerAdmin::EmployerAdmin(QWidget *parent)
 {
     ui->setupUi(this);
 
-    // Use relative path to logo in current project
-    QString logoPath = QCoreApplication::applicationDirPath() + "/../../assests/VibraClubLogo.png";
-    QPixmap pix(logoPath);
-    if (pix.isNull()) {
-        // Fallback: try current working directory
-        pix.load("./assests/VibraClubLogo.png");
+
+    // Hide all splitter handles globally
+    setStyleSheet(styleSheet() + "\nQSplitter::handle { background: transparent; width: 0px; height: 0px; }");
+
+    // Load logo from Qt resources
+    QPixmap logoPixmap(":/icons/assests/VibraClubLogo.png");
+    if (!logoPixmap.isNull()) {
+        ui->logo->setPixmap(logoPixmap.scaled(50, 50, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        ui->logo->setStyleSheet("background: transparent; border: none;");
+        // Install event filter on logo only (for hover animation)
+        ui->logo->installEventFilter(this);
+        // Setup size animation (make it more visible)
+        logoSizeAnim = new QPropertyAnimation(ui->logo, "size", this);
+        logoSizeAnim->setDuration(220);
+        logoSizeAnim->setEasingCurve(QEasingCurve::InOutCubic);
+
+        // Opacity effect and fade animations
+        logoOpacityEffect = new QGraphicsOpacityEffect(ui->logo);
+        ui->logo->setGraphicsEffect(logoOpacityEffect);
+        logoFadeOut = new QPropertyAnimation(logoOpacityEffect, "opacity", this);
+        logoFadeOut->setDuration(120);
+        logoFadeOut->setStartValue(1.0);
+        logoFadeOut->setEndValue(0.0);
+        logoFadeOut->setEasingCurve(QEasingCurve::OutCubic);
+        logoFadeIn = new QPropertyAnimation(logoOpacityEffect, "opacity", this);
+        logoFadeIn->setDuration(120);
+        logoFadeIn->setStartValue(0.0);
+        logoFadeIn->setEndValue(1.0);
+        logoFadeIn->setEasingCurve(QEasingCurve::InCubic);
+
+        // Group to chain fade-out, swap mirrored pixmap, fade-in
+        logoFlipGroup = new QSequentialAnimationGroup(this);
+        logoFlipGroup->addAnimation(logoFadeOut);
+        logoFlipGroup->addAnimation(logoFadeIn);
+    } else {
+        qDebug() << "Failed to load logo from resources";
     }
-    ui->logo->setPixmap(pix.scaled(50, 50, Qt::KeepAspectRatio));
 
     // Setup navigation button group
     navigationButtonGroup = new QButtonGroup(this);
@@ -1691,4 +1720,45 @@ void EmployerAdmin::onRFIDAccessDenied(const QString &rfidUid, const QString &re
     // You can add UI notifications here like:
     // QMessageBox::warning(this, "Access Denied", 
     //                     QString("Access denied: %1").arg(reason));
+}
+
+bool EmployerAdmin::eventFilter(QObject *watched, QEvent *event)
+{
+    if (watched == ui->logo) {
+        if (event->type() == QEvent::Enter) {
+            // Grow more noticeably
+            logoSizeAnim->stop();
+            logoSizeAnim->setStartValue(ui->logo->size());
+            logoSizeAnim->setEndValue(QSize(64, 64));
+            logoSizeAnim->start();
+
+            // Flip illusion: fade out, swap to mirrored, fade in
+            connect(logoFadeOut, &QPropertyAnimation::finished, this, [this]() {
+                // Mirror current pixmap horizontally
+                QPixmap current = ui->logo->pixmap(Qt::ReturnByValue);
+                QTransform t; t.scale(-1, 1);
+                QPixmap mirrored = current.transformed(t, Qt::SmoothTransformation);
+                ui->logo->setPixmap(mirrored);
+            });
+            logoFlipGroup->start();
+        } else if (event->type() == QEvent::Leave) {
+            // Return to original size
+            logoSizeAnim->stop();
+            logoSizeAnim->setStartValue(ui->logo->size());
+            logoSizeAnim->setEndValue(QSize(50, 50));
+            logoSizeAnim->start();
+
+            // Flip back: fade out, swap to normal, fade in
+            disconnect(logoFadeOut, nullptr, this, nullptr);
+            connect(logoFadeOut, &QPropertyAnimation::finished, this, [this]() {
+                // Un-mirror: apply same transform again to restore
+                QPixmap current = ui->logo->pixmap(Qt::ReturnByValue);
+                QTransform t; t.scale(-1, 1);
+                QPixmap restored = current.transformed(t, Qt::SmoothTransformation);
+                ui->logo->setPixmap(restored);
+            });
+            logoFlipGroup->start();
+        }
+    }
+    return QMainWindow::eventFilter(watched, event);
 }

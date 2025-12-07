@@ -583,6 +583,11 @@ public:
         topBarLayout->setContentsMargins(20, -1, 20, -1);
         logo = new QLabel(topBarFrame);
         logo->setObjectName("logo");
+        logo->setMinimumSize(QSize(50, 50));
+        logo->setMaximumSize(QSize(50, 50));
+        logo->setPixmap(QPixmap(QString::fromUtf8(":/icons/assests/VibraClubLogo.png")));
+        logo->setScaledContents(true);
+        logo->setWordWrap(false);
 
         topBarLayout->addWidget(logo);
 
@@ -1754,7 +1759,7 @@ public:
         equipmentScrollArea->setWidgetResizable(true);
         equipmentScrollAreaContents = new QWidget();
         equipmentScrollAreaContents->setObjectName("equipmentScrollAreaContents");
-        equipmentScrollAreaContents->setGeometry(QRect(0, 0, 1030, 857));
+        equipmentScrollAreaContents->setGeometry(QRect(0, 0, 612, 371));
         equipmentFormMainLayout = new QVBoxLayout(equipmentScrollAreaContents);
         equipmentFormMainLayout->setObjectName("equipmentFormMainLayout");
         equipmentFormFrame = new QFrame(equipmentScrollAreaContents);
@@ -2134,7 +2139,7 @@ public:
         activityScrollArea->setWidgetResizable(true);
         activityScrollAreaContents = new QWidget();
         activityScrollAreaContents->setObjectName("activityScrollAreaContents");
-        activityScrollAreaContents->setGeometry(QRect(0, 0, 1030, 857));
+        activityScrollAreaContents->setGeometry(QRect(0, 0, 739, 493));
         activityFormMainLayout = new QVBoxLayout(activityScrollAreaContents);
         activityFormMainLayout->setObjectName("activityFormMainLayout");
         activityFormFrame = new QFrame(activityScrollAreaContents);
@@ -3209,7 +3214,7 @@ public:
 
         stackedWidget->setCurrentIndex(1);
         employeeTabWidget->setCurrentIndex(2);
-        memberTabWidget->setCurrentIndex(1);
+        memberTabWidget->setCurrentIndex(4);
         equipmentTabWidget->setCurrentIndex(1);
         activityTabWidget->setCurrentIndex(0);
         paymentTabWidget->setCurrentIndex(0);

@@ -18,6 +18,9 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QTimer>
+#include <QPropertyAnimation>
+#include <QGraphicsOpacityEffect>
+#include <QSequentialAnimationGroup>
 
 // Include the management classes
 #include "employee.h"
@@ -132,6 +135,14 @@ private:
     QTimer *m_statsRefreshTimer = nullptr;
     QChartView *activityTypeChartView = nullptr;
     QChartView *activityAgeChartView = nullptr;
+
+    // Animations
+    QPropertyAnimation *logoSizeAnim = nullptr;
+    QPropertyAnimation *logoFadeOut = nullptr;
+    QPropertyAnimation *logoFadeIn = nullptr;
+    QSequentialAnimationGroup *logoFlipGroup = nullptr;
+    QGraphicsOpacityEffect *logoOpacityEffect = nullptr;
+    bool eventFilter(QObject *watched, QEvent *event) override;
 };
 
 #endif // EMPLOYERADMIN_H
