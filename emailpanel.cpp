@@ -149,21 +149,21 @@ void EmailPanel::setupMemberList()
     m_refreshButton->setStyleSheet(
         "QPushButton {"
         "   padding: 8px 12px;"
-        "   border: 2px solid #27ae60;"
+        "   border: 2px solid #16a5b3;"
         "   border-radius: 6px;"
         "   font-size: 14px;"
         "   font-weight: bold;"
-        "   background: #27ae60;"
+        "   background: #16a5b3;"
         "   color: white;"
         "   min-width: 80px;"
         "}"
         "QPushButton:hover {"
-        "   background: #229954;"
-        "   border-color: #229954;"
+        "   background: #139aa6;"
+        "   border-color: #139aa6;"
         "}"
         "QPushButton:pressed {"
-        "   background: #1e8449;"
-        "   border-color: #1e8449;"
+        "   background: #108f99;"
+        "   border-color: #108f99;"
         "}"
     );
     m_refreshButton->setToolTip("Refresh member list from database");
@@ -399,7 +399,7 @@ void EmailPanel::setupMessageComposer()
     
     m_sendNowRadio = new QRadioButton("Send Now");
     m_sendNowRadio->setChecked(true);
-    m_sendNowRadio->setStyleSheet("font-weight: bold; color: #27ae60;");
+    m_sendNowRadio->setStyleSheet("font-weight: bold; color: #16a5b3;");
     
     m_scheduleRadio = new QRadioButton("Schedule for:");
     m_scheduleRadio->setStyleSheet("font-weight: bold; color: #f39c12;");
@@ -610,7 +610,7 @@ void EmailPanel::setupStatusBar()
     m_sendButton->setStyleSheet(
         "QPushButton {"
         "   background: qlineargradient(x1:0, y1:0, x2:0, y2:1, "
-        "   stop:0 #27ae60, stop:1 #229954);"
+        "   stop:0 #16a5b3, stop:1 #139aa6);"
         "   color: white;"
         "   border: none;"
         "   padding: 12px 25px;"
@@ -620,11 +620,11 @@ void EmailPanel::setupStatusBar()
         "}"
         "QPushButton:hover {"
         "   background: qlineargradient(x1:0, y1:0, x2:0, y2:1, "
-        "   stop:0 #229954, stop:1 #1e8449);"
+        "   stop:0 #139aa6, stop:1 #108f99);"
         "}"
         "QPushButton:pressed {"
         "   background: qlineargradient(x1:0, y1:0, x2:0, y2:1, "
-        "   stop:0 #1e8449, stop:1 #196f3d);"
+        "   stop:0 #108f99, stop:1 #0d7a83);"
         "}"
     );
     m_sendButton->setEnabled(false);
@@ -975,10 +975,10 @@ void EmailPanel::updateAttachmentInfo()
         m_attachmentInfoLabel->setText(QString("%1 file(s) attached • %2")
             .arg(m_attachmentPaths.size()).arg(sizeStr));
         m_attachmentInfoLabel->setStyleSheet(
-            "color: #27ae60;"
+            "color: #16a5b3;"
             "font-size: 12px;"
             "padding: 5px;"
-            "background: rgba(39, 174, 96, 0.1);"
+            "background: rgba(22, 165, 179, 0.1);"
             "border-radius: 4px;"
         );
         m_clearAttachmentsButton->setEnabled(true);
@@ -1091,8 +1091,8 @@ void EmailPanel::updateCostEstimate()
         );
     } else {
         m_costLabel->setStyleSheet(
-            "QLabel { font-weight: bold; color: #27ae60; "
-            "padding: 5px 10px; background: rgba(39, 174, 96, 0.1); border-radius: 4px; }"
+            "QLabel { font-weight: bold; color: #16a5b3; "
+            "padding: 5px 10px; background: rgba(22, 165, 179, 0.1); border-radius: 4px; }"
         );
     }
 }
@@ -1279,7 +1279,7 @@ QString EmailPanel::generateHTMLEmail(const QString& content, const QString& mem
     body { font-family: Arial, sans-serif; margin:0; padding:0; background-color:#f4f4f4; }
     .container { max-width:600px; margin:20px auto; background-color:#ffffff; border-radius:10px; overflow:hidden; box-shadow:0 4px 8px rgba(0,0,0,0.1); }
     .header {
-      background: linear-gradient(135deg, #a069b0, #ffb347);
+      background: linear-gradient(135deg, #16a5b3, #139aa6, #108f99);
       color:white;
       text-align:center;
       padding:30px 20px;
@@ -1289,17 +1289,35 @@ QString EmailPanel::generateHTMLEmail(const QString& content, const QString& mem
     .header h1 { margin:20px 0 5px 0; font-size:28px; }
     .header p { margin:0; font-size:16px; }
     .content { padding:20px; color:#333333; line-height:1.6; }
-    .content h2 { color:#a069b0; }
-    .button { display:inline-block; padding:12px 20px; margin:20px 0; background-color:#a069b0; color:white; text-decoration:none; border-radius:5px; }
+    .content h2 { 
+      background: linear-gradient(135deg, #16a5b3, #139aa6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .button { 
+      display:inline-block; 
+      padding:12px 20px; 
+      margin:20px 0; 
+      background: linear-gradient(135deg, #16a5b3, #139aa6);
+      color:white; 
+      text-decoration:none; 
+      border-radius:5px; 
+    }
     .footer { text-align:center; font-size:12px; color:#888888; padding:15px; background-color:#f4f4f4; }
     ul { padding-left:20px; }
-    .highlight { background-color: #fff3cd; padding: 10px; border-left: 4px solid #a069b0; margin: 15px 0; }
+    .highlight { 
+      background: linear-gradient(135deg, rgba(22, 165, 179, 0.1), rgba(19, 154, 166, 0.05));
+      padding: 10px; 
+      border-left: 4px solid #16a5b3; 
+      margin: 15px 0; 
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <img src="https://cdn.discordapp.com/attachments/1355329351566102581/1442219551805931611/ABS2GSmxSmsPinmZXsfQnFcOUR1PV1wzq7sndtQ8ieGVZdwxO1M74WAPiUIfWZuDM-45AKUm4M1DYXqR-CQ8cqNiwyzMgYtuDF4VbkNJE3tTuF-n81NSXXtUGuicfQGeTWpdPXRfJS5zGe5ZIC8qO9c9nG24WYC8TEtGFQ8MgX29Aqm_iCZTIws1024-rj.png?ex=6924a320&is=692351a0&hm=3081103ca2272fecd3a1b071e23142c36a25445da5405791ca0570f7b3fe575a&" alt="Summer Fun Banner">
+      <img src="https://i.imgur.com/Ywj4x40.jpeg" alt="Summer Fun Banner">
       <h1>Summer Club 2025</h1>
       <p>Adventure, Fun & Learning Await!</p>
     </div>

@@ -1657,7 +1657,9 @@ public:
 
         memberSMSTabLayout->addWidget(emailPanel);
 
-        memberTabWidget->addTab(memberSMSTab, icon1, QString());
+        QIcon icon10;
+        icon10.addFile(QString::fromUtf8(":/icons/icons/email.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+        memberTabWidget->addTab(memberSMSTab, icon10, QString());
         memberOCRTab = new QWidget();
         memberOCRTab->setObjectName("memberOCRTab");
         memberOCRTabLayout = new QVBoxLayout(memberOCRTab);
@@ -1667,7 +1669,9 @@ public:
 
         memberOCRTabLayout->addWidget(ocrInterface);
 
-        memberTabWidget->addTab(memberOCRTab, icon6, QString());
+        QIcon icon11;
+        icon11.addFile(QString::fromUtf8(":/icons/icons/ai-technology.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+        memberTabWidget->addTab(memberOCRTab, icon11, QString());
 
         verticalLayout->addWidget(memberTabWidget);
 
@@ -2457,9 +2461,9 @@ public:
 
         activityCalendarLayout->addWidget(activityCalendarPlaceholder);
 
-        QIcon icon10;
-        icon10.addFile(QString::fromUtf8(":/icons/icons/calendar.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
-        activityTabWidget->addTab(activityCalendarTab, icon10, QString());
+        QIcon icon12;
+        icon12.addFile(QString::fromUtf8(":/icons/icons/calendar.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+        activityTabWidget->addTab(activityCalendarTab, icon12, QString());
 
         activitiesPageLayout->addWidget(activityTabWidget);
 
@@ -2533,9 +2537,9 @@ public:
 
         paymentListLayout->addWidget(paymentTable);
 
-        QIcon icon11;
-        icon11.addFile(QString::fromUtf8(":/icons/icons/employees.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
-        paymentTabWidget->addTab(listTab_4, icon11, QString());
+        QIcon icon13;
+        icon13.addFile(QString::fromUtf8(":/icons/icons/employees.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+        paymentTabWidget->addTab(listTab_4, icon13, QString());
         addTab_4 = new QWidget();
         addTab_4->setObjectName("addTab_4");
         addPaymentLayout = new QVBoxLayout(addTab_4);
@@ -2675,9 +2679,9 @@ public:
         addPaymentButton = new QPushButton(paymentButtonFrame);
         addPaymentButton->setObjectName("addPaymentButton");
         addPaymentButton->setMinimumSize(QSize(150, 45));
-        QIcon icon12;
-        icon12.addFile(QString::fromUtf8(":/icons/icons/plus.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
-        addPaymentButton->setIcon(icon12);
+        QIcon icon14;
+        icon14.addFile(QString::fromUtf8(":/icons/icons/plus.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+        addPaymentButton->setIcon(icon14);
 
         paymentButtonLayout->addWidget(addPaymentButton);
 
@@ -2685,9 +2689,9 @@ public:
         clearPaymentFormButton->setObjectName("clearPaymentFormButton");
         clearPaymentFormButton->setMinimumSize(QSize(150, 45));
         clearPaymentFormButton->setStyleSheet(QString::fromUtf8("background-color: #f39c12;"));
-        QIcon icon13;
-        icon13.addFile(QString::fromUtf8(":/icons/icons/delete.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
-        clearPaymentFormButton->setIcon(icon13);
+        QIcon icon15;
+        icon15.addFile(QString::fromUtf8(":/icons/icons/delete.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+        clearPaymentFormButton->setIcon(icon15);
 
         paymentButtonLayout->addWidget(clearPaymentFormButton);
 
@@ -2705,7 +2709,7 @@ public:
 
         addPaymentLayout->addWidget(paymentScrollArea);
 
-        paymentTabWidget->addTab(addTab_4, icon12, QString());
+        paymentTabWidget->addTab(addTab_4, icon14, QString());
         statisticsTab_4 = new QWidget();
         statisticsTab_4->setObjectName("statisticsTab_4");
         paymentStatsLayout = new QVBoxLayout(statisticsTab_4);
@@ -2873,9 +2877,9 @@ public:
 
         paymentStatsLayout->addWidget(paymentStatsScrollArea);
 
-        QIcon icon14;
-        icon14.addFile(QString::fromUtf8(":/icons/icons/business-plan.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
-        paymentTabWidget->addTab(statisticsTab_4, icon14, QString());
+        QIcon icon16;
+        icon16.addFile(QString::fromUtf8(":/icons/icons/business-plan.png"), QSize(), QIcon::Mode::Normal, QIcon::State::Off);
+        paymentTabWidget->addTab(statisticsTab_4, icon16, QString());
 
         paymentsPageLayout->addWidget(paymentTabWidget);
 
@@ -3393,7 +3397,7 @@ public:
         memberSubscriptionChartTitle->setText(QCoreApplication::translate("EmployerAdmin", "\360\237\223\246 Subscription Plan Histogram", nullptr));
         memberSubscriptionChartPlaceholder->setText(QCoreApplication::translate("EmployerAdmin", "Histogram Placeholder", nullptr));
         memberTabWidget->setTabText(memberTabWidget->indexOf(memberStatisticsTab), QCoreApplication::translate("EmployerAdmin", " Statistics", nullptr));
-        memberTabWidget->setTabText(memberTabWidget->indexOf(memberSMSTab), QCoreApplication::translate("EmployerAdmin", " SMS Communications", nullptr));
+        memberTabWidget->setTabText(memberTabWidget->indexOf(memberSMSTab), QCoreApplication::translate("EmployerAdmin", " Email Communications", nullptr));
         memberTabWidget->setTabText(memberTabWidget->indexOf(memberOCRTab), QCoreApplication::translate("EmployerAdmin", " ID Card OCR", nullptr));
         equipmentPageTitle->setText(QCoreApplication::translate("EmployerAdmin", "Equipment Management", nullptr));
         equipmentSearchLineEdit->setPlaceholderText(QCoreApplication::translate("EmployerAdmin", "Search equipment...", nullptr));

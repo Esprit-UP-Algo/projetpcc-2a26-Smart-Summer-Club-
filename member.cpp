@@ -24,7 +24,8 @@ Member::Member()
     : QObject(nullptr), cin(""), firstName(""), lastName(""), gender(""), 
       age(0), email(""), phone(""), subscriptionPlan(""), 
       joinDate(QDate::currentDate()), photo(QByteArray()),
-      ui(nullptr), parentWidget(nullptr), editingCin(""), selectedPhotoPath("")
+      ui(nullptr), parentWidget(nullptr), editingCin(""), selectedPhotoPath(""),
+      sortAscending(true)
 {
 }
 
@@ -34,7 +35,8 @@ Member::Member(QString cin, QString firstName, QString lastName, QString gender,
     : QObject(nullptr), cin(cin), firstName(firstName), lastName(lastName),
       gender(gender), age(age), email(email), phone(phone),
       subscriptionPlan(subscriptionPlan), joinDate(joinDate), photo(photo),
-      ui(nullptr), parentWidget(nullptr), editingCin(""), selectedPhotoPath("")
+      ui(nullptr), parentWidget(nullptr), editingCin(""), selectedPhotoPath(""),
+      sortAscending(true)
 {
 }
 
@@ -42,7 +44,8 @@ Member::Member(Ui::EmployerAdmin *ui, QWidget *parent)
     : QObject(parent), cin(""), firstName(""), lastName(""), gender(""),
       age(0), email(""), phone(""), subscriptionPlan(""),
       joinDate(QDate::currentDate()), photo(QByteArray()),
-      ui(ui), parentWidget(parent), editingCin(""), selectedPhotoPath("")
+      ui(ui), parentWidget(parent), editingCin(""), selectedPhotoPath(""),
+      sortAscending(true)
 {
 }
 
@@ -736,13 +739,14 @@ void populateMemberTableWidget(QTableWidget* table, QSqlQueryModel* model, Membe
         if (!cin.isEmpty()) {
             QWidget* actionWidget = new QWidget(table); // CRITICAL: Set parent to table for proper ownership
             QHBoxLayout* actionLayout = new QHBoxLayout(actionWidget);
-            actionLayout->setContentsMargins(4, 2, 4, 2);
+            actionLayout->setContentsMargins(2, 2, 2, 2);
             actionLayout->setSpacing(4);
             
             // Create Edit button
             QPushButton* editButton = new QPushButton("Edit", actionWidget);
             editButton->setIcon(QIcon(":/icons/icons/edit.png"));
             editButton->setIconSize(QSize(16, 16));
+            editButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
             editButton->setStyleSheet(
                 "QPushButton { "
                 "background-color: rgba(22, 165, 179, 0.10); "
@@ -762,6 +766,7 @@ void populateMemberTableWidget(QTableWidget* table, QSqlQueryModel* model, Membe
             QPushButton* deleteButton = new QPushButton("Delete", actionWidget);
             deleteButton->setIcon(QIcon(":/icons/icons/delete.png"));
             deleteButton->setIconSize(QSize(16, 16));
+            deleteButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
             deleteButton->setStyleSheet(
                 "QPushButton { "
                 "background-color: rgba(22, 165, 179, 0.10); "
@@ -790,7 +795,6 @@ void populateMemberTableWidget(QTableWidget* table, QSqlQueryModel* model, Membe
             
             actionLayout->addWidget(editButton);
             actionLayout->addWidget(deleteButton);
-            actionLayout->addStretch();
             
             // CRITICAL: Use stored column index instead of model->columnCount()
             table->setCellWidget(row, actionsColIndex, actionWidget);
@@ -816,6 +820,21 @@ void Member::setupMemberTable()
     ui->memberTable->setAlternatingRowColors(true);
     ui->memberTable->setSortingEnabled(true);
     ui->memberTable->horizontalHeader()->setStretchLastSection(true);
+    
+    // Make sort indicator arrows bigger and more visible
+    ui->memberTable->setStyleSheet(
+        ui->memberTable->styleSheet() + 
+        "QHeaderView::down-arrow { "
+        "    image: url(:/icons/icons/arrow-down.png); "
+        "    width: 20px; "
+        "    height: 20px; "
+        "} "
+        "QHeaderView::up-arrow { "
+        "    image: url(:/icons/icons/arrow-up.png); "
+        "    width: 20px; "
+        "    height: 20px; "
+        "}"
+    );
     
     // Populate with data (pass 'this' for button connections)
     populateMemberTableWidget(ui->memberTable, Member::afficher(), this);
@@ -1104,9 +1123,17 @@ void Member::onFilterByGender()
 void Member::onSortMembers()
 {
     if (!ui) return;
-    static bool asc = true;
-    ui->memberTable->sortByColumn(8, asc ? Qt::AscendingOrder : Qt::DescendingOrder); // Sort by Join Date
-    asc = !asc;
+    
+    // Sort by Join Date column (index 9 - after Photo column)
+    ui->memberTable->sortByColumn(9, sortAscending ? Qt::AscendingOrder : Qt::DescendingOrder);
+    
+    // Toggle sort order
+    sortAscending = !sortAscending;
+    
+    // Update button icon based on sort order for better UX
+    QIcon sortIcon = sortAscending ? QIcon(":/icons/icons/arrow-down.png") : QIcon(":/icons/icons/arrow-up.png");
+    ui->memberSortButton->setIcon(sortIcon);
+    ui->memberSortButton->setIconSize(QSize(20, 20));
 }
 
 void Member::onExportMembers()
@@ -1228,34 +1255,34 @@ bool Member::exportMemberCertificate(const QString& memberCin, const QString& fi
         QString html = "<html><body style='font-family: Arial, sans-serif; line-height: 1.6;'>";
         
         // Header with logo and title
-        html += "<div style='text-align: center; border-bottom: 3px solid #2c5aa0; padding-bottom: 20px; margin-bottom: 30px;'>";
+        html += "<div style='text-align: center; border-bottom: 3px solid #16a5b3; padding-bottom: 20px; margin-bottom: 30px;'>";
         
         if (!logoBase64.isEmpty()) {
             html += "<img src='" + logoBase64 + "' style='height: 120px; margin-bottom: 15px;' /><br>";
         }
         
-        html += "<h1 style='color: #2c5aa0; font-size: 32px; margin: 10px 0; text-transform: uppercase; letter-spacing: 2px;'>VIBRACLUB - SMART SUMMER CLUB</h1>";
+        html += "<h1 style='color: #16a5b3; font-size: 32px; margin: 10px 0; text-transform: uppercase; letter-spacing: 2px;'>VIBRACLUB - SMART SUMMER CLUB</h1>";
         html += "<h2 style='color: #666; font-size: 24px; margin: 5px 0; font-weight: normal;'>Registration Certificate No. " + htmlEscape(memberCin) + "</h2>";
         html += "</div>";
         
         // Certificate body
-        html += "<div style='margin: 40px 0; padding: 20px; background-color: #f8f9fa; border-left: 5px solid #2c5aa0;'>";
+        html += "<div style='margin: 40px 0; padding: 20px; background-color: #f8f9fa; border-left: 5px solid #16a5b3;'>";
         html += "<p style='font-size: 16px; margin-bottom: 20px; text-align: justify;'>";
         html += "I, the undersigned, <strong>The Manager of member department</strong>,certify that:</p>";
         
-        html += "<div style='margin: 30px 0; padding: 20px; background-color: white; border: 2px solid #2c5aa0; border-radius: 10px;'>";
+        html += "<div style='margin: 30px 0; padding: 20px; background-color: white; border: 2px solid #16a5b3; border-radius: 10px;'>";
         html += "<table style='width: 100%; font-size: 16px; line-height: 2;'>";
-        html += "<tr><td style='width: 30%; font-weight: bold; color: #2c5aa0;'>Member:</td><td>" + htmlEscape(lastName) + " " + htmlEscape(firstName) + "</td></tr>";
-        html += "<tr><td style='font-weight: bold; color: #2c5aa0;'>Born on:</td><td>" + htmlEscape(birthDate) + "</td></tr>";
-        html += "<tr><td style='font-weight: bold; color: #2c5aa0;'>National Identity Card:</td><td>" + htmlEscape(memberCin) + "</td></tr>";
+        html += "<tr><td style='width: 30%; font-weight: bold; color: #16a5b3;'>Member:</td><td>" + htmlEscape(lastName) + " " + htmlEscape(firstName) + "</td></tr>";
+        html += "<tr><td style='font-weight: bold; color: #16a5b3;'>Born on:</td><td>" + htmlEscape(birthDate) + "</td></tr>";
+        html += "<tr><td style='font-weight: bold; color: #16a5b3;'>National Identity Card:</td><td>" + htmlEscape(memberCin) + "</td></tr>";
         html += "</table>";
         html += "</div>";
         
-        html += "<p style='font-size: 16px; margin: 20px 0; text-align: center; font-weight: bold; color: #2c5aa0;'>";
+        html += "<p style='font-size: 16px; margin: 20px 0; text-align: center; font-weight: bold; color: #16a5b3;'>";
         html += "is officially registered with our club for the " + currentYear + " season.</p>";
         
         html += "<div style='margin: 20px 0; padding: 15px; background-color: white; border: 1px solid #ddd; border-radius: 5px;'>";
-        html += "<p style='font-size: 16px; text-align: center;'><strong>Membership Type:</strong> <span style='color: #2c5aa0; font-size: 18px;'>" + htmlEscape(membershipType.isEmpty() ? "Standard" : membershipType) + "</span></p>";
+        html += "<p style='font-size: 16px; text-align: center;'><strong>Membership Type:</strong> <span style='color: #16a5b3; font-size: 18px;'>" + htmlEscape(membershipType.isEmpty() ? "Standard" : membershipType) + "</span></p>";
         html += "</div>";
         html += "</div>";
         
@@ -1265,15 +1292,15 @@ bool Member::exportMemberCertificate(const QString& memberCin, const QString& fi
         html += "<p style='font-size: 16px; margin-bottom: 5px;'>Done on <strong>" + currentDate + "</strong></p>";
         html += "</div>";
         html += "<div style='display: table-cell; width: 50%; text-align: right;'>";
-        html += "<div style='border: 2px solid #2c5aa0; width: 200px; height: 100px; margin-left: auto; position: relative;'>";
+        html += "<div style='border: 2px solid #16a5b3; width: 200px; height: 100px; margin-left: auto; position: relative;'>";
         html += "<p style='text-align: center; margin-top: 35px; color: #666; font-style: italic;'>[Digital Signature]</p>";
         html += "</div>";
-        html += "<p style='text-align: center; margin-top: 10px; font-size: 14px; color: #2c5aa0; font-weight: bold;'>Official VibraClub Stamp</p>";
+        html += "<p style='text-align: center; margin-top: 10px; font-size: 14px; color: #16a5b3; font-weight: bold;'>Official VibraClub Stamp</p>";
         html += "</div>";
         html += "</div>";
         
         // Validity and certificate number footer
-        html += "<div style='margin-top: 40px; text-align: center; border-top: 2px solid #2c5aa0; padding-top: 20px;'>";
+        html += "<div style='margin-top: 40px; text-align: center; border-top: 2px solid #16a5b3; padding-top: 20px;'>";
         html += "<p style='font-size: 12px; color: #888; margin: 5px 0;'>This certificate is valid for the current season and serves as official proof of registration.</p>";
         html += "<p style='font-size: 12px; color: #888; margin: 5px 0;'>Certificate Generated: " + currentDate + " | Member ID: " + htmlEscape(memberCin) + "</p>";
         html += "</div>";

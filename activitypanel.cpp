@@ -298,9 +298,10 @@ void ActivityPanel::onSyncData()
     QString buildDir = QCoreApplication::applicationDirPath();
     QDir dir(buildDir);
     
-    // Navigate to Qt workspace root
-    dir.cdUp();  // Go up from Debug to build directory
-    dir.cdUp();  // Go up from build to project root directory
+    // Navigate to Qt workspace root (actual project directory outside build folder)
+    dir.cdUp();  // Go up from debug to build directory
+    dir.cdUp();  // Go up from Desktop_Qt_6_7_3_MinGW_64_bit-Debug to build
+    dir.cdUp();  // Go up from build to actual project root directory
     
     QString qtWorkspaceRoot = dir.absolutePath();
     QString nodeScriptsDir = qtWorkspaceRoot + "/nodeJsScripts";
@@ -381,6 +382,27 @@ void ActivityPanel::onSyncData()
     QString credentialsPath = nodeScriptsDir + "/credentials.json";
     QFileInfo credentialsInfo(credentialsPath);
     qDebug() << "🔑 credentials.json exists:" << credentialsInfo.exists();
+    
+    if (!credentialsInfo.exists()) {
+        qDebug() << "❌ Missing credentials.json file at:" << credentialsPath;
+        showSyncStatus(
+            "❌ Missing credentials.json file!\n\n"
+            "To use Google Forms sync, you need to:\n\n"
+            "1. Go to Google Cloud Console (console.cloud.google.com)\n"
+            "2. Create a new project or select existing one\n"
+            "3. Enable Google Forms API\n"
+            "4. Create OAuth 2.0 credentials (Desktop app)\n"
+            "5. Download the JSON file\n"
+            "6. Rename it to 'credentials.json'\n"
+            "7. Place it in: " + nodeScriptsDir + "\n\n"
+            "For detailed instructions, check the CONFIG_README.md file.",
+            false
+        );
+        m_syncButton->setEnabled(true);
+        m_syncButton->setText("🔄 Sync Data");
+        m_syncProgressBar->setVisible(false);
+        return;
+    }
     
     // Set working directory to nodeJsScripts folder (where credentials.json is located)
     m_nodeProcess->setWorkingDirectory(nodeScriptsDir);
@@ -484,9 +506,10 @@ void ActivityPanel::loadDataFromJSON()
     QString buildDir = QCoreApplication::applicationDirPath();
     QDir dir(buildDir);
     
-    // Navigate to Qt workspace root
-    dir.cdUp();  // Debug -> build
-    dir.cdUp();  // build -> Qt workspace root
+    // Navigate to actual project root (outside build folder)
+    dir.cdUp();  // debug -> Desktop_Qt_6_7_3_MinGW_64_bit-Debug
+    dir.cdUp();  // Desktop_Qt_6_7_3_MinGW_64_bit-Debug -> build
+    dir.cdUp();  // build -> actual project root
     
     QString qtWorkspaceRoot = dir.absolutePath();
     QString jsonPath = qtWorkspaceRoot + "/nodeJsScripts/forms_registration_data.json";
@@ -825,7 +848,9 @@ bool ActivityPanel::formsDataExists()
 {
     QString buildDir = QCoreApplication::applicationDirPath();
     QDir dir(buildDir);
-    dir.cdUp(); dir.cdUp(); // Navigate to Qt workspace root
+    dir.cdUp();  // debug -> Desktop_Qt_6_7_3_MinGW_64_bit-Debug
+    dir.cdUp();  // Desktop_Qt_6_7_3_MinGW_64_bit-Debug -> build
+    dir.cdUp();  // build -> actual project root
     
     QString jsonPath = dir.absolutePath() + "/nodeJsScripts/forms_registration_data.json";
     QFileInfo fileInfo(jsonPath);
@@ -840,8 +865,9 @@ QString ActivityPanel::getFormsDataPath()
 {
     QString buildDir = QCoreApplication::applicationDirPath();
     QDir dir(buildDir);
-    dir.cdUp(); // Go up from debug
-    dir.cdUp(); // Go up from build to Qt workspace root
+    dir.cdUp();  // debug -> Desktop_Qt_6_7_3_MinGW_64_bit-Debug
+    dir.cdUp();  // Desktop_Qt_6_7_3_MinGW_64_bit-Debug -> build
+    dir.cdUp();  // build -> actual project root
     
     return dir.absolutePath() + "/nodeJsScripts/forms_registration_data.json";
 }
@@ -851,7 +877,9 @@ bool ActivityPanel::ensureNodeJsScriptsExists()
     // Get Qt workspace location
     QString buildDir = QCoreApplication::applicationDirPath();
     QDir dir(buildDir);
-    dir.cdUp(); dir.cdUp(); // Navigate to Qt workspace root
+    dir.cdUp();  // debug -> Desktop_Qt_6_7_3_MinGW_64_bit-Debug
+    dir.cdUp();  // Desktop_Qt_6_7_3_MinGW_64_bit-Debug -> build
+    dir.cdUp();  // build -> actual project root
     QString qtWorkspaceRoot = dir.absolutePath();
     QString destNodeScriptsDir = qtWorkspaceRoot + "/nodeJsScripts";
     

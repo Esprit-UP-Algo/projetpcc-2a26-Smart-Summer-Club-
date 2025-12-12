@@ -357,10 +357,36 @@ void EmployerAdmin::buildEmployeeDepartmentChart()
     QPieSeries *series = new QPieSeries();
     for (auto it = counts.begin(); it != counts.end(); ++it) {
         double pct = total > 0 ? (it.value() * 100.0 / total) : 0.0;
-        auto slice = series->append(QString("%1 (%2%)").arg(it.key()).arg(QString::number(pct, 'f', 1)), it.value());
+        
+        // Shorten department names for better label display
+        QString shortDept = it.key();
+        if (shortDept.contains("General Administration", Qt::CaseInsensitive)) {
+            shortDept = "General Admins";
+        } else if (shortDept.contains("Activity Management", Qt::CaseInsensitive)) {
+            shortDept = "Activity Manag";
+        } else if (shortDept.contains("Member Management", Qt::CaseInsensitive)) {
+            shortDept = "Member Manag";
+        } else if (shortDept.contains("Equipment Management", Qt::CaseInsensitive)) {
+            shortDept = "Equipment Manag";
+        } else if (shortDept.contains("Payment Management", Qt::CaseInsensitive)) {
+            shortDept = "Payment Manag";
+        } else if (shortDept.contains("Human Resources", Qt::CaseInsensitive)) {
+            shortDept = "HR";
+        } else if (shortDept.contains("Information Technology", Qt::CaseInsensitive)) {
+            shortDept = "IT";
+        } else if (shortDept.length() > 15) {
+            shortDept = shortDept.left(12) + "...";
+        }
+        
+        // Format legend as "Category (XX.X%)" to match the second image style
+        auto slice = series->append(QString("%1 (%2%)").arg(shortDept).arg(QString::number(pct, 'f', 1)), it.value());
         // Set colors based on department
         int hue = (qAbs(qHash(it.key())) % 360);
         slice->setColor(QColor::fromHsl(hue, 160, 120));
+        // Show label with percentage pointing out from slice
+        slice->setLabelVisible(true);
+        slice->setLabelPosition(QPieSlice::LabelOutside);
+        slice->setLabelArmLengthFactor(0.15);
     }
     
     QChart *chart = new QChart();
@@ -369,7 +395,7 @@ void EmployerAdmin::buildEmployeeDepartmentChart()
     chart->setAnimationOptions(QChart::SeriesAnimations);
     chart->setBackgroundBrush(QBrush(QColor("#f8fbfc")));
     chart->setTitleBrush(QBrush(QColor("#2c3e50")));
-    chart->legend()->setAlignment(Qt::AlignBottom);
+    chart->legend()->setVisible(false); // Hide legend, use slice labels instead
     
     employeeDepartmentChartView = new QChartView(chart);
     employeeDepartmentChartView->setRenderHint(QPainter::Antialiasing);
@@ -541,13 +567,20 @@ void EmployerAdmin::buildMemberGenderChart()
     QPieSeries *series = new QPieSeries();
     for (auto it = counts.begin(); it != counts.end(); ++it) {
         double pct = total ? (double)it.value() / total * 100.0 : 0.0;
+        // Format legend as "Category (XX.X%)" to match the second image style
         auto slice = series->append(QString("%1 (%2%)").arg(it.key()).arg(QString::number(pct, 'f', 1)), it.value());
+        // Show label with percentage pointing out from slice
         slice->setLabelVisible(true);
+        slice->setLabelPosition(QPieSlice::LabelOutside);
+        slice->setLabelArmLengthFactor(0.15);
     }
     QChart *chart = new QChart();
     chart->addSeries(series);
     chart->setTitle("Gender Distribution");
     chart->setAnimationOptions(QChart::SeriesAnimations);
+    chart->setBackgroundBrush(QBrush(QColor("#f8fbfc")));
+    chart->setTitleBrush(QBrush(QColor("#2c3e50")));
+    chart->legend()->setVisible(false); // Hide legend, use slice labels instead
     memberGenderChartView = new QChartView(chart);
     memberGenderChartView->setRenderHint(QPainter::Antialiasing);
     memberGenderChartView->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -840,11 +873,14 @@ void EmployerAdmin::setupTabIcons()
     ui->memberTabWidget->setTabIcon(0, QIcon(":/icons/icons/list.png"));
     ui->memberTabWidget->setTabIcon(1, QIcon(":/icons/icons/add.png"));
     ui->memberTabWidget->setTabIcon(2, QIcon(":/icons/icons/statistic.png"));
-    ui->memberTabWidget->setTabIcon(3, QIcon(":/icons/icons/members.png"));
+    ui->memberTabWidget->setTabIcon(3, QIcon(":/icons/icons/email.png"));        // Email Communications
+    ui->memberTabWidget->setTabIcon(4, QIcon(":/icons/icons/ai-technology.png")); // OCR
 
     ui->activityTabWidget->setTabIcon(0, QIcon(":/icons/icons/list.png"));
     ui->activityTabWidget->setTabIcon(1, QIcon(":/icons/icons/add.png"));
     ui->activityTabWidget->setTabIcon(2, QIcon(":/icons/icons/statistic.png"));
+    ui->activityTabWidget->setTabIcon(3, QIcon(":/icons/icons/google.png"));     // Analytics
+    ui->activityTabWidget->setTabIcon(4, QIcon(":/icons/icons/calendar.png"));   // Calendar
 
     ui->equipmentTabWidget->setTabIcon(0, QIcon(":/icons/icons/list.png"));
     ui->equipmentTabWidget->setTabIcon(1, QIcon(":/icons/icons/add.png"));
@@ -1498,44 +1534,32 @@ void EmployerAdmin::setArduino(Arduino *ard)
     arduino = ard;
     setupArduinoConnections();
     
-    // Initialize RFID system if Arduino is available
-    if (arduino && arduino->isConnected()) {
-        qDebug() << "🔧 Initializing RFID Access Control System...";
-        rfidSystem = new RFIDManager(arduino, this);
-        
-        // Connect RFID access control signals
-        connect(rfidSystem, &RFIDManager::accessGranted,
-                this, &EmployerAdmin::onRFIDAccessGranted);
-        
-        connect(rfidSystem, &RFIDManager::accessDenied,
-                this, &EmployerAdmin::onRFIDAccessDenied);
-        
-        // Start the RFID system
-        if (rfidSystem->startRFIDSystem()) {
-            qDebug() << "✅ RFID Access Control System started successfully!";
-        } else {
-            qDebug() << "❌ Failed to start RFID Access Control System";
-        }
-        
-        // Initialize and integrate RFID Panel
-        rfidPanel = new RFIDPanel(this);
-        rfidPanel->setRFIDManager(rfidSystem);
-        
-        // Add RFID panel as a new tab in member tab widget
-        ui->memberTabWidget->addTab(rfidPanel, "🔐 RFID Access");
-        ui->memberTabWidget->setTabIcon(ui->memberTabWidget->count() - 1, QIcon(":/icons/icons/members.png"));
-        qDebug() << "🎨 RFID Dashboard panel added as new tab";
-    } else {
-        qDebug() << "⚠️ RFID system not initialized - Arduino not available";
-        
-        // Still create the panel for viewing existing data
-        rfidPanel = new RFIDPanel(this);
-        
-        // Add RFID panel as new tab (read-only mode)
-        ui->memberTabWidget->addTab(rfidPanel, "🔐 RFID Access (Read-Only)");
-        ui->memberTabWidget->setTabIcon(ui->memberTabWidget->count() - 1, QIcon(":/icons/icons/members.png"));
-        qDebug() << "🎨 RFID Dashboard panel added as new tab (read-only mode)";
-    }
+    // ALWAYS create RFID system components (they will connect when user clicks Connect button)
+    qDebug() << "🔧 Initializing RFID Access Control System (connection on-demand)...";
+    
+    // Create RFID Manager with its own Arduino connection (separate from LCD Arduino)
+    // The RFIDManager will create its own Arduino instance internally
+    rfidSystem = new RFIDManager(this);
+    
+    // Connect RFID access control signals
+    connect(rfidSystem, &RFIDManager::accessGranted,
+            this, &EmployerAdmin::onRFIDAccessGranted);
+    
+    connect(rfidSystem, &RFIDManager::accessDenied,
+            this, &EmployerAdmin::onRFIDAccessDenied);
+    
+    // Note: Don't auto-start the RFID system - let user connect manually via panel
+    // This prevents port conflicts with the LCD Arduino
+    qDebug() << "⚠️ RFID system ready - use 'Connect RFID Arduino' button to activate";
+    
+    // Initialize and integrate RFID Panel
+    rfidPanel = new RFIDPanel(this);
+    rfidPanel->setRFIDManager(rfidSystem);
+    
+    // Add RFID panel as a new tab in member tab widget
+    ui->memberTabWidget->addTab(rfidPanel, "RFID Access");
+    ui->memberTabWidget->setTabIcon(ui->memberTabWidget->count() - 1, QIcon(":/icons/icons/members.png"));
+    qDebug() << "🎨 RFID Dashboard panel added - ready for manual connection";
 }
 
 void EmployerAdmin::setupArduinoConnections()

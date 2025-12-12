@@ -35,7 +35,8 @@ Activity::Activity()
     : QObject(nullptr), idA(0), activityType(""), eventDate(QDate::currentDate()),
       eventTime(QTime::currentTime()), responsible(""), ageRequirement(0),
       status("Scheduled"), description(""), capacity(0),
-      ui(nullptr), parentWidget(nullptr), editingId(-1), useEmployeeComboBox(true)
+      ui(nullptr), parentWidget(nullptr), editingId(-1), useEmployeeComboBox(true),
+      sortAscending(true)
 {
 }
 
@@ -45,7 +46,8 @@ Activity::Activity(int idA, QString activityType, QDate eventDate,
     : QObject(nullptr), idA(idA), activityType(activityType),
       eventDate(eventDate), eventTime(eventTime), responsible(responsible),
       ageRequirement(ageRequirement), status(status), description(description),
-      capacity(capacity), ui(nullptr), parentWidget(nullptr), editingId(-1), useEmployeeComboBox(true)
+      capacity(capacity), ui(nullptr), parentWidget(nullptr), editingId(-1), useEmployeeComboBox(true),
+      sortAscending(true)
 {
 }
 
@@ -53,7 +55,8 @@ Activity::Activity(Ui::EmployerAdmin *ui, QWidget *parent)
     : QObject(parent), idA(0), activityType(""), eventDate(QDate::currentDate()),
       eventTime(QTime::currentTime()), responsible(""), ageRequirement(0),
       status("Scheduled"), description(""), capacity(0),
-      ui(ui), parentWidget(parent), editingId(-1), useEmployeeComboBox(true)
+      ui(ui), parentWidget(parent), editingId(-1), useEmployeeComboBox(true),
+      sortAscending(true)
 {
     // Load employees into combobox and setup initial state
     loadEmployeesToComboBox();
@@ -575,13 +578,15 @@ void Activity::populateActivityTableWidget(QTableWidget* table, QSqlQueryModel* 
         // Add action buttons
         QWidget* actionWidget = new QWidget(table);
         QHBoxLayout* layout = new QHBoxLayout(actionWidget);
-        layout->setContentsMargins(4, 2, 4, 2);
+        layout->setContentsMargins(2, 2, 2, 2);
         layout->setSpacing(4);
         
         QPushButton* editBtn = new QPushButton("Edit", actionWidget);
         QPushButton* deleteBtn = new QPushButton("Delete", actionWidget);
         editBtn->setIcon(QIcon(":/icons/icons/edit.png"));
         deleteBtn->setIcon(QIcon(":/icons/icons/delete.png"));
+        editBtn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        deleteBtn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
         editBtn->setStyleSheet(
                 "QPushButton { "
                 "background-color: rgba(22, 165, 179, 0.10); "
@@ -613,7 +618,6 @@ void Activity::populateActivityTableWidget(QTableWidget* table, QSqlQueryModel* 
         
         layout->addWidget(editBtn);
         layout->addWidget(deleteBtn);
-        layout->addStretch();
         
         actionWidget->setLayout(layout);
         table->setCellWidget(r, actionColumnIndex, actionWidget);
@@ -653,6 +657,21 @@ void Activity::setupActivityTable()
     ui->activityTable->setAlternatingRowColors(true);
     ui->activityTable->horizontalHeader()->setStretchLastSection(true);
     ui->activityTable->verticalHeader()->setVisible(false);
+    
+    // Make sort indicator arrows bigger and more visible
+    ui->activityTable->setStyleSheet(
+        ui->activityTable->styleSheet() + 
+        "QHeaderView::down-arrow { "
+        "    image: url(:/icons/icons/arrow-down.png); "
+        "    width: 20px; "
+        "    height: 20px; "
+        "} "
+        "QHeaderView::up-arrow { "
+        "    image: url(:/icons/icons/arrow-up.png); "
+        "    width: 20px; "
+        "    height: 20px; "
+        "}"
+    );
     
     refreshActivityTable();
 }
@@ -841,10 +860,11 @@ void Activity::onSortActivities()
         ui->activityTable->setSortingEnabled(true);
     }
     
-    // Sort by event date (column 2 - now that NAME is removed)
-    static Qt::SortOrder order = Qt::AscendingOrder;
-    order = (order == Qt::AscendingOrder) ? Qt::DescendingOrder : Qt::AscendingOrder;
-    ui->activityTable->sortItems(2, order);
+    // Sort by event date (column 2)
+    ui->activityTable->sortItems(2, sortAscending ? Qt::AscendingOrder : Qt::DescendingOrder);
+    
+    // Toggle sort order
+    sortAscending = !sortAscending;
 }
 
 void Activity::onSortComboBoxChanged(int index)
@@ -1251,17 +1271,10 @@ bool Activity::ensureNodeJsScriptsExists() const
     QString qtWorkspaceRoot = dir.absolutePath();
     QString destNodeScriptsDir = qtWorkspaceRoot + "/nodeJsScripts";
     
-    // Check if nodeJsScripts already exists in Qt workspace
-    QDir destDir(destNodeScriptsDir);
-    if (destDir.exists() && QFileInfo::exists(destNodeScriptsDir + "/qr_adder.js")) {
-        qDebug() << "✅ nodeJsScripts folder already exists in Qt workspace:" << destNodeScriptsDir;
-        return true;
-    }
-    
     // Find the actual project location
     QString actualProjectPath = findActualProjectLocation();
     if (actualProjectPath.isEmpty()) {
-        qDebug() << "❌ Could not find actual SummerClub_Advanced project location";
+        qDebug() << "❌ Could not find actual project location";
         return false;
     }
     
@@ -1271,6 +1284,13 @@ bool Activity::ensureNodeJsScriptsExists() const
     if (!sourceDir.exists()) {
         qDebug() << "❌ Source nodeJsScripts folder does not exist:" << sourceNodeScriptsDir;
         return false;
+    }
+    
+    // Always refresh: remove old destination folder if it exists
+    QDir destDir(destNodeScriptsDir);
+    if (destDir.exists()) {
+        qDebug() << "🔄 Refreshing nodeJsScripts folder (removing old version)...";
+        destDir.removeRecursively();
     }
     
     qDebug() << "📋 Copying nodeJsScripts from:" << sourceNodeScriptsDir;
@@ -1292,19 +1312,38 @@ bool Activity::ensureNodeJsScriptsExists() const
 
 QString Activity::findActualProjectLocation() const
 {
-    // Simply use the current working directory - the project is already where we are!
-    QString currentDir = QDir::currentPath();
-    qDebug() << "Current working directory:" << currentDir;
+    // Start from the application directory (build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/debug)
+    QString buildDir = QApplication::applicationDirPath();
+    QDir dir(buildDir);
     
-    // Check if nodeJsScripts exists in current directory
-    QString nodeScriptsPath = currentDir + "/nodeJsScripts";
-    if (QDir(nodeScriptsPath).exists()) {
-        qDebug() << "✅ Found nodeJsScripts in current directory:" << currentDir;
-        return currentDir;
+    qDebug() << "Starting search from application directory:" << buildDir;
+    
+    // Navigate up from build directory to project root
+    // Typical structure: project_root/build/Desktop_Qt_6_7_3_MinGW_64_bit-Debug/debug
+    dir.cdUp();  // Go to Desktop_Qt_6_7_3_MinGW_64_bit-Debug/
+    dir.cdUp();  // Go to build/
+    dir.cdUp();  // Go to project root
+    
+    QString projectRoot = dir.absolutePath();
+    qDebug() << "Checking project root:" << projectRoot;
+    
+    // Check if this is actually the project root by looking for source files
+    // (not just nodeJsScripts which might be a cached copy in build/)
+    QString activityCppPath = projectRoot + "/activity.cpp";
+    QString mainCppPath = projectRoot + "/main.cpp";
+    QString nodeScriptsPath = projectRoot + "/nodeJsScripts";
+    
+    // Verify this is the actual project root by checking for source files
+    if ((QFileInfo::exists(activityCppPath) || QFileInfo::exists(mainCppPath)) && 
+        QDir(nodeScriptsPath).exists()) {
+        qDebug() << "✅ Found actual project root with source files:" << projectRoot;
+        return projectRoot;
     }
     
-    // If not found, return empty - no need for complex searching
-    qDebug() << "❌ nodeJsScripts not found in current directory";
+    qDebug() << "⚠️ Directory doesn't contain source files, not the real project root";
+    
+    // If not found, return empty
+    qDebug() << "❌ Could not locate actual project root";
     return QString();
 }
 

@@ -247,10 +247,17 @@ ActivityCalendar::ActivityCalendar(QWidget *parent)
     , m_avgAttendanceRate(0.0)
     , m_serialPort(nullptr)
     , m_arduinoConnected(false)
+    , m_activityCycleTimer(nullptr)
+    , m_currentActivityIndex(0)
 {
     setupUI();
     connectSignals();
     applyStyles();
+    
+    // Initialize activity cycling timer for LCD
+    m_activityCycleTimer = new QTimer(this);
+    m_activityCycleTimer->setInterval(5000); // 5 seconds between activities
+    connect(m_activityCycleTimer, &QTimer::timeout, this, &ActivityCalendar::onActivityCycleTimeout);
     
     // Initialize filter values to default "All" options
     m_currentActivityTypeFilter = "All Types";
@@ -287,6 +294,10 @@ ActivityCalendar::~ActivityCalendar()
 {
     if (m_refreshTimer) {
         m_refreshTimer->stop();
+    }
+    
+    if (m_activityCycleTimer) {
+        m_activityCycleTimer->stop();
     }
     
     // Cleanup Arduino connection
@@ -370,32 +381,38 @@ void ActivityCalendar::setupControlsSection()
                                    "Art", "Sports & Fitness Program", "Special Events"});
     m_activityTypeFilter->setMinimumWidth(120);
     
-    m_priorityFilter = new QComboBox(this);
-    m_priorityFilter->addItems({"All Priorities", "High", "Medium", "Low"});
-    m_priorityFilter->setMinimumWidth(120);
-    
     m_statusFilter = new QComboBox(this);
     m_statusFilter->addItems({"All Status", "Scheduled", "In Progress", "Completed", "Cancelled", "Postponed"});
     m_statusFilter->setMinimumWidth(120);
     
     // Action buttons
-    m_addActivityButton = new QPushButton("➕ Add Activity", this);
-    m_addActivityButton->setMinimumWidth(120);
     m_refreshButton = new QPushButton("🔄 Refresh", this);
     m_refreshButton->setMinimumWidth(100);
-    m_exportButton = new QPushButton("📥 Export", this);
-    m_exportButton->setMinimumWidth(100);
     
-    // Arduino LCD buttons
+    // Arduino LCD button (toggles between Connect/Disconnect)
     m_arduinoConnectButton = new QPushButton("🔌 Connect LCD", this);
-    m_arduinoConnectButton->setMinimumWidth(120);
-    m_arduinoDisconnectButton = new QPushButton("🔌 Disconnect", this);
-    m_arduinoDisconnectButton->setMinimumWidth(120);
-    m_arduinoDisconnectButton->setEnabled(false);
+    m_arduinoConnectButton->setMinimumWidth(130);
     
     // Arduino status label
     m_arduinoStatusLabel = new QLabel("LCD: Disconnected", this);
     m_arduinoStatusLabel->setStyleSheet("color: #e74c3c; font-weight: bold;");
+    
+    // LCD cycle delay control
+    QLabel *cycleDelayLabel = new QLabel("⏱️ Cycle:", this);
+    cycleDelayLabel->setToolTip("Delay between activities when multiple activities exist for a day");
+    
+    QSpinBox *cycleDelaySpinBox = new QSpinBox(this);
+    cycleDelaySpinBox->setMinimum(2);
+    cycleDelaySpinBox->setMaximum(30);
+    cycleDelaySpinBox->setValue(5);
+    cycleDelaySpinBox->setSuffix(" sec");
+    cycleDelaySpinBox->setToolTip("Time to display each activity before switching to the next");
+    cycleDelaySpinBox->setMinimumWidth(80);
+    
+    connect(cycleDelaySpinBox, QOverload<int>::of(&QSpinBox::valueChanged), [this](int value) {
+        m_activityCycleTimer->setInterval(value * 1000);
+        qDebug() << "📺 LCD activity cycle delay changed to" << value << "seconds";
+    });
     
     // Layout controls
     m_topControlsLayout->addWidget(m_previousButton);
@@ -405,7 +422,6 @@ void ActivityCalendar::setupControlsSection()
     
     // Add view mode selector
     m_topControlsLayout->addSpacing(20);
-    m_topControlsLayout->addWidget(new QLabel("View:"));
     m_topControlsLayout->addWidget(m_viewModeCombo);
     
     m_topControlsLayout->addStretch();
@@ -413,22 +429,20 @@ void ActivityCalendar::setupControlsSection()
     // Filters group
     m_topControlsLayout->addWidget(new QLabel("🔍 Filters:"));
     m_topControlsLayout->addWidget(m_activityTypeFilter);
-    m_topControlsLayout->addWidget(m_priorityFilter);
     m_topControlsLayout->addWidget(m_statusFilter);
     m_topControlsLayout->addStretch();
     
     // Action buttons
-    m_topControlsLayout->addWidget(m_addActivityButton);
     m_topControlsLayout->addWidget(m_refreshButton);
-    m_topControlsLayout->addWidget(m_exportButton);
     
     m_topControlsLayout->addSpacing(20);
     
     // Arduino LCD controls
     m_topControlsLayout->addWidget(new QLabel("📺 LCD:"));
     m_topControlsLayout->addWidget(m_arduinoStatusLabel);
+    m_topControlsLayout->addWidget(cycleDelayLabel);
+    m_topControlsLayout->addWidget(cycleDelaySpinBox);
     m_topControlsLayout->addWidget(m_arduinoConnectButton);
-    m_topControlsLayout->addWidget(m_arduinoDisconnectButton);
     
     m_mainLayout->addWidget(m_controlsFrame);
 }
@@ -649,11 +663,8 @@ void ActivityCalendar::applyStyles()
     m_previousButton->setStyleSheet(buttonStyle);
     m_nextButton->setStyleSheet(buttonStyle);
     m_todayButton->setStyleSheet(buttonStyle);
-    m_addActivityButton->setStyleSheet(buttonStyle);
     m_refreshButton->setStyleSheet(buttonStyle);
-    m_exportButton->setStyleSheet(buttonStyle);
     m_arduinoConnectButton->setStyleSheet(buttonStyle);
-    m_arduinoDisconnectButton->setStyleSheet(buttonStyle);
     
     // Style combo boxes
     QString comboStyle = 
@@ -677,7 +688,6 @@ void ActivityCalendar::applyStyles()
     
     m_viewModeCombo->setStyleSheet(comboStyle);
     m_activityTypeFilter->setStyleSheet(comboStyle);
-    m_priorityFilter->setStyleSheet(comboStyle);
     m_statusFilter->setStyleSheet(comboStyle);
 }
 
@@ -697,17 +707,14 @@ void ActivityCalendar::connectSignals()
     
     // Filter combos
     connect(m_activityTypeFilter, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &ActivityCalendar::onFilterChanged);
-    connect(m_priorityFilter, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &ActivityCalendar::onFilterChanged);
+    connect(m_activityTypeFilter, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &ActivityCalendar::onFilterChanged);
     connect(m_statusFilter, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &ActivityCalendar::onFilterChanged);
     
     // Action buttons
-    connect(m_addActivityButton, &QPushButton::clicked, this, &ActivityCalendar::onAddActivityClicked);
     connect(m_refreshButton, &QPushButton::clicked, this, &ActivityCalendar::onRefreshClicked);
-    connect(m_exportButton, &QPushButton::clicked, this, &ActivityCalendar::onExportClicked);
     
-    // Arduino LCD buttons
-    connect(m_arduinoConnectButton, &QPushButton::clicked, this, &ActivityCalendar::onArduinoConnectClicked);
-    connect(m_arduinoDisconnectButton, &QPushButton::clicked, this, &ActivityCalendar::onArduinoDisconnectClicked);
+    // Arduino LCD button (handles both connect and disconnect)
+    connect(m_arduinoConnectButton, &QPushButton::clicked, this, &ActivityCalendar::onArduinoToggleClicked);
 }
 
 void ActivityCalendar::loadActivitiesFromDatabase()
@@ -898,11 +905,6 @@ void ActivityCalendar::onNextMonthClicked()
     m_calendar->setCurrentPage(nextMonth.year(), nextMonth.month());
 }
 
-void ActivityCalendar::onAddActivityClicked()
-{
-    addNewActivity(m_selectedDate);
-}
-
 void ActivityCalendar::onRefreshClicked()
 {
     loadActivitiesFromDatabase();
@@ -910,19 +912,6 @@ void ActivityCalendar::onRefreshClicked()
     updateSelectedDateActivities(m_selectedDate);
     
     QMessageBox::information(this, "Calendar Refreshed", "Activity data has been refreshed from the database.");
-}
-
-void ActivityCalendar::onExportClicked()
-{
-    QString fileName = QFileDialog::getSaveFileName(this, 
-        "Export Calendar", 
-        QString("activity_calendar_%1.json").arg(m_currentDate.toString("yyyy_MM")),
-        "JSON Files (*.json);;All Files (*)");
-    
-    if (!fileName.isEmpty()) {
-        // TODO: Implement export functionality
-        QMessageBox::information(this, "Export", "Export functionality will be implemented here.");
-    }
 }
 
 void ActivityCalendar::updateSelectedDateActivities(const QDate &date)
@@ -1158,7 +1147,6 @@ void ActivityCalendar::applyFilters()
 {
     // Get current filter values
     m_currentActivityTypeFilter = m_activityTypeFilter->currentText();
-    m_currentPriorityFilter = m_priorityFilter->currentText();
     m_currentStatusFilter = m_statusFilter->currentText();
     
     // Update calendar display and details panel
@@ -1356,6 +1344,18 @@ void ActivityCalendar::initializeArduinoConnection()
     qDebug() << "🔌 Arduino communication initialized";
 }
 
+void ActivityCalendar::onArduinoToggleClicked()
+{
+    if (m_arduinoConnected) {
+        // Currently connected, so disconnect
+        disconnectArduino();
+        QMessageBox::information(this, "Arduino Connection", "Arduino LCD disconnected.");
+    } else {
+        // Currently disconnected, so connect
+        onArduinoConnectClicked();
+    }
+}
+
 void ActivityCalendar::onArduinoConnectClicked()
 {
     if (m_serialPort && m_serialPort->isOpen()) {
@@ -1479,8 +1479,8 @@ void ActivityCalendar::onArduinoConnectClicked()
     
     if (m_serialPort->open(QIODevice::WriteOnly)) {
         m_arduinoConnected = true;
-        m_arduinoConnectButton->setEnabled(false);
-        m_arduinoDisconnectButton->setEnabled(true);
+        m_arduinoConnectButton->setText("🔌 Disconnect LCD");
+        m_arduinoConnectButton->setEnabled(true);
         m_arduinoStatusLabel->setText("LCD: Connected");
         m_arduinoStatusLabel->setStyleSheet("color: #27ae60; font-weight: bold;");
         
@@ -1512,12 +1512,6 @@ void ActivityCalendar::onArduinoConnectClicked()
     }
 }
 
-void ActivityCalendar::onArduinoDisconnectClicked()
-{
-    disconnectArduino();
-    QMessageBox::information(this, "Arduino Connection", "Arduino LCD disconnected.");
-}
-
 void ActivityCalendar::disconnectArduino()
 {
     if (m_serialPort && m_serialPort->isOpen()) {
@@ -1529,9 +1523,14 @@ void ActivityCalendar::disconnectArduino()
         m_serialPort->close();
     }
     
+    // Stop activity cycling
+    if (m_activityCycleTimer) {
+        m_activityCycleTimer->stop();
+    }
+    
     m_arduinoConnected = false;
+    m_arduinoConnectButton->setText("🔌 Connect LCD");
     m_arduinoConnectButton->setEnabled(true);
-    m_arduinoDisconnectButton->setEnabled(false);
     m_arduinoStatusLabel->setText("LCD: Disconnected");
     m_arduinoStatusLabel->setStyleSheet("color: #e74c3c; font-weight: bold;");
     
@@ -1545,8 +1544,8 @@ void ActivityCalendar::onSerialErrorOccurred(QSerialPort::SerialPortError error)
         
         if (m_arduinoConnected) {
             m_arduinoConnected = false;
+            m_arduinoConnectButton->setText("🔌 Connect LCD");
             m_arduinoConnectButton->setEnabled(true);
-            m_arduinoDisconnectButton->setEnabled(false);
             m_arduinoStatusLabel->setText("LCD: Error");
             m_arduinoStatusLabel->setStyleSheet("color: #e74c3c; font-weight: bold;");
             
@@ -1573,24 +1572,38 @@ void ActivityCalendar::onSerialErrorOccurred(QSerialPort::SerialPortError error)
 
 void ActivityCalendar::sendActivityToArduino(const QDate &date)
 {
-    if (!m_arduinoConnected || !m_serialPort || !m_serialPort->isOpen()) {
+        if (!m_arduinoConnected || !m_serialPort || !m_serialPort->isOpen()) {
         return;
     }
     
     qDebug() << "📺 Sending activities for date" << date.toString() << "to Arduino LCD";
     
+    // Stop any ongoing cycling
+    m_activityCycleTimer->stop();
+    
     if (m_activities.contains(date) && !m_activities[date].isEmpty()) {
         const auto &dayActivities = m_activities[date];
         
-        // Send first activity (for simplicity, LCD can only show one at a time)
-        const ActivityCalendarItem &firstActivity = dayActivities.first();
-        sendActivityDataToArduino(firstActivity);
+        // Store activities for cycling
+        m_currentDayActivities = dayActivities;
+        m_currentActivityIndex = 0;
+        m_currentDisplayDate = date;
         
-        // If multiple activities, could cycle through them or show count
+        // Send first activity immediately
+        sendActivityDataToArduino(m_currentDayActivities[0]);
+        
+        // If multiple activities, start cycling timer
         if (dayActivities.size() > 1) {
-            qDebug() << "📺 Multiple activities found (" << dayActivities.size() << "), showing first one";
+            qDebug() << "📺 Multiple activities found (" << dayActivities.size() << "), starting cycle display";
+            qDebug() << "📺 Activities will rotate every" << (m_activityCycleTimer->interval() / 1000) << "seconds";
+            m_activityCycleTimer->start();
+        } else {
+            qDebug() << "📺 Single activity for this date";
         }
     } else {
+        // No activities - clear cycling and show no activity message
+        m_currentDayActivities.clear();
+        m_currentActivityIndex = 0;
         sendNoActivityToArduino();
     }
 }
@@ -1651,4 +1664,27 @@ void ActivityCalendar::sendNoActivityToArduino()
         m_lastSentActivityData = noActivityMsg;
         qDebug() << "✅ Sent 'No Activity' message to Arduino LCD";
     }
+}
+
+void ActivityCalendar::onActivityCycleTimeout()
+{
+    // This slot is called by the timer to cycle through activities
+    if (m_currentDayActivities.isEmpty() || !m_arduinoConnected) {
+        m_activityCycleTimer->stop();
+        return;
+    }
+    
+    // Move to next activity
+    m_currentActivityIndex++;
+    if (m_currentActivityIndex >= m_currentDayActivities.size()) {
+        m_currentActivityIndex = 0; // Loop back to first activity
+    }
+    
+    // Send the current activity
+    const ActivityCalendarItem &activity = m_currentDayActivities[m_currentActivityIndex];
+    qDebug() << "🔄 Cycling to activity" << (m_currentActivityIndex + 1) << "of" << m_currentDayActivities.size();
+    
+    // Temporarily clear last sent data to force sending
+    m_lastSentActivityData.clear();
+    sendActivityDataToArduino(activity);
 }

@@ -98,8 +98,9 @@ class QRCodeAdder {
      * Create QR data from activity information
      */
     createQRDataFromActivity(activityData) {
-        // Return only the registration URL
-        return activityData.registrationUrl || `https://summerclub.com/register/${activityData.activityId}`;
+        // Return only the URL string, not a JSON object
+        const registrationUrl = activityData.registrationUrl || `https://summerclub.com/register/${activityData.activityId}`;
+        return registrationUrl;
     }
 
     /**
@@ -137,6 +138,10 @@ class QRCodeAdder {
             const qrAdder = new QRCodeAdder();
             qrAdder.qrPosition = qrPosition; // Override default position
             const qrData = qrAdder.createQRDataFromActivity(activityData);
+            
+            console.log('🔗 QR Data to encode:', qrData);
+            console.log('📊 QR Data type:', typeof qrData);
+            console.log('📏 QR Data length:', qrData.length);
             
             // Ensure output directory exists - handle both relative and absolute paths
             const outputDir = path.dirname(outputPath);

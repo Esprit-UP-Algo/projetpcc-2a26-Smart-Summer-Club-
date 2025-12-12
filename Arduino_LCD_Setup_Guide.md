@@ -1,3 +1,4 @@
+*
 # Arduino LCD Integration Setup Guide
 
 ## Hardware Requirements

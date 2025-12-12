@@ -1901,10 +1901,10 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
                 <widget class="QWidget" name="memberSMSTab">
                  <attribute name="icon">
                   <iconset resource="resources.qrc">
-                   <normaloff>:/icons/icons/members.png</normaloff>:/icons/icons/members.png</iconset>
+                   <normaloff>:/icons/icons/email.png</normaloff>:/icons/icons/email.png</iconset>
                  </attribute>
                  <attribute name="title">
-                  <string> SMS Communications</string>
+                  <string> Email Communications</string>
                  </attribute>
                  <layout class="QVBoxLayout" name="memberSMSTabLayout">
                   <item>
@@ -1915,7 +1915,7 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
                 <widget class="QWidget" name="memberOCRTab">
                  <attribute name="icon">
                   <iconset resource="resources.qrc">
-                   <normaloff>:/icons/icons/search.png</normaloff>:/icons/icons/search.png</iconset>
+                   <normaloff>:/icons/icons/ai-technology.png</normaloff>:/icons/icons/ai-technology.png</iconset>
                  </attribute>
                  <attribute name="title">
                   <string> ID Card OCR</string>
@@ -3267,7 +3267,7 @@ QComboBox QAbstractItemView {
                 </widget>
                 <widget class="QWidget" name="activityCalendarTab">
                  <attribute name="icon">
-                  <iconset>
+                  <iconset resource="resources.qrc">
                    <normaloff>:/icons/icons/calendar.png</normaloff>:/icons/icons/calendar.png</iconset>
                  </attribute>
                  <attribute name="title">

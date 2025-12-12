@@ -129,14 +129,13 @@ public slots:
     void onTodayClicked();
     void onPreviousMonthClicked();
     void onNextMonthClicked();
-    void onAddActivityClicked();
     void onRefreshClicked();
-    void onExportClicked();
 
     // Arduino LCD communication slots
+    void onArduinoToggleClicked();
     void onArduinoConnectClicked();
-    void onArduinoDisconnectClicked();
     void onSerialErrorOccurred(QSerialPort::SerialPortError error);
+    void onActivityCycleTimeout();
 
 private slots:
     void onActivityDoubleClicked(const QDate &date);
@@ -196,13 +195,9 @@ private:
     QLabel *m_monthYearLabel;
     QComboBox *m_viewModeCombo;
     QComboBox *m_activityTypeFilter;
-    QComboBox *m_priorityFilter;
     QComboBox *m_statusFilter;
-    QPushButton *m_addActivityButton;
     QPushButton *m_refreshButton;
-    QPushButton *m_exportButton;
     QPushButton *m_arduinoConnectButton;
-    QPushButton *m_arduinoDisconnectButton;
     QLabel *m_arduinoStatusLabel;
     
     // Calendar Section
@@ -253,6 +248,12 @@ private:
     QSerialPort *m_serialPort;
     bool m_arduinoConnected;
     QString m_lastSentActivityData;
+    
+    // Activity cycling for LCD display
+    QTimer *m_activityCycleTimer;
+    QList<ActivityCalendarItem> m_currentDayActivities;
+    int m_currentActivityIndex;
+    QDate m_currentDisplayDate;
 };
 
 #endif // ACTIVITYCALENDAR_H

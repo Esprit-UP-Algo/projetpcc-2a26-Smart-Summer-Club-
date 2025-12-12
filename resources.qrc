@@ -18,5 +18,11 @@
        <file>icons/back.png</file>
        <file>icons/login.png</file>
        <file>icons/next.png</file>
+       <file>icons/arrow-up.png</file>
+       <file>icons/arrow-down.png</file>
+       <file>icons/ai-technology.png</file>
+       <file>icons/calendar.png</file>
+       <file>icons/google.png</file>
+       <file>icons/email.png</file>
      </qresource>
    </RCC>

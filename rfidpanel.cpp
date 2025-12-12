@@ -60,13 +60,21 @@ void RFIDPanel::setupCardManagementSection()
     // Connection status and controls row
     QHBoxLayout *connectionLayout = new QHBoxLayout();
     
-    m_connectArduinoButton = new QPushButton("🔌 Connect Arduino");
+    m_connectArduinoButton = new QPushButton("🔌 Connect RFID Arduino");
     m_connectArduinoButton->setStyleSheet("QPushButton { background-color: #2196F3; color: white; padding: 8px 16px; border: none; border-radius: 4px; font-weight: bold; }");
+    m_connectArduinoButton->setToolTip("Connect to Arduino RFID Reader.\nNote: Disconnect LCD Arduino first if it's connected.");
     connectionLayout->addWidget(m_connectArduinoButton);
     
-    m_connectionStatusLabel = new QLabel("❌ Arduino Disconnected");
+    m_connectionStatusLabel = new QLabel("❌ RFID Arduino Disconnected");
     m_connectionStatusLabel->setStyleSheet("QLabel { color: #F44336; font-weight: bold; padding: 8px; background-color: #ffebee; border: 1px solid #ffcdd2; border-radius: 4px; }");
+    m_connectionStatusLabel->setToolTip("Only one Arduino can be connected at a time.\nIf LCD Arduino is active, disconnect it first.");
     connectionLayout->addWidget(m_connectionStatusLabel);
+    
+    // Add info label about Arduino conflicts
+    QLabel *infoLabel = new QLabel("ℹ️ Note: Only ONE Arduino at a time");
+    infoLabel->setStyleSheet("QLabel { color: #FF9800; font-size: 11px; font-style: italic; padding: 4px; }");
+    infoLabel->setToolTip("You cannot connect both LCD and RFID Arduinos simultaneously.\nDisconnect one before connecting the other.");
+    connectionLayout->addWidget(infoLabel);
     
     connectionLayout->addStretch();
     
@@ -717,14 +725,23 @@ void RFIDPanel::onConnectArduinoClicked()
             addActivityEntry("❌ Failed to connect to Arduino. Check connection and try again.", false);
             updateConnectionStatus(false);
             
-            // Show detailed error message
-            QString errorDetails = "Failed to connect to Arduino RFID reader.\n\nPossible solutions:\n"
-                                  "• Check USB cable connection\n"
-                                  "• Verify Arduino is powered on\n" 
-                                  "• Close other applications using the serial port\n"
-                                  "• Try a different USB port\n"
-                                  "• Reset the Arduino and try again\n"
-                                  "• Check if Arduino drivers are installed";
+            // Get detailed error message from Arduino
+            Arduino* arduino = m_rfidManager->getArduino();
+            QString errorDetails = "Failed to connect to Arduino RFID reader.\n\n";
+            
+            if (arduino && !arduino->getLastError().isEmpty()) {
+                errorDetails += arduino->getLastError();
+            } else {
+                errorDetails += "Possible solutions:\n"
+                              "• Check USB cable connection\n"
+                              "• Verify Arduino is powered on\n" 
+                              "• If LCD Arduino is connected, disconnect it first\n"
+                              "• Only ONE Arduino can be connected at a time\n"
+                              "• Close other applications using the serial port\n"
+                              "• Try a different USB port\n"
+                              "• Reset the Arduino and try again\n"
+                              "• Check if Arduino drivers are installed";
+            }
             
             QMessageBox::warning(this, "Arduino Connection Failed", errorDetails);
         }
@@ -736,22 +753,22 @@ void RFIDPanel::onConnectArduinoClicked()
     
     // Re-enable button
     m_connectArduinoButton->setEnabled(true);
-    m_connectArduinoButton->setText("🔌 Connect Arduino");
+    m_connectArduinoButton->setText("🔌 Connect RFID Arduino");
 }
 
 void RFIDPanel::updateConnectionStatus(bool connected)
 {
     if (connected) {
-        m_connectionStatusLabel->setText("✅ Arduino Connected");
+        m_connectionStatusLabel->setText("✅ RFID Arduino Connected");
         m_connectionStatusLabel->setStyleSheet("QLabel { color: #4CAF50; font-weight: bold; padding: 8px; background-color: #e8f5e8; border: 1px solid #c8e6c9; border-radius: 4px; }");
-        m_connectArduinoButton->setText("🔌 Reconnect Arduino");
+        m_connectArduinoButton->setText("🔌 Reconnect RFID Arduino");
         
         // Enable RFID functionality when connected
         m_addCardButton->setEnabled(true);
     } else {
-        m_connectionStatusLabel->setText("❌ Arduino Disconnected");
+        m_connectionStatusLabel->setText("❌ RFID Arduino Disconnected");
         m_connectionStatusLabel->setStyleSheet("QLabel { color: #F44336; font-weight: bold; padding: 8px; background-color: #ffebee; border: 1px solid #ffcdd2; border-radius: 4px; }");
-        m_connectArduinoButton->setText("🔌 Connect Arduino");
+        m_connectArduinoButton->setText("🔌 Connect RFID Arduino");
         
         // Optionally disable some functionality when disconnected
         // m_addCardButton->setEnabled(false);

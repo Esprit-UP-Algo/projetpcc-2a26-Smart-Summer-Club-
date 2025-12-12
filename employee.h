@@ -150,6 +150,7 @@ private:
     QWidget *parentWidget;
     QString selectedPhotoPath;
     QString editingCin;
+    bool sortAscending;  // Track sort order for arrow indicators
     
     // Helper validation methods
     bool validerEmail() const;

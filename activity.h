@@ -130,6 +130,7 @@ private:
     QWidget *parentWidget;
     int editingId;
     bool useEmployeeComboBox; // Track which input mode is active
+    bool sortAscending;  // Track sort order for arrow indicators
     
     // Helper validation methods
     bool validerResponsible(const QString &name) const;  // Validate responsible person name

@@ -23,7 +23,8 @@ Employee::Employee()
       department(""), hireDate(QDate::currentDate()), status("Active"), 
       age(0), gender(""), email(""), phone(""), salary(0.0), 
       password(""), photo(QByteArray()), idActivity(0),
-      ui(nullptr), parentWidget(nullptr), selectedPhotoPath(""), editingCin("")
+      ui(nullptr), parentWidget(nullptr), selectedPhotoPath(""), editingCin(""),
+      sortAscending(true)
 {
 }
 
@@ -35,7 +36,8 @@ Employee::Employee(QString cin, QString firstName, QString lastName, QString pos
       department(department), hireDate(hireDate), status(status), age(age),
       gender(gender), email(email), phone(phone), salary(salary),
       password(password), photo(photo), idActivity(idActivity),
-      ui(nullptr), parentWidget(nullptr), selectedPhotoPath(""), editingCin("")
+      ui(nullptr), parentWidget(nullptr), selectedPhotoPath(""), editingCin(""),
+      sortAscending(true)
 {
 }
 
@@ -44,7 +46,8 @@ Employee::Employee(Ui::EmployerAdmin *ui, QWidget *parent)
       department(""), hireDate(QDate::currentDate()), status("Active"), 
       age(0), gender(""), email(""), phone(""), salary(0.0), 
       password(""), photo(QByteArray()), idActivity(0),
-      ui(ui), parentWidget(parent), selectedPhotoPath(""), editingCin("")
+      ui(ui), parentWidget(parent), selectedPhotoPath(""), editingCin(""),
+      sortAscending(true)
 {
 }
 
@@ -855,13 +858,14 @@ void populateTableWidget(QTableWidget* table, QSqlQueryModel* model, Employee* e
         if (!cin.isEmpty()) {
             QWidget* actionWidget = new QWidget(table); // CRITICAL: Set parent to table for proper ownership
             QHBoxLayout* actionLayout = new QHBoxLayout(actionWidget);
-            actionLayout->setContentsMargins(4, 2, 4, 2);
+            actionLayout->setContentsMargins(2, 2, 2, 2);
             actionLayout->setSpacing(4);
             
             // Create Edit button
             QPushButton* editButton = new QPushButton("Edit", actionWidget);
             editButton->setIcon(QIcon(":/icons/icons/edit.png"));
             editButton->setIconSize(QSize(16, 16));
+            editButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
             editButton->setStyleSheet(
                 "QPushButton { "
                 "background-color: rgba(22, 165, 179, 0.10); "
@@ -881,6 +885,7 @@ void populateTableWidget(QTableWidget* table, QSqlQueryModel* model, Employee* e
             QPushButton* deleteButton = new QPushButton("Delete", actionWidget);
             deleteButton->setIcon(QIcon(":/icons/icons/delete.png"));
             deleteButton->setIconSize(QSize(16, 16));
+            deleteButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
             deleteButton->setStyleSheet(
                 "QPushButton { "
                 "background-color: rgba(22, 165, 179, 0.10); "
@@ -909,7 +914,6 @@ void populateTableWidget(QTableWidget* table, QSqlQueryModel* model, Employee* e
             
             actionLayout->addWidget(editButton);
             actionLayout->addWidget(deleteButton);
-            actionLayout->addStretch();
             
             // CRITICAL: Use stored column index instead of model->columnCount()
             table->setCellWidget(row, actionsColIndex, actionWidget);
@@ -935,6 +939,21 @@ void Employee::setupEmployeeTable()
     ui->employeeTable->setAlternatingRowColors(true);
     ui->employeeTable->setSortingEnabled(true);
     ui->employeeTable->horizontalHeader()->setStretchLastSection(true);
+    
+    // Make sort indicator arrows bigger and more visible
+    ui->employeeTable->setStyleSheet(
+        ui->employeeTable->styleSheet() + 
+        "QHeaderView::down-arrow { "
+        "    image: url(:/icons/icons/arrow-down.png); "
+        "    width: 20px; "
+        "    height: 20px; "
+        "} "
+        "QHeaderView::up-arrow { "
+        "    image: url(:/icons/icons/arrow-up.png); "
+        "    width: 20px; "
+        "    height: 20px; "
+        "}"
+    );
     
     // Populate with data (pass 'this' for button connections)
     populateTableWidget(ui->employeeTable, Employee::afficher(), this);
@@ -1256,9 +1275,17 @@ void Employee::onUploadPhoto()
 void Employee::onSortEmployees()
 {
     if (!ui) return;
-    static bool asc = true;
-    ui->employeeTable->sortByColumn(10, asc ? Qt::AscendingOrder : Qt::DescendingOrder);
-    asc = !asc;
+    
+    // Sort by Hire Date column (index 10)
+    ui->employeeTable->sortByColumn(10, sortAscending ? Qt::AscendingOrder : Qt::DescendingOrder);
+    
+    // Toggle sort order
+    sortAscending = !sortAscending;
+    
+    // Update button icon based on sort order for better UX
+    QIcon sortIcon = sortAscending ? QIcon(":/icons/icons/arrow-down.png") : QIcon(":/icons/icons/arrow-up.png");
+    ui->employeeSortButton->setIcon(sortIcon);
+    ui->employeeSortButton->setIconSize(QSize(20, 20));
 }
 
 
@@ -1340,7 +1367,7 @@ bool Employee::exportTableToPdf(QTableView* table, const QString& name, const QS
     QString html = "<html><body>";
     
     // Header section
-    html += "<div style='text-align: center; margin-bottom: 30px; border-bottom: 3px solid #2c5aa0; padding-bottom: 20px;'>";
+    html += "<div style='text-align: center; margin-bottom: 30px; border-bottom: 3px solid #16a5b3; padding-bottom: 20px;'>";
     
     // Add logo if available
     if (!logoBase64.isEmpty()) {
@@ -1348,7 +1375,7 @@ bool Employee::exportTableToPdf(QTableView* table, const QString& name, const QS
     }
     
     // Add title and date
-    html += "<h1 style='color: #2c5aa0; font-size: 36px; margin: 10px 0;'>VIBRA CLUB</h1>";
+    html += "<h1 style='color: #16a5b3; font-size: 36px; margin: 10px 0;'>VIBRA CLUB</h1>";
     html += "<h2 style='color: #666; font-size: 20px; margin: 8px 0;'>" + title + "</h2>";
     html += "<p style='color: #888; font-size: 14px; font-style: italic; margin: 5px 0;'>Export Date: " + currentDate + "</p>";
     html += "</div>";
@@ -1357,17 +1384,17 @@ bool Employee::exportTableToPdf(QTableView* table, const QString& name, const QS
     html += "<table border='1' cellpadding='10' cellspacing='0' style='width: 100%; border-collapse: collapse; margin-top: 20px;'>";
     
     // Table header row with strong styling
-    html += "<tr style='background-color: #2c5aa0;'>";
+    html += "<tr style='background-color: #16a5b3;'>";
     
     // Export specified column headers
     for (int colIndex : columnsToExport) {
-        html += "<th style='background-color: #2c5aa0; color: white; font-weight: bold; text-align: center; padding: 15px; border: 1px solid #2c5aa0;'>" 
+        html += "<th style='background-color: #16a5b3; color: white; font-weight: bold; text-align: center; padding: 15px; border: 1px solid #16a5b3;'>" 
                 + table->model()->headerData(colIndex, Qt::Horizontal).toString() + "</th>";
     }
     
     // Add signature columns
-    html += "<th style='background-color: #2c5aa0; color: white; font-weight: bold; text-align: center; padding: 15px; border: 1px solid #2c5aa0; width: 130px;'>Entry Signature</th>";
-    html += "<th style='background-color: #2c5aa0; color: white; font-weight: bold; text-align: center; padding: 15px; border: 1px solid #2c5aa0; width: 130px;'>Leave Signature</th>";
+    html += "<th style='background-color: #16a5b3; color: white; font-weight: bold; text-align: center; padding: 15px; border: 1px solid #16a5b3; width: 130px;'>Entry Signature</th>";
+    html += "<th style='background-color: #16a5b3; color: white; font-weight: bold; text-align: center; padding: 15px; border: 1px solid #16a5b3; width: 130px;'>Leave Signature</th>";
     html += "</tr>";
     
     // Export data rows
@@ -1381,8 +1408,8 @@ bool Employee::exportTableToPdf(QTableView* table, const QString& name, const QS
         }
         
         // Add signature cells
-        html += "<td style='height: 50px; border: 2px solid #2c5aa0; background-color: white; text-align: center;'>&nbsp;</td>";
-        html += "<td style='height: 50px; border: 2px solid #2c5aa0; background-color: white; text-align: center;'>&nbsp;</td>";
+        html += "<td style='height: 50px; border: 2px solid #16a5b3; background-color: white; text-align: center;'>&nbsp;</td>";
+        html += "<td style='height: 50px; border: 2px solid #16a5b3; background-color: white; text-align: center;'>&nbsp;</td>";
         html += "</tr>";
     }
     html += "</table>";

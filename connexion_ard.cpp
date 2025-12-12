@@ -26,7 +26,7 @@ int Arduino::connect_arduino() {
     lastError = "";
     
     // Scan for available serial ports
-    qDebug() << "\n=== Scanning for Arduino Devices ===";
+    qDebug() << "\n=== Scanning for Arduino Devices (RFID Reader) ===";
     qDebug() << "Looking for Arduino Uno (VID:9025, PID:67)";
     
     const auto availablePorts = QSerialPortInfo::availablePorts();
@@ -39,6 +39,9 @@ int Arduino::connect_arduino() {
         return -1;
     }
     
+    QStringList foundArduinoPorts;
+    QString firstAvailablePort;
+    
     foreach (const QSerialPortInfo &serial_port_info, availablePorts) {
         qDebug() << "  Port:" << serial_port_info.portName();
         qDebug() << "    Description:" << serial_port_info.description();
@@ -49,43 +52,71 @@ int Arduino::connect_arduino() {
             
             if(serial_port_info.vendorIdentifier() == arduino_uno_vendor_id && 
                serial_port_info.productIdentifier() == arduino_uno_product_id) {
-                arduino_is_available = true;
-                arduino_port_name = serial_port_info.portName();
-                qDebug() << "    >>> ARDUINO FOUND! <<<";
+                foundArduinoPorts.append(serial_port_info.portName());
+                if (firstAvailablePort.isEmpty()) {
+                    firstAvailablePort = serial_port_info.portName();
+                }
+                qDebug() << "    >>> ARDUINO DEVICE FOUND! <<<";
             }
         }
     }
     
-    if(!arduino_is_available) {
-        lastError = "Arduino device not found on any port";
+    if(foundArduinoPorts.isEmpty()) {
+        lastError = "Arduino device not found on any port. Please check:\n" 
+                   "1. Arduino is connected via USB\n"
+                   "2. Arduino drivers are installed\n"
+                   "3. USB cable is working properly";
         qDebug() << lastError;
         emit errorOccurred(lastError);
         return -1;
     }
     
-    // Configure serial connection
-    qDebug() << "\n=== Configuring Serial Connection ===";
-    serial->setPortName(arduino_port_name);
+    qDebug() << "\n=== Found" << foundArduinoPorts.size() << "Arduino device(s) ===";
     
-    if(serial->open(QSerialPort::ReadWrite)) {
-        serial->setBaudRate(QSerialPort::Baud9600);
-        serial->setDataBits(QSerialPort::Data8);
-        serial->setParity(QSerialPort::NoParity);
-        serial->setStopBits(QSerialPort::OneStop);
-        serial->setFlowControl(QSerialPort::NoFlowControl);
+    // Try to connect to each found Arduino until one works
+    for (const QString &portName : foundArduinoPorts) {
+        qDebug() << "\n=== Attempting to connect to port:" << portName << "===";
+        serial->setPortName(portName);
         
-        qDebug() << "Port:" << arduino_port_name << "opened successfully";
-        qDebug() << "Baud Rate: 9600, Data Bits: 8, Parity: None, Stop Bits: 1";
-        qDebug() << "==================================";
-        
-        emit connectionStatusChanged(true);
-        return 0;
-    } else {
-        lastError = "Failed to open serial port: " + serial->errorString();
-        qDebug() << lastError;
-        emit errorOccurred(lastError);
-        return 1;
+        if(serial->open(QSerialPort::ReadWrite)) {
+            serial->setBaudRate(QSerialPort::Baud9600);
+            serial->setDataBits(QSerialPort::Data8);
+            serial->setParity(QSerialPort::NoParity);
+            serial->setStopBits(QSerialPort::OneStop);
+            serial->setFlowControl(QSerialPort::NoFlowControl);
+            
+            arduino_is_available = true;
+            arduino_port_name = portName;
+            
+            qDebug() << "✅ SUCCESS! Port:" << arduino_port_name << "opened successfully";
+            qDebug() << "Baud Rate: 9600, Data Bits: 8, Parity: None, Stop Bits: 1";
+            qDebug() << "==================================";
+            
+            emit connectionStatusChanged(true);
+            return 0;
+        } else {
+            QString portError = serial->errorString();
+            qDebug() << "⚠️ Could not open port" << portName << "-" << portError;
+            
+            if (portError.contains("Access is denied") || portError.contains("Permission denied")) {
+                qDebug() << "   → Port is likely in use by another application (maybe LCD Arduino?)";
+            }
+        }
     }
+    
+    // If we get here, none of the ports could be opened
+    lastError = QString("Found %1 Arduino device(s), but could not connect to any.\n\n")
+                .arg(foundArduinoPorts.size()) +
+                "Possible reasons:\n"
+                "• Another Arduino (LCD) is already connected - disconnect it first\n"
+                "• Port is in use by another application\n"
+                "• Insufficient permissions\n\n"
+                "Note: You can only connect to ONE Arduino at a time.\n"
+                "If the LCD Arduino is connected, disconnect it before connecting RFID reader.";
+    
+    qDebug() << "❌" << lastError;
+    emit errorOccurred(lastError);
+    return 1;
 }
 
 int Arduino::close_arduino()
