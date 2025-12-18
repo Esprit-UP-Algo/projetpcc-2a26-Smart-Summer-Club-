@@ -22,7 +22,7 @@ unsigned long responseTimeout = 5000; // 5 seconds timeout
 unsigned long responseStartTime = 0;
 
 // Door control settings
-const int DOOR_OPEN_ANGLE = 135;    // Angle to open door (0-180 degrees)
+const int DOOR_OPEN_ANGLE = 90;    // Angle to open door (0-180 degrees)
 const int DOOR_CLOSED_ANGLE = 0;   // Angle for closed door
 const unsigned long DOOR_OPEN_TIME = 3000; // Keep door open for 3 seconds
 
