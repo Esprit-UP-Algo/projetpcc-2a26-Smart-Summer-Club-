@@ -44,8 +44,7 @@ QFrame#equipmentSearchFrame QLineEdit,
 QFrame[objectName*=&quot;searchFrame&quot;] QLineEdit {
     color: #2c3e50;
     background-color: white;
-}
-</string>
+}</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout_main">
@@ -1969,7 +1968,7 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
                      <item>
                       <widget class="QPushButton" name="equipmentSearchButton">
                        <property name="text">
-                        <string> Search</string>
+                        <string>Search</string>
                        </property>
                        <property name="icon">
                         <iconset resource="resources.qrc">
@@ -1989,6 +1988,17 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
                         </size>
                        </property>
                       </spacer>
+                     </item>
+                     <item>
+                      <widget class="QPushButton" name="equipmentRefreshButton">
+                       <property name="text">
+                        <string>Refresh</string>
+                       </property>
+                       <property name="icon">
+                        <iconset resource="resources.qrc">
+                         <normaloff>:/icons/icons/refresh.png</normaloff>:/icons/icons/refresh.png</iconset>
+                       </property>
+                      </widget>
                      </item>
                      <item>
                       <widget class="QPushButton" name="equipmentSortButton">
@@ -2081,10 +2091,62 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
                   <string> Add Equipment</string>
                  </attribute>
                  <layout class="QVBoxLayout" name="equipmentAddTabLayout">
+                  <property name="spacing">
+                   <number>0</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>0</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>0</number>
+                  </property>
+                  <item>
+                   <widget class="QWidget" name="equipmentFormHeader">
+                    <property name="minimumHeight">
+                     <number>80</number>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);</string>
+                    </property>
+                    <layout class="QVBoxLayout">
+                     <property name="leftMargin">
+                      <number>30</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>15</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>30</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>15</number>
+                     </property>
+                     <item>
+                      <widget class="QLabel">
+                       <property name="styleSheet">
+                        <string notr="true">font-size: 28px; font-weight: bold; color: white;</string>
+                       </property>
+                       <property name="text">
+                        <string>➕ Equipment Management Form</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                  </item>
                   <item>
                    <widget class="QScrollArea" name="equipmentScrollArea">
                     <property name="widgetResizable">
                      <bool>true</bool>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">QScrollArea { background-color: #f8f9fa; border: none; }</string>
                     </property>
                     <widget class="QWidget" name="equipmentScrollAreaContents">
                      <property name="geometry">
@@ -2096,8 +2158,36 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
                       </rect>
                      </property>
                      <layout class="QVBoxLayout" name="equipmentFormMainLayout">
+                      <property name="spacing">
+                       <number>20</number>
+                      </property>
+                      <property name="leftMargin">
+                       <number>30</number>
+                      </property>
+                      <property name="topMargin">
+                       <number>30</number>
+                      </property>
+                      <property name="rightMargin">
+                       <number>30</number>
+                      </property>
+                      <property name="bottomMargin">
+                       <number>30</number>
+                      </property>
+                      <item>
+                       <widget class="QLabel">
+                        <property name="styleSheet">
+                         <string notr="true">font-size: 16px; font-weight: bold; color: #2c3e50; margin-bottom: 10px;</string>
+                        </property>
+                        <property name="text">
+                         <string>📋 Basic Information</string>
+                        </property>
+                       </widget>
+                      </item>
                       <item>
                        <widget class="QFrame" name="equipmentFormFrame">
+                        <property name="styleSheet">
+                         <string notr="true">QFrame { background-color: white; border: 1px solid #e0e4e7; border-radius: 12px; padding: 20px; }</string>
+                        </property>
                         <layout class="QGridLayout" name="equipmentFormLayout">
                          <property name="horizontalSpacing">
                           <number>20</number>
@@ -2105,35 +2195,41 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
                          <property name="verticalSpacing">
                           <number>15</number>
                          </property>
-                         <item row="3" column="0">
-                          <widget class="QLabel" name="equipmentQuantityLabel">
-                           <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
-                           </property>
-                           <property name="text">
-                            <string>Total Quantity:</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="2" column="1">
-                          <widget class="QLineEdit" name="equipmentModelLineEdit">
-                           <property name="placeholderText">
-                            <string>Enter model number</string>
-                           </property>
-                          </widget>
-                         </item>
                          <item row="0" column="0">
                           <widget class="QLabel" name="equipmentNameLabel">
                            <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                            <string notr="true">font-weight: 600; color: #2c3e50; font-size: 13px;</string>
                            </property>
                            <property name="text">
                             <string>Equipment Name:</string>
                            </property>
                           </widget>
                          </item>
-                         <item row="1" column="1">
+                         <item row="0" column="1">
+                          <widget class="QLineEdit" name="equipmentNameLineEdit">
+                           <property name="styleSheet">
+                            <string notr="true">padding: 10px 12px; border: 2px solid #e0e4e7; border-radius: 8px; font-size: 13px;</string>
+                           </property>
+                           <property name="placeholderText">
+                            <string>Enter equipment name</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="0" column="2">
+                          <widget class="QLabel" name="equipmentCategoryLabel">
+                           <property name="styleSheet">
+                            <string notr="true">font-weight: 600; color: #2c3e50; font-size: 13px;</string>
+                           </property>
+                           <property name="text">
+                            <string>Category:</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="0" column="3">
                           <widget class="QComboBox" name="equipmentCategoryComboBox">
+                           <property name="styleSheet">
+                            <string notr="true">padding: 10px 12px; border: 2px solid #e0e4e7; border-radius: 8px; font-size: 13px; background-color: white;</string>
+                           </property>
                            <item>
                             <property name="text">
                              <string>Cardio</string>
@@ -2167,93 +2263,100 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
                           </widget>
                          </item>
                          <item row="1" column="0">
-                          <widget class="QLabel" name="equipmentCategoryLabel">
-                           <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
-                           </property>
-                           <property name="text">
-                            <string>Category:</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="0" column="2">
                           <widget class="QLabel" name="equipmentBrandLabel">
                            <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                            <string notr="true">font-weight: 600; color: #2c3e50; font-size: 13px;</string>
                            </property>
                            <property name="text">
                             <string>Brand:</string>
                            </property>
                           </widget>
                          </item>
-                         <item row="5" column="0" colspan="4">
-                          <widget class="QFrame" name="equipmentButtonFrame">
-                           <layout class="QHBoxLayout" name="equipmentButtonLayout">
-                            <item>
-                             <spacer name="equipmentButtonSpacer">
-                              <property name="orientation">
-                               <enum>Qt::Orientation::Horizontal</enum>
-                              </property>
-                              <property name="sizeHint" stdset="0">
-                               <size>
-                                <width>40</width>
-                                <height>20</height>
-                               </size>
-                              </property>
-                             </spacer>
-                            </item>
-                            <item>
-                             <widget class="QPushButton" name="equipmentConfirmButton">
-                              <property name="minimumSize">
-                               <size>
-                                <width>150</width>
-                                <height>45</height>
-                               </size>
-                              </property>
-                              <property name="text">
-                               <string> Confirm Add Equipment</string>
-                              </property>
-                              <property name="icon">
-                               <iconset resource="resources.qrc">
-                                <normaloff>:/icons/icons/add.png</normaloff>:/icons/icons/add.png</iconset>
-                              </property>
-                             </widget>
-                            </item>
-                            <item>
-                             <widget class="QPushButton" name="equipmentUpdateButton">
-                              <property name="minimumSize">
-                               <size>
-                                <width>150</width>
-                                <height>45</height>
-                               </size>
-                              </property>
-                              <property name="styleSheet">
-                               <string notr="true">background-color: #f39c12;</string>
-                              </property>
-                              <property name="text">
-                               <string> Update Equipment</string>
-                              </property>
-                              <property name="icon">
-                               <iconset resource="resources.qrc">
-                                <normaloff>:/icons/icons/edit.png</normaloff>:/icons/icons/edit.png</iconset>
-                              </property>
-                             </widget>
-                            </item>
-                           </layout>
+                         <item row="1" column="1">
+                          <widget class="QLineEdit" name="equipmentBrandLineEdit">
+                           <property name="styleSheet">
+                            <string notr="true">padding: 10px 12px; border: 2px solid #e0e4e7; border-radius: 8px; font-size: 13px;</string>
+                           </property>
+                           <property name="placeholderText">
+                            <string>Enter brand name</string>
+                           </property>
                           </widget>
                          </item>
                          <item row="1" column="2">
+                          <widget class="QLabel" name="equipmentModelLabel">
+                           <property name="styleSheet">
+                            <string notr="true">font-weight: 600; color: #2c3e50; font-size: 13px;</string>
+                           </property>
+                           <property name="text">
+                            <string>Model:</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="1" column="3">
+                          <widget class="QLineEdit" name="equipmentModelLineEdit">
+                           <property name="styleSheet">
+                            <string notr="true">padding: 10px 12px; border: 2px solid #e0e4e7; border-radius: 8px; font-size: 13px;</string>
+                           </property>
+                           <property name="placeholderText">
+                            <string>Enter model number</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="2" column="0">
                           <widget class="QLabel" name="equipmentPurchaseDateLabel">
                            <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                            <string notr="true">font-weight: 600; color: #2c3e50; font-size: 13px;</string>
                            </property>
                            <property name="text">
                             <string>Purchase Date:</string>
                            </property>
                           </widget>
                          </item>
+                         <item row="2" column="1">
+                          <widget class="QDateEdit" name="equipmentPurchaseDateEdit">
+                           <property name="styleSheet">
+                            <string notr="true">padding: 10px 12px; border: 2px solid #e0e4e7; border-radius: 8px; font-size: 13px;</string>
+                           </property>
+                           <property name="calendarPopup">
+                            <bool>true</bool>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="2" column="2">
+                          <widget class="QLabel" name="equipmentPriceLabel">
+                           <property name="styleSheet">
+                            <string notr="true">font-weight: 600; color: #2c3e50; font-size: 13px;</string>
+                           </property>
+                           <property name="text">
+                            <string>Purchase Price:</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="2" column="3">
+                          <widget class="QLineEdit" name="equipmentPriceLineEdit">
+                           <property name="styleSheet">
+                            <string notr="true">padding: 10px 12px; border: 2px solid #e0e4e7; border-radius: 8px; font-size: 13px;</string>
+                           </property>
+                           <property name="placeholderText">
+                            <string>$0.00</string>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="3" column="0">
+                          <widget class="QLabel" name="equipmentQuantityLabel">
+                           <property name="styleSheet">
+                            <string notr="true">font-weight: 600; color: #2c3e50; font-size: 13px;</string>
+                           </property>
+                           <property name="text">
+                            <string>Total Quantity:</string>
+                           </property>
+                          </widget>
+                         </item>
                          <item row="3" column="1">
                           <widget class="QSpinBox" name="equipmentQuantitySpinBox">
+                           <property name="styleSheet">
+                            <string notr="true">padding: 10px 12px; border: 2px solid #e0e4e7; border-radius: 8px; font-size: 13px;</string>
+                           </property>
                            <property name="minimum">
                             <number>1</number>
                            </property>
@@ -2265,18 +2368,21 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
                            </property>
                           </widget>
                          </item>
-                         <item row="2" column="2">
+                         <item row="3" column="2">
                           <widget class="QLabel" name="equipmentStatusLabel">
                            <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                            <string notr="true">font-weight: 600; color: #2c3e50; font-size: 13px;</string>
                            </property>
                            <property name="text">
                             <string>Status:</string>
                            </property>
                           </widget>
                          </item>
-                         <item row="2" column="3">
+                         <item row="3" column="3">
                           <widget class="QComboBox" name="equipmentStatusComboBox">
+                           <property name="styleSheet">
+                            <string notr="true">padding: 10px 12px; border: 2px solid #e0e4e7; border-radius: 8px; font-size: 13px; background-color: white;</string>
+                           </property>
                            <item>
                             <property name="text">
                              <string>Available</string>
@@ -2304,59 +2410,86 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
                            </item>
                           </widget>
                          </item>
-                         <item row="2" column="0">
-                          <widget class="QLabel" name="equipmentModelLabel">
+                        </layout>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QFrame" name="equipmentButtonFrame">
+                        <property name="styleSheet">
+                         <string notr="true">QFrame { background-color: transparent; border: none; }</string>
+                        </property>
+                        <layout class="QHBoxLayout" name="equipmentButtonLayout">
+                         <property name="spacing">
+                          <number>12</number>
+                         </property>
+                         <item>
+                          <spacer name="equipmentButtonSpacer">
+                           <property name="orientation">
+                            <enum>Qt::Orientation::Horizontal</enum>
+                           </property>
+                           <property name="sizeHint" stdset="0">
+                            <size>
+                             <width>40</width>
+                             <height>20</height>
+                            </size>
+                           </property>
+                          </spacer>
+                         </item>
+                         <item>
+                          <widget class="QPushButton" name="equipmentConfirmButton">
+                           <property name="minimumSize">
+                            <size>
+                             <width>160</width>
+                             <height>45</height>
+                            </size>
+                           </property>
                            <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                            <string notr="true">QPushButton { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; font-weight: bold; border: none; border-radius: 8px; font-size: 13px; } QPushButton:hover { opacity: 0.9; }</string>
                            </property>
                            <property name="text">
-                            <string>Model:</string>
+                            <string>✅ Add Equipment</string>
+                           </property>
+                           <property name="icon">
+                            <iconset resource="resources.qrc">
+                             <normaloff>:/icons/icons/add.png</normaloff>:/icons/icons/add.png</iconset>
                            </property>
                           </widget>
                          </item>
-                         <item row="1" column="3">
-                          <widget class="QDateEdit" name="equipmentPurchaseDateEdit">
+                         <item>
+                          <widget class="QPushButton" name="equipmentUpdateButton">
+                           <property name="minimumSize">
+                            <size>
+                             <width>160</width>
+                             <height>45</height>
+                            </size>
+                           </property>
                            <property name="styleSheet">
-                            <string notr="true">padding: 12px; border: 2px solid #e0e4e7; border-radius: 8px; background-color: white;</string>
-                           </property>
-                           <property name="calendarPopup">
-                            <bool>true</bool>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="0" column="1">
-                          <widget class="QLineEdit" name="equipmentNameLineEdit">
-                           <property name="placeholderText">
-                            <string>Enter equipment name</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="0" column="3">
-                          <widget class="QLineEdit" name="equipmentBrandLineEdit">
-                           <property name="placeholderText">
-                            <string>Enter brand name</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="3" column="3">
-                          <widget class="QLineEdit" name="equipmentPriceLineEdit">
-                           <property name="placeholderText">
-                            <string>$0.00</string>
-                           </property>
-                          </widget>
-                         </item>
-                         <item row="3" column="2">
-                          <widget class="QLabel" name="equipmentPriceLabel">
-                           <property name="styleSheet">
-                            <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                            <string notr="true">QPushButton { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; font-weight: bold; border: none; border-radius: 8px; font-size: 13px; } QPushButton:hover { opacity: 0.9; }</string>
                            </property>
                            <property name="text">
-                            <string>Purchase Price:</string>
+                            <string>✏️ Update Equipment</string>
+                           </property>
+                           <property name="icon">
+                            <iconset resource="resources.qrc">
+                             <normaloff>:/icons/icons/edit.png</normaloff>:/icons/icons/edit.png</iconset>
                            </property>
                           </widget>
                          </item>
                         </layout>
                        </widget>
+                      </item>
+                      <item>
+                       <spacer name="verticalSpacer">
+                        <property name="orientation">
+                         <enum>Qt::Orientation::Vertical</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>20</width>
+                          <height>40</height>
+                         </size>
+                        </property>
+                       </spacer>
                       </item>
                      </layout>
                     </widget>
@@ -2373,19 +2506,84 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
                   <string> Statistics</string>
                  </attribute>
                  <layout class="QVBoxLayout" name="equipmentStatisticsLayout">
+                  <property name="spacing">
+                   <number>15</number>
+                  </property>
+                  <property name="leftMargin">
+                   <number>20</number>
+                  </property>
+                  <property name="topMargin">
+                   <number>20</number>
+                  </property>
+                  <property name="rightMargin">
+                   <number>20</number>
+                  </property>
+                  <property name="bottomMargin">
+                   <number>20</number>
+                  </property>
+                  <item>
+                   <widget class="QLabel" name="equipmentStatsTitle">
+                    <property name="styleSheet">
+                     <string notr="true">font-size: 28px; font-weight: bold; color: #2c3e50;</string>
+                    </property>
+                    <property name="text">
+                     <string>📦 Equipment Statistics Dashboard</string>
+                    </property>
+                   </widget>
+                  </item>
                   <item>
                    <widget class="QFrame" name="equipmentStatsFrame">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
                     <layout class="QGridLayout" name="equipmentStatsGridLayout">
+                     <property name="leftMargin">
+                      <number>10</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>10</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>10</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>10</number>
+                     </property>
+                     <property name="spacing">
+                      <number>12</number>
+                     </property>
                      <item row="0" column="0">
                       <widget class="QFrame" name="totalEquipmentCard">
+                       <property name="minimumSize">
+                        <size>
+                         <width>200</width>
+                         <height>140</height>
+                        </size>
+                       </property>
                        <property name="styleSheet">
-                        <string notr="true">background-color: white; border: 1px solid #e0e4e7; border-radius: 12px; padding: 20px;</string>
+                        <string notr="true">QFrame { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 12px; padding: 20px; color: white; } QLabel { color: white; }</string>
                        </property>
                        <layout class="QVBoxLayout" name="totalEquipmentLayout">
+                        <property name="spacing">
+                         <number>10</number>
+                        </property>
+                        <item>
+                         <widget class="QLabel" name="totalEquipmentIcon">
+                          <property name="styleSheet">
+                           <string notr="true">font-size: 32px; color: white;</string>
+                          </property>
+                          <property name="text">
+                           <string>📦</string>
+                          </property>
+                         </widget>
+                        </item>
                         <item>
                          <widget class="QLabel" name="totalEquipmentTitle">
                           <property name="styleSheet">
-                           <string notr="true">font-size: 16px; color: #7f8c8d; font-weight: 600;</string>
+                           <string notr="true">font-size: 14px; color: rgba(255, 255, 255, 0.85); font-weight: 500;</string>
                           </property>
                           <property name="text">
                            <string>Total Equipment</string>
@@ -2395,7 +2593,7 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
                         <item>
                          <widget class="QLabel" name="totalEquipmentNumber">
                           <property name="styleSheet">
-                           <string notr="true">font-size: 36px; font-weight: bold; color: #16a5b3;</string>
+                           <string notr="true">font-size: 38px; font-weight: bold; color: white;</string>
                           </property>
                           <property name="text">
                            <string>245</string>
@@ -2407,14 +2605,33 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
                      </item>
                      <item row="0" column="1">
                       <widget class="QFrame" name="availableEquipmentCard">
+                       <property name="minimumSize">
+                        <size>
+                         <width>200</width>
+                         <height>140</height>
+                        </size>
+                       </property>
                        <property name="styleSheet">
-                        <string notr="true">background-color: white; border: 1px solid #e0e4e7; border-radius: 12px; padding: 20px;</string>
+                        <string notr="true">QFrame { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); border: none; border-radius: 12px; padding: 20px; } QLabel { color: white; }</string>
                        </property>
                        <layout class="QVBoxLayout" name="availableEquipmentLayout">
+                        <property name="spacing">
+                         <number>10</number>
+                        </property>
+                        <item>
+                         <widget class="QLabel" name="availableEquipmentIcon">
+                          <property name="styleSheet">
+                           <string notr="true">font-size: 32px; color: white;</string>
+                          </property>
+                          <property name="text">
+                           <string>✅</string>
+                          </property>
+                         </widget>
+                        </item>
                         <item>
                          <widget class="QLabel" name="availableEquipmentTitle">
                           <property name="styleSheet">
-                           <string notr="true">font-size: 16px; color: #7f8c8d; font-weight: 600;</string>
+                           <string notr="true">font-size: 14px; color: rgba(255, 255, 255, 0.85); font-weight: 500;</string>
                           </property>
                           <property name="text">
                            <string>Available</string>
@@ -2424,7 +2641,7 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
                         <item>
                          <widget class="QLabel" name="availableEquipmentNumber">
                           <property name="styleSheet">
-                           <string notr="true">font-size: 36px; font-weight: bold; color: #27ae60;</string>
+                           <string notr="true">font-size: 38px; font-weight: bold; color: white;</string>
                           </property>
                           <property name="text">
                            <string>198</string>
@@ -2436,14 +2653,33 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
                      </item>
                      <item row="0" column="2">
                       <widget class="QFrame" name="maintenanceEquipmentCard">
+                       <property name="minimumSize">
+                        <size>
+                         <width>200</width>
+                         <height>140</height>
+                        </size>
+                       </property>
                        <property name="styleSheet">
-                        <string notr="true">background-color: white; border: 1px solid #e0e4e7; border-radius: 12px; padding: 20px;</string>
+                        <string notr="true">QFrame { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border: none; border-radius: 12px; padding: 20px; } QLabel { color: white; }</string>
                        </property>
                        <layout class="QVBoxLayout" name="maintenanceEquipmentLayout">
+                        <property name="spacing">
+                         <number>10</number>
+                        </property>
+                        <item>
+                         <widget class="QLabel" name="maintenanceEquipmentIcon">
+                          <property name="styleSheet">
+                           <string notr="true">font-size: 32px; color: white;</string>
+                          </property>
+                          <property name="text">
+                           <string>🔧</string>
+                          </property>
+                         </widget>
+                        </item>
                         <item>
                          <widget class="QLabel" name="maintenanceEquipmentTitle">
                           <property name="styleSheet">
-                           <string notr="true">font-size: 16px; color: #7f8c8d; font-weight: 600;</string>
+                           <string notr="true">font-size: 14px; color: rgba(255, 255, 255, 0.85); font-weight: 500;</string>
                           </property>
                           <property name="text">
                            <string>Under Maintenance</string>
@@ -2453,7 +2689,7 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
                         <item>
                          <widget class="QLabel" name="maintenanceEquipmentNumber">
                           <property name="styleSheet">
-                           <string notr="true">font-size: 36px; font-weight: bold; color: #e67e22;</string>
+                           <string notr="true">font-size: 38px; font-weight: bold; color: white;</string>
                           </property>
                           <property name="text">
                            <string>12</string>
@@ -2463,16 +2699,97 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
                        </layout>
                       </widget>
                      </item>
-                     <item row="1" column="0" colspan="3">
+                     <item row="0" column="3">
+                      <widget class="QFrame" name="outOfOrderCard">
+                       <property name="minimumSize">
+                        <size>
+                         <width>200</width>
+                         <height>140</height>
+                        </size>
+                       </property>
+                       <property name="styleSheet">
+                        <string notr="true">QFrame { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); border: none; border-radius: 12px; padding: 20px; } QLabel { color: white; }</string>
+                       </property>
+                       <layout class="QVBoxLayout" name="outOfOrderLayout">
+                        <property name="spacing">
+                         <number>10</number>
+                        </property>
+                        <item>
+                         <widget class="QLabel" name="outOfOrderIcon">
+                          <property name="styleSheet">
+                           <string notr="true">font-size: 32px; color: white;</string>
+                          </property>
+                          <property name="text">
+                           <string>❌</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLabel" name="outOfOrderTitle">
+                          <property name="styleSheet">
+                           <string notr="true">font-size: 14px; color: rgba(255, 255, 255, 0.85); font-weight: 500;</string>
+                          </property>
+                          <property name="text">
+                           <string>Out of Order</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QLabel" name="outOfOrderNumber">
+                          <property name="styleSheet">
+                           <string notr="true">font-size: 38px; font-weight: bold; color: white;</string>
+                          </property>
+                          <property name="text">
+                           <string>0</string>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item row="1" column="0" colspan="2">
+                      <widget class="QFrame" name="equipmentChartFrame">
+                       <property name="minimumSize">
+                        <size>
+                         <width>0</width>
+                         <height>380</height>
+                        </size>
+                       </property>
+                       <property name="styleSheet">
+                        <string notr="true">background-color: white; border: 1px solid #e0e4e7; border-radius: 12px; padding: 15px;</string>
+                       </property>
+                       <layout class="QVBoxLayout" name="equipmentChartLayout">
+                        <property name="spacing">
+                         <number>0</number>
+                        </property>
+                        <property name="leftMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="topMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="rightMargin">
+                         <number>0</number>
+                        </property>
+                        <property name="bottomMargin">
+                         <number>0</number>
+                        </property>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item row="1" column="2" colspan="2">
                       <widget class="QFrame" name="equipmentCategoryStatsFrame">
                        <property name="styleSheet">
-                        <string notr="true">background-color: white; border: 1px solid #e0e4e7; border-radius: 12px;</string>
+                        <string notr="true">background-color: white; border: 1px solid #e0e4e7; border-radius: 12px; padding: 15px;</string>
                        </property>
                        <layout class="QVBoxLayout" name="equipmentCategoryStatsLayout">
+                        <property name="spacing">
+                         <number>8</number>
+                        </property>
                         <item>
                          <widget class="QLabel" name="equipmentCategoryStatsTitle">
                           <property name="styleSheet">
-                           <string notr="true">font-size: 18px; font-weight: bold; color: #2c3e50; margin: 10px;</string>
+                           <string notr="true">font-size: 16px; font-weight: bold; color: #2c3e50;</string>
                           </property>
                           <property name="text">
                            <string>📊 Equipment by Category</string>
@@ -2481,8 +2798,14 @@ Advanced audit logging system with dashboard, filters, and analytics</string>
                         </item>
                         <item>
                          <widget class="QTableWidget" name="equipmentCategoryStatsTable">
+                          <property name="styleSheet">
+                           <string notr="true">QTableWidget { border: none; } QHeaderView::section { background-color: #f8f9fa; border: none; padding: 8px; font-weight: bold; color: #2c3e50; } QTableWidget::item { padding: 8px; border-bottom: 1px solid #e9ecef; }</string>
+                          </property>
                           <property name="alternatingRowColors">
                            <bool>true</bool>
+                          </property>
+                          <property name="selectionBehavior">
+                           <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
                           </property>
                           <column>
                            <property name="text">
@@ -2624,8 +2947,7 @@ QComboBox QAbstractItemView {
     border-radius: 6px;
     padding: 4px;
     selection-background-color: rgba(22, 165, 179, 0.15);
-}
-                        </string>
+}</string>
                        </property>
                        <item>
                         <property name="text">
@@ -3289,12 +3611,290 @@ Shows activities by date with visual indicators, filters, and detailed views</st
                   </item>
                  </layout>
                 </widget>
-               </widget>
+            <widget class="QWidget" name="equipmentReservationTab">
+             <attribute name="title">
+              <string> Equipment Reservation</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="equipmentReservationLayout">
+              <property name="spacing">
+              <number>20</number>
+              </property>
+              <property name="leftMargin">
+              <number>12</number>
+              </property>
+              <property name="topMargin">
+              <number>12</number>
+              </property>
+              <property name="rightMargin">
+              <number>12</number>
+              </property>
+              <property name="bottomMargin">
+              <number>12</number>
+              </property>
+              <item>
+              <widget class="QGroupBox" name="availableEquipmentGroupBox">
+               <property name="title">
+                <string>Available Equipment for [Selected Date]</string>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QGroupBox { background-color: rgba(22, 165, 179, 0.05); border: 2px solid #16a5b3; border-radius: 12px; margin-top: 12px; }</string>
+               </property>
+               <layout class="QVBoxLayout" name="availableEquipmentLayout">
+                <property name="spacing">
+                <number>12</number>
+                </property>
+                <property name="leftMargin">
+                <number>16</number>
+                </property>
+                <property name="topMargin">
+                <number>16</number>
+                </property>
+                <property name="rightMargin">
+                <number>16</number>
+                </property>
+                <property name="bottomMargin">
+                <number>16</number>
+                </property>
+                <item>
+                <widget class="QTableWidget" name="availableEquipmentTable">
+                 <property name="alternatingRowColors">
+                  <bool>true</bool>
+                 </property>
+                 <property name="selectionBehavior">
+                  <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+                 </property>
+                 <column>
+                  <property name="text">
+                  <string>Select</string>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                  <string>Equipment Name</string>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                  <string>Category</string>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                  <string>Available Qty</string>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                  <string>Reserve Qty</string>
+                  </property>
+                 </column>
+                </widget>
+                </item>
+                <item>
+                <layout class="QHBoxLayout" name="reserveQuantityControlLayout">
+                 <property name="spacing">
+                  <number>8</number>
+                 </property>
+                 <item>
+                  <widget class="QLabel" name="reserveQuantityLabel">
+                  <property name="styleSheet">
+                   <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                  </property>
+                  <property name="text">
+                   <string>Reserve quantity for selected equipment:</string>
+                  </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="reserveQuantitySpinBox">
+                  <property name="minimum">
+                   <number>1</number>
+                  </property>
+                  <property name="maximum">
+                   <number>999</number>
+                  </property>
+                  <property name="value">
+                   <number>1</number>
+                  </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="reserveQuantityHelperLabel">
+                  <property name="styleSheet">
+                   <string notr="true">color: #7f8c8d;</string>
+                  </property>
+                  <property name="text">
+                   <string>Use the spin box to ensure quantities stay within availability.</string>
+                  </property>
+                  </widget>
+                 </item>
+                </layout>
+                </item>
+                <item>
+                <layout class="QHBoxLayout" name="availableEquipmentButtonsLayout">
+                 <property name="spacing">
+                  <number>10</number>
+                 </property>
+                 <item>
+                  <widget class="QPushButton" name="refreshEquipmentButton">
+                  <property name="minimumSize">
+                   <size>
+                    <width>180</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Refresh Available Equipment</string>
+                  </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="addToReservationButton">
+                  <property name="minimumSize">
+                   <size>
+                    <width>200</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Add Selected to Reservation</string>
+                  </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="availableEquipmentButtonsSpacer">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                  </spacer>
+                 </item>
+                </layout>
+                </item>
+               </layout>
+              </widget>
+              </item>
+              <item>
+              <widget class="QGroupBox" name="reservedEquipmentGroupBox">
+               <property name="title">
+                <string>Reserved Equipment</string>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">QGroupBox { background-color: rgba(44, 62, 80, 0.04); border: 2px solid #2c3e50; border-radius: 12px; margin-top: 12px; }</string>
+               </property>
+               <layout class="QVBoxLayout" name="reservedEquipmentLayout">
+                <property name="spacing">
+                <number>12</number>
+                </property>
+                <property name="leftMargin">
+                <number>16</number>
+                </property>
+                <property name="topMargin">
+                <number>16</number>
+                </property>
+                <property name="rightMargin">
+                <number>16</number>
+                </property>
+                <property name="bottomMargin">
+                <number>16</number>
+                </property>
+                <item>
+                <widget class="QTableWidget" name="reservedEquipmentTable">
+                 <property name="alternatingRowColors">
+                  <bool>true</bool>
+                 </property>
+                 <property name="selectionBehavior">
+                  <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+                 </property>
+                 <column>
+                  <property name="text">
+                  <string>Equipment Name</string>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                  <string>Reserved Qty</string>
+                  </property>
+                 </column>
+                 <column>
+                  <property name="text">
+                  <string>Actions</string>
+                  </property>
+                 </column>
+                </widget>
+                </item>
+                <item>
+                <widget class="QLabel" name="reservedTotalLabel">
+                 <property name="styleSheet">
+                  <string notr="true">font-weight: 600; color: #2c3e50;</string>
+                 </property>
+                 <property name="text">
+                  <string>Total Reserved Items: 0</string>
+                 </property>
+                </widget>
+                </item>
+                <item>
+                <layout class="QHBoxLayout" name="reservedEquipmentButtonsLayout">
+                 <property name="spacing">
+                  <number>10</number>
+                 </property>
+                 <item>
+                  <widget class="QPushButton" name="confirmReservationButton">
+                  <property name="minimumSize">
+                   <size>
+                    <width>160</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Confirm Reservation</string>
+                  </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="clearReservationButton">
+                  <property name="minimumSize">
+                   <size>
+                    <width>120</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Clear All</string>
+                  </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="reservedEquipmentButtonsSpacer">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                  </spacer>
+                 </item>
+                </layout>
+                </item>
+               </layout>
+              </widget>
               </item>
              </layout>
             </widget>
-            <widget class="QWidget" name="paymentsPage">
-             <layout class="QVBoxLayout" name="paymentsPageLayout">
+            </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="paymentsPage">
+           <layout class="QVBoxLayout" name="paymentsPageLayout">
               <item>
                <widget class="QTabWidget" name="paymentTabWidget">
                 <property name="currentIndex">
@@ -3941,7 +4541,7 @@ Shows activities by date with visual indicators, filters, and detailed views</st
                             <string notr="true">font-size: 18px; font-weight: bold; color: #2c3e50;</string>
                            </property>
                            <property name="text">
-                            <string>Payment Method Distribution</string>
+                            <string>💳 Payment Method Distribution</string>
                            </property>
                            <property name="alignment">
                             <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -3949,39 +4549,33 @@ Shows activities by date with visual indicators, filters, and detailed views</st
                           </widget>
                          </item>
                          <item>
-                          <widget class="QTableWidget" name="paymentMethodStatsTable">
-                           <property name="maximumSize">
+                          <widget class="QFrame" name="paymentMethodChartFrame">
+                           <property name="minimumSize">
                             <size>
-                             <width>16777215</width>
-                             <height>200</height>
+                             <width>0</width>
+                             <height>350</height>
                             </size>
                            </property>
-                           <property name="alternatingRowColors">
-                            <bool>true</bool>
+                           <property name="styleSheet">
+                            <string notr="true">background-color: white; border: 1px solid #e0e4e7; border-radius: 12px;</string>
                            </property>
-                           <property name="selectionBehavior">
-                            <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
-                           </property>
-                           <column>
-                            <property name="text">
-                             <string>Payment Method</string>
+                           <layout class="QVBoxLayout" name="paymentMethodChartLayout">
+                            <property name="spacing">
+                             <number>0</number>
                             </property>
-                           </column>
-                           <column>
-                            <property name="text">
-                             <string>Total Transactions</string>
+                            <property name="leftMargin">
+                             <number>0</number>
                             </property>
-                           </column>
-                           <column>
-                            <property name="text">
-                             <string>Total Amount</string>
+                            <property name="topMargin">
+                             <number>0</number>
                             </property>
-                           </column>
-                           <column>
-                            <property name="text">
-                             <string>Percentage</string>
+                            <property name="rightMargin">
+                             <number>0</number>
                             </property>
-                           </column>
+                            <property name="bottomMargin">
+                             <number>0</number>
+                            </property>
+                           </layout>
                           </widget>
                          </item>
                         </layout>
@@ -4017,7 +4611,7 @@ Shows activities by date with visual indicators, filters, and detailed views</st
                             <string notr="true">font-size: 18px; font-weight: bold; color: #2c3e50;</string>
                            </property>
                            <property name="text">
-                            <string>Recent Transactions (Last 10)</string>
+                            <string>💰 Income vs Expenses</string>
                            </property>
                            <property name="alignment">
                             <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -4025,44 +4619,33 @@ Shows activities by date with visual indicators, filters, and detailed views</st
                           </widget>
                          </item>
                          <item>
-                          <widget class="QTableWidget" name="recentPaymentsTable">
-                           <property name="maximumSize">
+                          <widget class="QFrame" name="incomeExpenseChartFrame">
+                           <property name="minimumSize">
                             <size>
-                             <width>16777215</width>
-                             <height>300</height>
+                             <width>0</width>
+                             <height>350</height>
                             </size>
                            </property>
-                           <property name="alternatingRowColors">
-                            <bool>true</bool>
+                           <property name="styleSheet">
+                            <string notr="true">background-color: white; border: 1px solid #e0e4e7; border-radius: 12px;</string>
                            </property>
-                           <property name="selectionBehavior">
-                            <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
-                           </property>
-                           <column>
-                            <property name="text">
-                             <string>Date</string>
+                           <layout class="QVBoxLayout" name="incomeExpenseChartLayout">
+                            <property name="spacing">
+                             <number>0</number>
                             </property>
-                           </column>
-                           <column>
-                            <property name="text">
-                             <string>Description</string>
+                            <property name="leftMargin">
+                             <number>0</number>
                             </property>
-                           </column>
-                           <column>
-                            <property name="text">
-                             <string>Type</string>
+                            <property name="topMargin">
+                             <number>0</number>
                             </property>
-                           </column>
-                           <column>
-                            <property name="text">
-                             <string>Amount</string>
+                            <property name="rightMargin">
+                             <number>0</number>
                             </property>
-                           </column>
-                           <column>
-                            <property name="text">
-                             <string>Status</string>
+                            <property name="bottomMargin">
+                             <number>0</number>
                             </property>
-                           </column>
+                           </layout>
                           </widget>
                          </item>
                         </layout>

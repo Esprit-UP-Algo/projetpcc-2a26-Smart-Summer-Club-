@@ -21,6 +21,7 @@
 #include <QHeaderView>
 #include <QFileInfo>
 #include <QRegularExpression>
+#include <QMap>
 
 // Forward declaration
 namespace Ui {
@@ -112,6 +113,23 @@ public:
     void onFilterByType();
     void onFilterByStatus();
     void onToggleResponsibleInput();
+    
+    // ======================================================================
+    // EQUIPMENT RESERVATION METHODS
+    // ======================================================================
+    void setupEquipmentReservation();
+    void setupAvailableEquipmentTable();
+    void setupReservedEquipmentTable();
+    void refreshAvailableEquipment();
+    void onReserveQuantityChanged(int value);
+    QSqlQueryModel* getAvailableEquipment(const QDate& date);
+    void addSelectedToReservation();
+    void addToReservedTable(int equipmentId, const QString& name, int quantity);
+    void updateReservedTotal();
+    void confirmEquipmentReservation();
+    bool reserveEquipment(int equipmentId, int quantity, int activityId);
+    QString getReservedEquipmentSummary(int activityId) const;
+    void clearReservation();
 
 private:
     // Activity attributes matching ACTIVITIES table structure
@@ -131,6 +149,8 @@ private:
     int editingId;
     bool useEmployeeComboBox; // Track which input mode is active
     bool sortAscending;  // Track sort order for arrow indicators
+    int currentActivityId;  // Track current activity being edited for reservations
+    QMap<int, int> reservedEquipment;  // Equipment ID -> Quantity mapping for current reservation
     
     // Helper validation methods
     bool validerResponsible(const QString &name) const;  // Validate responsible person name

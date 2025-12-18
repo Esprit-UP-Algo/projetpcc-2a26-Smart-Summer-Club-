@@ -31,6 +31,7 @@ public:
     void setupEquipmentTable();
     void loadEquipmentTable();
     void clearForm();
+    void populateEquipmentStatistics(); // Populate statistics cards, tables, and charts with real database data
 
 private:
     Ui::EmployerAdmin *ui;
@@ -50,6 +51,7 @@ public slots:
     void onConfirmAdd();
     void onConfirmUpdate();
     void onSearchEquipment();
+    void onRefreshEquipment();
     void onSortEquipment();
     void onExportEquipment();
     void onTableRowClicked(int row, int column);

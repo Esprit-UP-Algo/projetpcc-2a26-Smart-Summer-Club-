@@ -1,0 +1,14 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Qt Build Advanced_Arduino",
+			"type": "shell",
+			"command": "cd \"c:\\Users\\yassi\\OneDrive\\Bureau\\send to khalil\\Advanced_Arduino\" && qmake employer_adminstrator.pro && mingw32-make",
+			"problemMatcher": [
+				"$msCompile"
+			],
+			"group": "build"
+		}
+	]
+}

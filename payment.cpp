@@ -13,6 +13,12 @@
 #include <QSqlDatabase>
 #include <QHBoxLayout>
 #include <QPushButton>
+#include <QtCharts/QChart>
+#include <QtCharts/QChartView>
+#include <QtCharts/QPieSeries>
+#include <QtCharts/QPieSlice>
+#include <QVBoxLayout>
+#include <QLabel>
 #include <QBrush>
 #include <QColor>
 #include <QTextDocument>
@@ -759,8 +765,8 @@ void Payment::populatePaymentStatistics()
         ui->netBalanceValue->setStyleSheet("font-size: 20px; font-weight: bold; color: #e74c3c;");
     }
 
-    // Populate payment method statistics
-    QTableWidget* methodStatsTable = ui->paymentMethodStatsTable;
+    // ===== PAYMENT METHOD PIE CHART =====
+    // Collect payment method statistics
     QMap<QString, QPair<int, double>> methodStats; // method -> (count, total amount)
 
     for (int i = 0; i < paymentTable->rowCount(); ++i) {
@@ -779,59 +785,145 @@ void Payment::populatePaymentStatistics()
         }
     }
 
-    methodStatsTable->setRowCount(methodStats.size());
-    int row = 0;
     double totalAmount = totalIncome + totalExpense;
+    if (methodStats.size() > 0 && totalAmount > 0) {
+        // Create pie series for payment methods
+        QPieSeries *methodSeries = new QPieSeries();
+        QMap<QString, QColor> methodColors;
+        methodColors["Cash"] = QColor(52, 152, 219);      // Blue
+        methodColors["Credit Card"] = QColor(46, 204, 113);  // Green
+        methodColors["Debit Card"] = QColor(241, 196, 15);   // Yellow
+        methodColors["Bank Transfer"] = QColor(155, 89, 182); // Purple
+        methodColors["Check"] = QColor(230, 126, 34);        // Orange
+        methodColors["Other"] = QColor(149, 165, 166);       // Gray
 
-    for (auto it = methodStats.begin(); it != methodStats.end(); ++it) {
-        QString method = it.key();
-        int count = it.value().first;
-        double amount = it.value().second;
-        double percentage = (totalAmount > 0) ? (amount / totalAmount) * 100.0 : 0.0;
+        for (auto it = methodStats.begin(); it != methodStats.end(); ++it) {
+            QString method = it.key();
+            double amount = it.value().second;
+            
+            QPieSlice *slice = methodSeries->append(method, amount);
+            slice->setBrush(methodColors.value(method, QColor(52, 73, 94)));
+            slice->setLabelVisible(true);
+            slice->setLabel(QString("%1\n$%2").arg(method).arg(amount, 0, 'f', 2));
+            slice->setLabelColor(QColor(44, 62, 80));
+        }
 
-        methodStatsTable->setItem(row, 0, new QTableWidgetItem(method));
-        methodStatsTable->setItem(row, 1, new QTableWidgetItem(QString::number(count)));
-        methodStatsTable->setItem(row, 2, new QTableWidgetItem(QString("$%1").arg(amount, 0, 'f', 2)));
-        methodStatsTable->setItem(row, 3, new QTableWidgetItem(QString("%1%").arg(percentage, 0, 'f', 1)));
+        // Find and highlight largest slice
+        QPieSlice *largestSlice = nullptr;
+        double maxVal = -1;
+        for (auto slice : methodSeries->slices()) {
+            if (slice->value() > maxVal) {
+                maxVal = slice->value();
+                largestSlice = slice;
+            }
+        }
+        if (largestSlice) {
+            largestSlice->setExploded(true);
+            largestSlice->setPen(QPen(Qt::darkGray, 2));
+        }
 
-        row++;
+        // Create chart for payment methods
+        QChart *methodChart = new QChart();
+        methodChart->addSeries(methodSeries);
+        methodChart->setTitle("Payment Method Breakdown");
+        methodChart->setTitleFont(QFont("Segoe UI", 11, QFont::Bold));
+        methodChart->setTitleBrush(QBrush(QColor(44, 62, 80)));
+        methodChart->setAnimationOptions(QChart::SeriesAnimations);
+        methodChart->setBackgroundVisible(false);
+
+        methodChart->legend()->setVisible(true);
+        methodChart->legend()->setAlignment(Qt::AlignRight);
+        methodChart->legend()->setFont(QFont("Segoe UI", 9));
+
+        // Create and configure chart view
+        QChartView *methodChartView = new QChartView(methodChart);
+        methodChartView->setRenderHint(QPainter::Antialiasing);
+        methodChartView->setFrameShape(QFrame::NoFrame);
+        methodChartView->setStyleSheet("background: transparent;");
+        methodChartView->setMinimumSize(400, 300);
+        methodChartView->setMaximumSize(800, 400);
+
+        // Add to layout
+        QVBoxLayout *methodLayout = qobject_cast<QVBoxLayout*>(ui->paymentMethodChartFrame->layout());
+        if (!methodLayout) {
+            methodLayout = new QVBoxLayout(ui->paymentMethodChartFrame);
+            methodLayout->setContentsMargins(10, 10, 10, 10);
+            methodLayout->setSpacing(0);
+        }
+        
+        // Clear existing widgets
+        while (methodLayout->count() > 0) {
+            QLayoutItem *item = methodLayout->takeAt(0);
+            if (item->widget()) item->widget()->deleteLater();
+            delete item;
+        }
+        
+        methodLayout->addWidget(methodChartView);
     }
 
-    // Populate recent payments table (last 10 transactions)
-    QTableWidget* recentTable = ui->recentPaymentsTable;
-    int recentCount = qMin(10, paymentTable->rowCount());
-    recentTable->setRowCount(recentCount);
+    // ===== INCOME VS EXPENSE PIE CHART =====
+    if (totalIncome > 0 || totalExpense > 0) {
+        QPieSeries *incomeExpenseSeries = new QPieSeries();
 
-    for (int i = 0; i < recentCount; ++i) {
-        // Copy data from main payment table (most recent first)
-        int sourceRow = paymentTable->rowCount() - 1 - i;
+        QPieSlice *incomeSlice = incomeExpenseSeries->append("Income", totalIncome);
+        QPieSlice *expenseSlice = incomeExpenseSeries->append("Expenses", totalExpense);
 
-        recentTable->setItem(i, 0, new QTableWidgetItem(paymentTable->item(sourceRow, 1)->text())); // Date
-        recentTable->setItem(i, 1, new QTableWidgetItem(paymentTable->item(sourceRow, 2)->text())); // Description
-        recentTable->setItem(i, 2, new QTableWidgetItem(paymentTable->item(sourceRow, 3)->text())); // Type
+        incomeSlice->setBrush(QColor(46, 204, 113));  // Green
+        incomeSlice->setLabelVisible(true);
+        incomeSlice->setLabel(QString("Income\n$%1").arg(totalIncome, 0, 'f', 2));
+        incomeSlice->setLabelColor(QColor(44, 62, 80));
 
-        // Amount with color coding
-        QTableWidgetItem* amountItem = new QTableWidgetItem(paymentTable->item(sourceRow, 4)->text());
-        QString type = paymentTable->item(sourceRow, 3)->text();
-        if (type == "Income") {
-            amountItem->setForeground(QBrush(QColor("#2ecc71")));
+        expenseSlice->setBrush(QColor(231, 76, 60));  // Red
+        expenseSlice->setLabelVisible(true);
+        expenseSlice->setLabel(QString("Expenses\n$%1").arg(totalExpense, 0, 'f', 2));
+        expenseSlice->setLabelColor(QColor(44, 62, 80));
+
+        // Explode larger slice
+        if (totalIncome > totalExpense) {
+            incomeSlice->setExploded(true);
+            incomeSlice->setPen(QPen(Qt::darkGray, 2));
         } else {
-            amountItem->setForeground(QBrush(QColor("#e74c3c")));
+            expenseSlice->setExploded(true);
+            expenseSlice->setPen(QPen(Qt::darkGray, 2));
         }
-        amountItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        recentTable->setItem(i, 3, amountItem);
 
-        // Status with color coding
-        QTableWidgetItem* statusItem = new QTableWidgetItem(paymentTable->item(sourceRow, 6)->text());
-        QString status = paymentTable->item(sourceRow, 6)->text();
-        if (status == "Completed") {
-            statusItem->setForeground(QBrush(QColor("#2ecc71")));
-        } else if (status == "Pending") {
-            statusItem->setForeground(QBrush(QColor("#f39c12")));
-        } else if (status == "Failed") {
-            statusItem->setForeground(QBrush(QColor("#e74c3c")));
+        // Create chart
+        QChart *incomeExpenseChart = new QChart();
+        incomeExpenseChart->addSeries(incomeExpenseSeries);
+        incomeExpenseChart->setTitle("Income vs Expenses Breakdown");
+        incomeExpenseChart->setTitleFont(QFont("Segoe UI", 11, QFont::Bold));
+        incomeExpenseChart->setTitleBrush(QBrush(QColor(44, 62, 80)));
+        incomeExpenseChart->setAnimationOptions(QChart::SeriesAnimations);
+        incomeExpenseChart->setBackgroundVisible(false);
+
+        incomeExpenseChart->legend()->setVisible(true);
+        incomeExpenseChart->legend()->setAlignment(Qt::AlignRight);
+        incomeExpenseChart->legend()->setFont(QFont("Segoe UI", 9));
+
+        // Create chart view
+        QChartView *incomeExpenseChartView = new QChartView(incomeExpenseChart);
+        incomeExpenseChartView->setRenderHint(QPainter::Antialiasing);
+        incomeExpenseChartView->setFrameShape(QFrame::NoFrame);
+        incomeExpenseChartView->setStyleSheet("background: transparent;");
+        incomeExpenseChartView->setMinimumSize(400, 300);
+        incomeExpenseChartView->setMaximumSize(800, 400);
+
+        // Add to layout
+        QVBoxLayout *ieLayout = qobject_cast<QVBoxLayout*>(ui->incomeExpenseChartFrame->layout());
+        if (!ieLayout) {
+            ieLayout = new QVBoxLayout(ui->incomeExpenseChartFrame);
+            ieLayout->setContentsMargins(10, 10, 10, 10);
+            ieLayout->setSpacing(0);
         }
-        recentTable->setItem(i, 4, statusItem);
+        
+        // Clear existing widgets
+        while (ieLayout->count() > 0) {
+            QLayoutItem *item = ieLayout->takeAt(0);
+            if (item->widget()) item->widget()->deleteLater();
+            delete item;
+        }
+        
+        ieLayout->addWidget(incomeExpenseChartView);
     }
 }
 

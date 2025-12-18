@@ -13,6 +13,19 @@
 #include <QDebug>
 #include <QJsonObject>
 #include <QJsonDocument>
+#include <QtCharts/QChart>
+#include <QtCharts/QChartView>
+#include <QtCharts/QPieSeries>
+#include <QtCharts/QPieSlice>
+#include <QtCharts/QBarSeries>
+#include <QtCharts/QBarSet>
+#include <QtCharts/QBarCategoryAxis>
+#include <QtCharts/QValueAxis>
+#include <QtCharts/QStackedBarSeries>
+#include <QPainter>
+#include <QVBoxLayout>
+#include <QLabel>
+#include <QSqlDatabase>
 
 Equipment::Equipment(Ui::EmployerAdmin *ui, QWidget *parent)
     : QObject(parent)
@@ -49,10 +62,25 @@ Equipment::Equipment(Ui::EmployerAdmin *ui, QWidget *parent)
             this, &Equipment::onConfirmUpdate);
     connect(ui->equipmentSearchButton, &QPushButton::clicked,
             this, &Equipment::onSearchEquipment);
+    connect(ui->equipmentSearchLineEdit, &QLineEdit::textChanged,
+            this, &Equipment::onSearchEquipment);
+    connect(ui->equipmentRefreshButton, &QPushButton::clicked,
+            this, &Equipment::onRefreshEquipment);
     connect(ui->equipmentSortButton, &QPushButton::clicked,
             this, &Equipment::onSortEquipment);
     connect(ui->equipmentExportButton, &QPushButton::clicked,
             this, &Equipment::onExportEquipment);
+
+    // Connect tab change to populate statistics when statistics tab is accessed
+    // Statistics tab is at index 2 (0=list, 1=add, 2=statistics)
+    if (ui->equipmentTabWidget) {
+        connect(ui->equipmentTabWidget, &QTabWidget::currentChanged,
+                this, [this](int index) {
+                    if (index == 2) { // Statistics tab index
+                        populateEquipmentStatistics();
+                    }
+                });
+    }
 
     qDebug() << "=== Equipment Constructor Completed ===";
 }
@@ -743,22 +771,62 @@ void Equipment::onSearchEquipment()
     qDebug() << "=== onSearchEquipment() Completed ===";
 }
 
+void Equipment::onRefreshEquipment()
+{
+    qDebug() << "=== Starting onRefreshEquipment() ===";
+    
+    // Clear search field
+    ui->equipmentSearchLineEdit->clear();
+    
+    // Reload all equipment from database
+    loadEquipmentTable();
+    
+    QMessageBox::information(parentWidget, "Refresh", "Equipment list refreshed successfully!");
+    
+    qDebug() << "=== onRefreshEquipment() Completed ===";
+}
+
 void Equipment::onSortEquipment()
 {
     qDebug() << "=== Starting onSortEquipment() ===";
 
-    // Toggle between ascending and descending
+    // Cycle through sort options: Name -> Type -> Status -> Quantity
+    static int sortColumn = 0; // 0=Name, 1=Type, 2=Total Qty, 4=Status
     static bool ascending = true;
-
-    if (ascending) {
-        ui->equipmentTable->sortByColumn(0, Qt::AscendingOrder);
-        qDebug() << "Sorting by Name (Ascending)";
-    } else {
-        ui->equipmentTable->sortByColumn(0, Qt::DescendingOrder);
-        qDebug() << "Sorting by Name (Descending)";
+    
+    QString sortOption;
+    
+    switch(sortColumn) {
+        case 0:
+            sortOption = "Name";
+            break;
+        case 1:
+            sortOption = "Type";
+            break;
+        case 2:
+            sortOption = "Quantity";
+            break;
+        case 4:
+            sortOption = "Status";
+            break;
     }
-
+    
+    ui->equipmentTable->sortByColumn(sortColumn, ascending ? Qt::AscendingOrder : Qt::DescendingOrder);
+    
+    QString direction = ascending ? "Ascending" : "Descending";
+    ui->equipmentSortButton->setText(QString("Sort by %1 (%2)").arg(sortOption).arg(direction.left(3)));
+    
+    qDebug() << "Sorting by" << sortOption << direction;
+    
+    // Toggle direction
     ascending = !ascending;
+    
+    // If we've done both ascending and descending, move to next column
+    if (ascending) {
+        sortColumn++;
+        if (sortColumn == 3) sortColumn = 4; // Skip Location column (index 3)
+        if (sortColumn > 4) sortColumn = 0; // Reset to Name
+    }
 
     qDebug() << "=== onSortEquipment() Completed ===";
 }
@@ -860,4 +928,252 @@ bool Equipment::codeExists(const QString &code)
     q.prepare("SELECT 1 FROM EQUIPEMENTS WHERE EQUIP_CODE=:c");
     q.bindValue(":c", code);
     return q.exec() && q.next();
+}
+void Equipment::populateEquipmentStatistics()
+{
+    qDebug() << "=== Starting populateEquipmentStatistics() ===";
+    
+    // Safety check: Ensure UI elements exist before accessing them
+    if (!ui || !ui->equipmentStatsFrame) {
+        qDebug() << "Warning: Statistics UI elements not available yet";
+        return;
+    }
+    
+    // Check if database connection is available
+    QSqlDatabase db = QSqlDatabase::database();
+    if (!db.isOpen()) {
+        qDebug() << "Warning: Database connection not available";
+        return;
+    }
+    
+    // Query total equipment count
+    QSqlQuery totalQuery;
+    int totalCount = 0;
+    if (totalQuery.exec("SELECT SUM(TOTAL_QUANTITY) FROM EQUIPEMENTS")) {
+        if (totalQuery.next()) {
+            totalCount = totalQuery.value(0).toInt();
+        }
+    } else {
+        qDebug() << "Error querying total equipment:" << totalQuery.lastError().text();
+    }
+    
+    // Query available equipment count
+    QSqlQuery availableQuery;
+    int availableCount = 0;
+    if (availableQuery.exec("SELECT SUM(NVL(QUANTITY_AVAILABLE, AVAILABLE)) FROM EQUIPEMENTS")) {
+        if (availableQuery.next()) {
+            availableCount = availableQuery.value(0).toInt();
+        }
+    } else {
+        qDebug() << "Error querying available equipment:" << availableQuery.lastError().text();
+    }
+    
+    // Query in-use/reserved equipment count
+    QSqlQuery inUseQuery;
+    int inUseCount = 0;
+    if (inUseQuery.exec("SELECT SUM(NVL(QUANTITY_RESERVED, IN_USE)) FROM EQUIPEMENTS")) {
+        if (inUseQuery.next()) {
+            inUseCount = inUseQuery.value(0).toInt();
+        }
+    } else {
+        qDebug() << "Error querying in-use equipment:" << inUseQuery.lastError().text();
+    }
+    
+    // Query maintenance equipment count
+    QSqlQuery maintenanceQuery;
+    int maintenanceCount = 0;
+    if (maintenanceQuery.exec("SELECT SUM(NVL(QUANTITY_MAINTENANCE, UNDER_MAINTENANCE)) FROM EQUIPEMENTS")) {
+        if (maintenanceQuery.next()) {
+            maintenanceCount = maintenanceQuery.value(0).toInt();
+        }
+    } else {
+        qDebug() << "Error querying maintenance equipment:" << maintenanceQuery.lastError().text();
+    }
+    
+    // Query out of order equipment count
+    QSqlQuery outOfOrderQuery;
+    int outOfOrderCount = 0;
+    if (outOfOrderQuery.exec("SELECT SUM(NVL(QUANTITY_OUT_OF_ORDER, 0)) FROM EQUIPEMENTS")) {
+        if (outOfOrderQuery.next()) {
+            outOfOrderCount = outOfOrderQuery.value(0).toInt();
+        }
+    } else {
+        qDebug() << "Error querying out of order equipment:" << outOfOrderQuery.lastError().text();
+    }
+    
+    qDebug() << "Statistics calculated - Total:" << totalCount << "Available:" << availableCount 
+             << "In Use:" << inUseCount << "Maintenance:" << maintenanceCount << "Out of Order:" << outOfOrderCount;
+    
+    // Update statistics cards with real data (check if labels exist)
+    if (ui->totalEquipmentNumber) {
+        ui->totalEquipmentNumber->setText(QString::number(totalCount));
+    }
+    if (ui->availableEquipmentNumber) {
+        ui->availableEquipmentNumber->setText(QString::number(availableCount));
+    }
+    if (ui->maintenanceEquipmentNumber) {
+        ui->maintenanceEquipmentNumber->setText(QString::number(maintenanceCount));
+    }
+    if (ui->outOfOrderNumber) {
+        ui->outOfOrderNumber->setText(QString::number(outOfOrderCount));
+    }
+    
+    // Query category distribution for the table
+    QSqlQuery categoryQuery;
+    categoryQuery.prepare(
+        "SELECT CATEGORY, "
+        "SUM(TOTAL_QUANTITY) as TOTAL, "
+        "SUM(NVL(QUANTITY_AVAILABLE, AVAILABLE)) as AVAILABLE, "
+        "SUM(NVL(QUANTITY_RESERVED, IN_USE)) as IN_USE, "
+        "SUM(NVL(QUANTITY_MAINTENANCE, UNDER_MAINTENANCE)) as MAINTENANCE "
+        "FROM EQUIPEMENTS "
+        "GROUP BY CATEGORY "
+        "ORDER BY CATEGORY"
+    );
+    
+    // Populate category table if it exists
+    if (ui->equipmentCategoryStatsTable) {
+        QTableWidget* categoryTable = ui->equipmentCategoryStatsTable;
+        categoryTable->setRowCount(0);
+        
+        if (categoryQuery.exec()) {
+            int row = 0;
+            while (categoryQuery.next()) {
+                QString category = categoryQuery.value(0).toString();
+                int total = categoryQuery.value(1).toInt();
+                int available = categoryQuery.value(2).toInt();
+                int inUse = categoryQuery.value(3).toInt();
+                int maintenance = categoryQuery.value(4).toInt();
+                
+                categoryTable->insertRow(row);
+                categoryTable->setItem(row, 0, new QTableWidgetItem(category));
+                categoryTable->setItem(row, 1, new QTableWidgetItem(QString::number(total)));
+                categoryTable->setItem(row, 2, new QTableWidgetItem(QString::number(available)));
+                categoryTable->setItem(row, 3, new QTableWidgetItem(QString::number(inUse)));
+                categoryTable->setItem(row, 4, new QTableWidgetItem(QString::number(maintenance)));
+                
+                row++;
+            }
+            categoryTable->resizeColumnsToContents();
+        } else {
+            qDebug() << "Error querying category distribution:" << categoryQuery.lastError().text();
+        }
+    } else {
+        qDebug() << "Warning: Category stats table not available, skipping table population";
+    }
+    
+    // Calculate percentages for charts
+    double totalForPercent = availableCount + inUseCount + maintenanceCount + outOfOrderCount;
+    double availablePercent = (totalForPercent > 0) ? (availableCount / totalForPercent) * 100.0 : 0.0;
+    double inUsePercent = (totalForPercent > 0) ? (inUseCount / totalForPercent) * 100.0 : 0.0;
+    double maintenancePercent = (totalForPercent > 0) ? (maintenanceCount / totalForPercent) * 100.0 : 0.0;
+    double outOfOrderPercent = (totalForPercent > 0) ? (outOfOrderCount / totalForPercent) * 100.0 : 0.0;
+    
+    qDebug() << "Percentages - Available:" << availablePercent << "% In Use:" << inUsePercent 
+             << "% Maintenance:" << maintenancePercent << "% Out of Order:" << outOfOrderPercent << "%";
+    
+    // --- PIE CHART CREATION ---
+    if (totalForPercent > 0) {
+        QPieSeries *series = new QPieSeries();
+
+        // Add slices
+        QPieSlice *sliceAvail = series->append("Available", availableCount);
+        QPieSlice *sliceReserved = series->append("Reserved", inUseCount);
+        QPieSlice *sliceMaint = series->append("Maintenance", maintenanceCount);
+        QPieSlice *sliceBroken = series->append("Out of Order", outOfOrderCount);
+
+        // Define colors matching the design system
+        QColor colorAvailable(40, 167, 69);   // Success Green
+        QColor colorReserved(255, 153, 0);    // Warning Orange
+        QColor colorMaintenance(220, 53, 69); // Danger Red
+        QColor colorBroken(220, 53, 69);      // Danger Red (same as Maintenance per table style)
+
+        // Customize slices
+        sliceAvail->setBrush(colorAvailable);
+        sliceAvail->setLabel(QString("Available: %1%").arg(QString::number(availablePercent, 'f', 1)));
+        sliceAvail->setLabelVisible(availableCount > 0);
+        sliceAvail->setLabelColor(QColor(44, 62, 80));
+
+        sliceReserved->setBrush(colorReserved);
+        sliceReserved->setLabel(QString("Reserved: %1%").arg(QString::number(inUsePercent, 'f', 1)));
+        sliceReserved->setLabelVisible(inUseCount > 0);
+        sliceReserved->setLabelColor(QColor(44, 62, 80));
+
+        sliceMaint->setBrush(colorMaintenance);
+        sliceMaint->setLabel(QString("Maintenance: %1%").arg(QString::number(maintenancePercent, 'f', 1)));
+        sliceMaint->setLabelVisible(maintenanceCount > 0);
+        sliceMaint->setLabelColor(QColor(44, 62, 80));
+
+        sliceBroken->setBrush(colorBroken);
+        sliceBroken->setLabel(QString("Out of Order: %1%").arg(QString::number(outOfOrderPercent, 'f', 1)));
+        sliceBroken->setLabelVisible(outOfOrderCount > 0);
+        sliceBroken->setLabelColor(QColor(44, 62, 80));
+
+        // Explode the largest slice for emphasis
+        QPieSlice *largestSlice = nullptr;
+        double maxVal = -1;
+        if (availableCount > maxVal) { maxVal = availableCount; largestSlice = sliceAvail; }
+        if (inUseCount > maxVal) { maxVal = inUseCount; largestSlice = sliceReserved; }
+        if (maintenanceCount > maxVal) { maxVal = maintenanceCount; largestSlice = sliceMaint; }
+        if (outOfOrderCount > maxVal) { maxVal = outOfOrderCount; largestSlice = sliceBroken; }
+        
+        if (largestSlice) {
+            largestSlice->setExploded(true);
+            largestSlice->setLabelVisible(true);
+            largestSlice->setPen(QPen(Qt::darkGray, 2));
+        }
+
+        // Create Chart
+        QChart *chart = new QChart();
+        chart->addSeries(series);
+        chart->setTitle("Equipment Status Breakdown");
+        chart->setTitleFont(QFont("Segoe UI", 12, QFont::Bold));
+        chart->setTitleBrush(QBrush(QColor(44, 62, 80)));
+        chart->setAnimationOptions(QChart::SeriesAnimations);
+        chart->setBackgroundVisible(false); // Transparent background
+
+        // Legend customization
+        chart->legend()->setVisible(true);
+        chart->legend()->setAlignment(Qt::AlignRight);
+        chart->legend()->setFont(QFont("Segoe UI", 9));
+        chart->legend()->setLabelColor(QColor(44, 62, 80));
+
+        // Create Chart View
+        QChartView *chartView = new QChartView(chart);
+        chartView->setRenderHint(QPainter::Antialiasing);
+        chartView->setFrameShape(QFrame::NoFrame);
+        chartView->setStyleSheet("background: transparent;");
+        
+        // Set size constraints to prevent chart from being too large
+        chartView->setMinimumSize(420, 360);
+        chartView->setMaximumSize(600, 480);
+
+        // Add to UI Frame - equipmentChartFrame
+        QVBoxLayout *chartLayout = qobject_cast<QVBoxLayout*>(ui->equipmentChartFrame->layout());
+        
+        if (!chartLayout) {
+            // Fallback: create new layout if somehow missing
+            chartLayout = new QVBoxLayout(ui->equipmentChartFrame);
+        }
+        
+        // Set proper margins and spacing
+        chartLayout->setContentsMargins(5, 5, 5, 5);
+        chartLayout->setSpacing(0);
+
+        // Remove any previous chart widgets
+        while (chartLayout->count() > 0) {
+            QLayoutItem *item = chartLayout->takeAt(0);
+            if (item->widget()) item->widget()->deleteLater();
+            delete item;
+        }
+
+        // Add chart to layout
+        chartLayout->addWidget(chartView);
+        
+        qDebug() << "Pie chart created and added to UI (bottom-right anchored)";
+    } else {
+        qDebug() << "No data for chart";
+    }
+    
+    qDebug() << "=== populateEquipmentStatistics() Completed ===";
 }
